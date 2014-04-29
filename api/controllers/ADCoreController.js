@@ -90,15 +90,24 @@ module.exports = {
 
 
     /**
-     * /session/login
+     * /site/login
      */
     login: function (req, res) {
-      // The 'authenticated' policy takes care of logging in the user. Any page
-      // visited will automatically direct the user to the CAS login screen.
-      // This is just a self-closing HTML page for the client side script to open
-      // in a frame or pop-up.
-      res.view({ layout: false });
-      return;
+
+        if (req.isJson) {
+
+            // is is from a service so respond with a success packet
+            ADCore.comm.success(res, {});
+
+        } else {
+
+            // The 'authenticated' policy takes care of logging in the user. Any page
+            // visited will automatically direct the user to the CAS login screen.
+            // This is just a self-closing HTML page for the client side script to open
+            // in a frame or pop-up.
+            res.view({ layout: false });
+        }
+        return;
     },
 
 
@@ -106,31 +115,30 @@ module.exports = {
     /**
      * /session/logout
      *
-     * This route should be exempt from the 'authenticated' policy
+     * This route should be exempt from the 'isAuthenticated' policy
      */
     logout: function (req,res) {
 
-      // Not authenticated. Assume this means we have just logged out.
-      if (!ADCore.auth.isAuthenticated(req)) {
-          if (req.query.close) {
-              // "close" was specified, so stop here with a self-closing HTML page
-              res.view({ layout: false });
-          }
-          else {
-              // redirect to the login page to allow another session to start
-              res.redirect('/site/login');
-          }
-      }
-      // Currently authenticated. Do logout now.
-      else {
-          var returnURL = url.format({
-              protocol: req.protocol || 'http',
-              host: req.headers.host,
-              pathname: '/site/logout',
-              query: req.query
-          });
-          CAS.logout(req, res, returnURL);
-      }
+        // Not authenticated. Assume this means we have just logged out.
+        if (!ADCore.auth.isAuthenticated(req)) {
+            if (req.query.close) {
+                // "close" was specified, so stop here with a self-closing HTML page
+                res.view({ layout: false });
+            } else {
+                // redirect to the login page to allow another session to start
+                res.redirect(sails.config.appdev.authURI); // '/site/login'
+            }
+        }
+        // Currently authenticated. Do logout now.
+        else {
+            var returnURL = url.format({
+                protocol: req.protocol || 'http',
+                host: req.headers.host,
+                pathname: '/site/logout',
+                query: req.query
+            });
+            CAS.logout(req, res, returnURL);
+        }
     },
 
 

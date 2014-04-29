@@ -9,10 +9,10 @@
 module.exports = {
 
   tableName:"site_multilingual_label",
-//  autoCreatedAt:false,
-//  autoUpdatedAt:false,
-//  autoPK:false,
-//  migrate:'safe',  // don't update the tables!
+  autoCreatedAt:false,
+  autoUpdatedAt:false,
+  autoPK:false,
+  migrate:'safe',  // don't update the tables!
 
 //  config:{
 //    database:'live_db',

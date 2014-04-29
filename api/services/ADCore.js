@@ -70,7 +70,7 @@ module.exports = {
             if (err.message) packet.message = err.message;
 
             // default to HTTP status code: 400
-            if ('undefined' == typeof code) code = 400; //AD.Const.HTTP.OK;  // 200: assume all is ok
+            if ('undefined' == typeof code) code = 400; 
 
             res.header('Content-type', 'application/json');
             res.send(JSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);

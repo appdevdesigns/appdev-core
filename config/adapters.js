@@ -15,7 +15,7 @@
 module.exports = {
 
 /*
-  mysql: {
+  test: {
     module: 'sails-mysql',
     host: 'YOUR_MYSQL_SERVER_HOSTNAME_OR_IP_ADDRESS',
     user: 'YOUR_MYSQL_USER',
