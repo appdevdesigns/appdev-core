@@ -33,6 +33,9 @@ module.exports = {
                 // process of authenticating them...
                 // handle both web service request & web page requests
 
+                // until this is implemented:
+                ADCore.auth.markAuthenticated(req);
+
                 next();
             }
         },
