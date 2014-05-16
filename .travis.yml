@@ -1,0 +1,20 @@
+language: node_js
+node_js:
+- "0.10"
+
+before_script:
+- npm install -g  mocha-phantomjs phantomjs sails
+- cd /tmp
+- git clone --branch=develop https://github.com/appdevdesigns/appdev-cli.git appdev-cli
+- cd appdev-cli
+- npm install
+- npm link
+- cd /tmp
+- /home/travis/build/appdevdesigns/appdev-client/test/setup/install.sh
+- cd /tmp/ad-test
+- npm install mocha chai
+- cd assets/appdev
+
+script:
+- npm test
+ 
