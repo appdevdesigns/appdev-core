@@ -24,7 +24,9 @@
   "dependencies": {
     "ad-utils": "git://github.com/appdevdesigns/ad-utils",
     "jquery-deferred": "^0.3.0",
-    "nodemailer": "^0.6.3",
+    "nodemailer": "^0.6.3"
+  },
+  "devDependencies": {
     "mocha": "^1.18.2",
     "chai": "^1.9.1",
     "phantomjs": "^1.9.7-5",
