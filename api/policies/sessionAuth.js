@@ -1,5 +1,5 @@
 /**
- * isAuthenticated
+ * sessionAuth.js
  *
  * @module      :: Policy
  * @description :: Simple policy to allow any authenticated user
@@ -10,6 +10,7 @@
 module.exports = function(req, res, next) {
 
     // if User is authenticated, proceed to the next policy,
+    // or if this is the last policy, the controller
     if (ADCore.auth.isAuthenticated(req)) {
         return next();
     } else {
@@ -21,6 +22,5 @@ module.exports = function(req, res, next) {
             ADCore.auth.local.isAuthenticated(req, res, next);
         }
     }
-
 
 };
