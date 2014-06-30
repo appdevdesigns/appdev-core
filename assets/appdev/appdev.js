@@ -32,16 +32,118 @@ if (typeof window.AD == 'undefined') {
     };
 
 
+    AD.ui.bootup = {};
+    AD.ui.bootup.requireSeries = function ( libraries ) {
+
+        var linksLoaded = document.getElementsByTagName('link');
+        var isLoaded = function(library) {
+
+            // if the provided library obj has a cond() then run that:
+            if (library.cond) {
+
+                return library.cond();
+
+            } else {
+
+                // else check for matches with library.tag
+
+                for (var i=0; i<linksLoaded.length; i++) {
+
+                    if (linksLoaded[i].href.indexOf(library.tag) != -1 ) {
+                        return true;
+                    }
+                    
+                }
+
+                // if we got here, there is not a link loaded with this library tag.
+                return false;
+
+            }
+        }
+
+
+        var librariesToLoad = [];
+        libraries.forEach(function(series){
+
+            var newSeries = [];
+
+            series.forEach(function(library){
+
+                if (!isLoaded(library)) {
+                    newSeries.push(library.lib);
+                }
+
+            });
+
+            if (newSeries.length > 0) {
+                librariesToLoad.push(newSeries);
+            }
+
+        });
+
+
+        // now do the actual loading of the required libraries
+
+        // this recursive fn loads an array of libraries at a time:
+        var loadSeries = function (indx) {
+
+            if (indx >= librariesToLoad.length) {
+                return;
+            } else {
+
+                console.log('loading series:');
+                console.log(librariesToLoad[indx]);
+
+                steal.apply(steal, librariesToLoad[indx])
+                .then(
+                    function() {
+                        loadSeries(indx+1);
+                    }
+                );
+
+            }
+        }
+
+        loadSeries(0);
+
+    }
+
+
     steal(
-            'js/jquery.min.js',
+
+            function() {
+                AD.ui.bootup.requireSeries([
+
+                        // we require jQuery 
+                        [ 
+                            { 
+                                // return true if loaded
+                                cond:function() { return ('undefined' != typeof window.jQuery ); },
+                                lib:'js/jquery.min.js' 
+                            } 
+                        ],
+
+                        // and CanJS
+                        [
+                            {
+                                cond:function() { return ('undefined' != typeof window.can ); },
+                                lib:'canjs/can.jquery.js'
+                            }
+                        ]
+
+                ]);
+            }
+
+    ).then(
+
             'appdev/comm/hub.js',
             'appdev/util/uuid.js',
 			'appdev/config/config.js'
     )
-    .then(
-            'canjs/can.jquery.js'//,
-//			'appdev/config/data.js'
-    )
+//    .then(
+//            'canjs/can.jquery.js'//,
+////			'appdev/config/data.js'
+//    )
     .then(
             'appdev/model/model.js',
             'appdev/labels/lang.js',
