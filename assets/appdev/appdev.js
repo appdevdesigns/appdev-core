@@ -177,7 +177,7 @@ if (typeof window.AD == 'undefined') {
 
                                         // jQuery is loaded already, so do a version check
                                         // if current version < our minimum (1.9.0) then
-                                        if (AD.util.versionCompare($.fn.jquery, '1.9.0', {lexicographical: true}) < 0) {
+                                        if (AD.util.versionCompare(window.jQuery().jquery, '1.9.0', {lexicographical: true}) < 0) {
 
                                             // this version is too old
                                             // we're gonna load another jQuery
@@ -206,6 +206,13 @@ if (typeof window.AD == 'undefined') {
                                 lib:function() {
 
                                     AD.ui.jQuery = $;
+/*                                    AD.ui.jQuery.ajaxSetup({
+                                        crossDomain:true,
+                                        xhrFields: {
+                                            withCredentials: true
+                                        }
+                                    });
+*/
 
                                     if (resolveConflict) {
                                         console.log(' .... trying to not conflict with existing jQuery');
@@ -221,6 +228,15 @@ if (typeof window.AD == 'undefined') {
                             {
                                 cond:function() { return ('undefined' != typeof window.can ); },
                                 lib:'canjs/can.jquery.js'
+                            }
+                        ],
+
+                        [
+                            {
+                                cond:function() { return false },
+                                lib:function(){
+ //                                   window.can.ajaxSetup({crossDomain:true});
+                                }
                             }
                         ]
 
@@ -251,6 +267,7 @@ if (typeof window.AD == 'undefined') {
                         'appdev/labels/lang.js',
                         'appdev/labels/label.js',
                         'appdev/comm/service.js',
+                        'appdev/comm/socket.js',
             			'appdev/auth/reauth.js'
                 )
                 .then(
