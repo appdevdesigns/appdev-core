@@ -205,7 +205,7 @@ if (typeof window.AD == 'undefined') {
 
                                 lib:function() {
 
-                                    AD.ui.jQuery = $;
+                                    AD.ui.jQuery = window.jQuery; //$;
 /*                                    AD.ui.jQuery.ajaxSetup({
                                         crossDomain:true,
                                         xhrFields: {
