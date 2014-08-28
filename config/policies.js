@@ -17,6 +17,7 @@ module.exports = {
     'appdev-core/ADCoreController': {
         configData: ['sessionAuth'],
         labelConfigFile:[ 'sessionAuth' ],
-        logout:true
+        logout:true,
+        siteAuth:['sessionAuth']
     }
 };
