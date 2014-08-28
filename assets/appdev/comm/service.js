@@ -222,6 +222,22 @@ steal(
             };
 
 
+            // Convert the `data` object into querystring 
+            // for GET requests
+            if (options['method'] == 'GET' && typeof options['data'] == 'object') {
+                var qs = '';
+                for (var key in options['data']) {
+                    qs += encodeURIComponent(key)
+                        + '=' 
+                        + encodeURIComponent(options['data'][key]);
+                }
+                if (options['url'].indexOf('?') > 0) {
+                    options['url'] += '&' + qs;
+                } else {
+                    options['url'] += '?' + qs;
+                }
+            }
+
 //            $.ajax({
             AD.sal.http({
                 async: asyncMode,

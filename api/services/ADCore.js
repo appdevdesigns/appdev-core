@@ -85,15 +85,31 @@ module.exports = {
 
             var packet = {
                 id:5,
-                message:'Reauthenticate.'
+                message:'Reauthenticate.',
+                authType: sails.config.appdev.authType
             };
 
             // add in additional auth info depending on
             // authType
+            // packet.data[authType]
+
+            packet.data = {};
+
             if ('CAS' == sails.config.appdev.authType) {
                 // include CAS: { uri:'cas/url/here' }
-                packet.CAS = {
-                        uri:sails.config.cas.baseURL
+                packet.data[sails.config.appdev.authType] = {
+                        message:"1st authenticate with CAS.uri, then call our CAS.authUri:",
+                        uri:sails.config.cas.baseURL,
+                        authUri: sails.config.appdev.authURI
+                }
+            }
+
+            if ('local' == sails.config.appdev.authType) {
+                
+                packet.data[sails.config.appdev.authType] = {
+                        message:"submit username=[username]&password=[password] to this uri",
+                        method: 'post',
+                        uri:sails.config.cas.authURI
                 }
             }
 
