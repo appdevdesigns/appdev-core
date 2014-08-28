@@ -205,7 +205,7 @@ if (typeof window.AD == 'undefined') {
 
                                 lib:function() {
 
-                                    AD.ui.jQuery = $;
+                                    AD.ui.jQuery = window.jQuery; //$;
 /*                                    AD.ui.jQuery.ajaxSetup({
                                         crossDomain:true,
                                         xhrFields: {
@@ -253,14 +253,14 @@ if (typeof window.AD == 'undefined') {
             (function($) {
 
                 steal(
-
                         'appdev/comm/hub.js',
                         'appdev/util/uuid.js',
-            			'appdev/config/config.js'
+                        'appdev/util/async.js',
+                        'appdev/config/config.js'
                 )
             //    .then(
             //            'canjs/can.jquery.js'//,
-            ////			'appdev/config/data.js'
+            ////            'appdev/config/data.js'
             //    )
                 .then(
                         'appdev/model/model.js',
@@ -268,7 +268,7 @@ if (typeof window.AD == 'undefined') {
                         'appdev/labels/label.js',
                         'appdev/comm/service.js',
                         'appdev/comm/socket.js',
-            			'appdev/auth/reauth.js'
+                        'appdev/auth/reauth.js'
                 )
                 .then(
                         'appdev/UIController.js',

@@ -44,7 +44,7 @@ steal(
          * return a deferred or a promise.
          */
         AD.sal.Deferred = function() {
-            return $.Deferred();
+            return AD.ui.jQuery.Deferred();
         };
 
 
@@ -65,7 +65,7 @@ steal(
          * parse your json string into an object
          */
         AD.sal.parseJSON = function(text) {
-            return $.parseJSON(text);
+            return AD.ui.jQuery.parseJSON(text);
         };
 
 

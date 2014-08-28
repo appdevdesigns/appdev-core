@@ -8,28 +8,43 @@
 
 module.exports = {
 
-  tableName:"site_multilingual_label",
-  autoCreatedAt:false,
-  autoUpdatedAt:false,
-  autoPK:false,
-  migrate:'safe',  // don't update the tables!
-
-//  config:{
-//    database:'live_db',
-//    pool:false
-//  },
-
-//  adapter:"hris",
+    tableName:"site_multilingual_label",
+    // autoCreatedAt:false,
+    // autoUpdatedAt:false,
+    // autoPK:false,
+    // migrate:'safe',  // don't update the tables!
 
 
+    connection:"mysql",
 
-  attributes: {
 
-    language_code	: 'STRING',
-    label_key	: 'TEXT',
-    label_label	: 'TEXT',
-    label_needs_translation	: 'INTEGER',
-    label_context	: 'TEXT'
-  }
+    attributes: {
 
+        language_code : {
+            type : "string",
+            size : 25
+        },
+
+        label_key : {
+            type : "text"
+        },
+
+        label_label : {
+            type : "text"
+        },
+
+        label_needs_translation : {
+            type : "integer",
+            size : 1
+        },
+
+        label_context : {
+            type : "text",
+            index: true
+        },
+
+
+    }
 };
+
+

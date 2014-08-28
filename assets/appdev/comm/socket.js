@@ -61,6 +61,146 @@ steal(
         };
 
 
+
+        /*
+         * @function subscribe
+         *
+         *  Subscribe to messages from the socket.
+         *
+         *  @codestart
+         *      var subscriptionID = AD.comm.socket.subscribe('TVShow.Created', function(message, data) {
+         *          //add entry contained in data to list
+         *          listWidget.addEntry(data);
+         *      });
+         *  @codeend
+         */
+        AD.comm.socket.subscribe = function(key, cb) {
+
+            // we want to be able to provide a [message].[value] combo here to allow 
+            // subscriptions to models like:  model.verb,  user.created,  user.deleted, etc...
+
+            // io.socket.on()  only understands the first level of the message:  [message]
+            // 
+
+            // first take the 'key' and split it up into parts:
+            var keyParts = key.split('.');
+
+            var message = keyParts[0].toLowerCase();
+            var verb = '_all';
+            if (keyParts[1]) verb = keyParts[1].toLowerCase();
+
+
+            // if there are no messages registered:
+            // create the message container:
+            if (!subscriptions[message]) {
+                subscriptions[message] = {
+                    '_all':[]
+                }
+            }
+
+            // if message.verb is registered
+            if (subscriptions[message][verb]) {
+
+                // add to cb array
+                subscriptions[message][verb].push(cb);
+
+            } else {// else 
+
+                // create cb array for message.verb
+                subscriptions[message][verb] = [ cb ];
+            }
+
+
+            // now if we have not already registered message with io.socket
+            if (!notified[message]) {
+
+                io.socket.on(message, function(data) {
+                    processMessage(message,data);
+                });
+
+                notified[message] = true;
+
+            }
+
+
+            // now register this request with a subscriptionID
+            subscriptionCount++;
+            subscriptionIDs[subscriptionCount] = {
+                message:subscriptions[message],
+                verb:verb,
+                cb:cb
+            }
+
+            return subscriptionCount;
+
+        }
+
+
+        // track our socket.subscriptions here:
+        // format:
+        // [message]: {
+            // all:[ cb, cb, cb],   // these cb's get called on all messages by message
+            // 'value': [cb, cb, cb] .. these cb's get called when there are values in the message that match 'value'
+            // examples:
+            // 'created': [cb],     // call when a verb: 'created'   is sent
+            // '16' : [cb]          // call when an id:16  is sent
+        //  }
+        var subscriptions = {};
+        var notified = {};
+
+        // subscriptionIDs keep track of our ids with the cb that reference
+        var subscriptionCount = 0;
+        var subscriptionIDs = {};
+
+        var processMessage = function(message, data) {
+
+            // if we have any subscriptions for message:
+            if (subscriptions[message]) {
+
+                var sub = subscriptions[message];
+
+                // process any '_all' subscriptions:
+                sub['_all'].forEach(function(cb){
+                    cb(data);
+                });
+
+
+                // convert the values in data to an array:
+                var arryData = [];
+                for (var d in data) {
+                    arryData.push(data[d]);
+                }
+
+                // now check each 'key' of subscription and see if it is in arryData
+                for (var k in sub) {
+                    if (arryData.indexOf(k) != -1) {
+                        // found a match, so call those cb's:
+                        sub[k].forEach(function(cb){
+                            cb(data);
+                        })
+                    }
+
+                    // special case:  if k is a number then search for that:
+                    if(AD.ui.jQuery.isNumeric(k)){
+                        var kFloat = parseFloat(k);
+
+                        if (arryData.indexOf(kFloat) != -1) {
+                            // found a match, so call those cb's:
+                            sub[k].forEach(function(cb){
+                                cb(data);
+                            })
+                        }
+                    }
+                    
+                }
+
+            }
+
+
+
+        }
+
+
         /*
          * @private
          *
