@@ -3,7 +3,7 @@
  *
  * @module      :: Model
  * @description :: A short summary of how this model works and what it represents.
- * @docs		:: http://sailsjs.org/#!documentation/models
+ * @docs        :: http://sailsjs.org/#!documentation/models
  */
 
 module.exports = {
@@ -40,7 +40,7 @@ module.exports = {
 
         label_context : {
             type : "text",
-            index: true
+//            index: true       //// NOTE: waterline currently does not support indexes on string fields.
         },
 
 
