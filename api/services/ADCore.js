@@ -28,13 +28,13 @@ module.exports = {
         local: {
             isAuthenticated:function(req, res, next) {
             ////TODO: <2014/1/24> Johnny : Implement a Local Auth option
-                // this is used by service isAuthenticated to determine if a
+                // this is used by policy/sessionAuth.js to determine if a
                 // user is authenticated, and if not, what to do to begin the
                 // process of authenticating them...
                 // handle both web service request & web page requests
 
                 // until this is implemented:
-                ADCore.auth.markAuthenticated(req);
+                ADCore.auth.markAuthenticated(req, 'anonymous.coward');
 
                 next();
             }
