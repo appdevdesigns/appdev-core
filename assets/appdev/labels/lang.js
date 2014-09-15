@@ -148,4 +148,40 @@
         return label;
     };
 
+
+
+    /**
+     * @function getLabelSpan
+     * Retrieve a <span>label</span> definition given its unique key.
+     *
+     * This is useful for templates to generate spans that will be 
+     * converted into label objects by our UI Controllers.
+     *
+     * @codestart
+     *
+     * @codeend
+     *
+     * @param [string] key
+     * @param [array] subs (Optional)
+     *     If the retrieved label contains %s placeholders, then those will be
+     *     substituted with provided in this argument.
+     * @param [string] langCode (Optional)
+     * @return [string|false]
+     *      False is returned if there was no match for the langCode or key.
+     */
+    AD.lang.label.getLabelSpan = function (key, subs, langCode) {
+
+        var label = AD.lang.label.getLabel(key, subs, langCode);
+
+        var span = '';
+
+        if (label) {
+            span = '<span '+AD.controllers.Label.defaults.keyAttribute+'="'+key+'" >'+label+'</span>';
+        } else {
+            span = '<span '+AD.controllers.Label.defaults.keyAttribute+'="'+key+'" >'+key+'</span>';
+        }
+
+        return span;
+    };
+
 })();

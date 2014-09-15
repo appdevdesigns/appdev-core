@@ -1,0 +1,7 @@
+module.exports = {
+    "toRoot": ".",
+    "name": "",
+    "defaults": {
+        "connection": "mysql"
+    }
+}

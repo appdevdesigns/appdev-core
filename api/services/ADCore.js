@@ -7,6 +7,7 @@
  *
  */
 var $ = require('jquery-deferred');
+var AD = require('ad-utils');
 
 module.exports = {
 
@@ -159,7 +160,10 @@ module.exports = {
 
 
     labelsForContext: function(context, code, cb) {
-        var dfd = $.Deferred();
+        var dfd = AD.sal.Deferred();
+// AD.log('... labelsForContext():');
+// AD.log('... context:'+context);
+// AD.log('... code:'+code);
 
         // verify cb is properly set
         if (typeof code == 'function') {
