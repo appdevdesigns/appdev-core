@@ -45,7 +45,7 @@ module.exports = {
 
         markAuthenticated: function(req, guid) {
             req.session.authenticated = true;
-            req.session.appdev = req.session.appdev || { auth:{}, user:null, actualUser:null };
+            req.session.appdev = req.session.appdev || ADCore.session.default();
             req.session.appdev.auth.guid = guid;
             ADCore.user.init(req, {guid:guid});
 
@@ -201,6 +201,71 @@ module.exports = {
         });
 
         return dfd;
+    },
+
+
+    session: {
+
+        /* 
+         * return a default session object that we use to manage our ADCore info.
+         * @return {json}
+         */
+        default:function() {
+
+            return { auth:{}, user:null, actualUser:null, socket:{ id:null } }
+        }
+    },
+
+
+
+    socket: {
+
+
+        /*
+         * Return the current user's socket id
+         *
+         * @param {object} req   The current request object.
+         * @return {string}      The stored socket id 
+         */
+        id:function(req) {
+
+            if (req) {
+                if (req.session) { 
+                    if (req.session.appdev) {
+                        if (req.session.appdev.socket) {
+
+                            return req.session.appdev.socket.id;
+
+                        }
+                    }
+                }
+            }
+
+            // if one of these failed
+            var err  = new Error('ADCore.socket.id() called with improper user session defined. ');
+            AD.log.error(err);
+            return null;
+
+        },
+
+
+
+        /*
+         * Update the socket ID stored in our req.session.appdev.socket value.
+         */
+        init: function(req) {
+
+            // make sure this is a socket request
+            if (req.isSocket) {
+
+                var id = sails.sockets.id(req.socket);
+                if (req.session.appdev.socket.id != id) {
+                    AD.log('... <yellow> socket id updated:</yellow> '+req.session.appdev.socket.id +' -> '+id);
+                }
+                req.session.appdev.socket.id = id;
+            }
+
+        }
     },
 
 
