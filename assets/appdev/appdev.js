@@ -272,6 +272,7 @@ if (typeof window.AD == 'undefined') {
                 )
                 .then(
                         'appdev/UIController.js',
+                        'appdev/control/control.js',
                         function($) {
 
             console.log('AD setup done ...');
