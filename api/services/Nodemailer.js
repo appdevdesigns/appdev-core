@@ -1,10 +1,81 @@
 var nodeMailer = require('nodemailer');
 var path = require('path');
+var fs = require('fs');
 
 var AD = require('ad-utils');
 
 // keep a list of the instantiated transports.
 var transports = {};
+
+var outputPath = 'email_output';
+
+// Accept the same arguments as the normal send() method, but don't actually
+// send out any email. Instead write the output to html files in the filesystem
+// for inspection.
+var dryRun = function(transportKey, email) {
+    var dfd = AD.sal.Deferred();
+    
+    AD.log('Email dry run: ' + email.subject);
+    
+    var outputHTML = email.html.replace(/<body>/, '<body><div><ul>'
+        + '<li><b>From:</b> ' + email.from + '</li>'
+        + '<li><b>To:</b> ' + email.to + '</li>'
+        + '<li><b>Cc:</b> ' + email.cc + '</li>'
+        + '<li><b>Bcc:</b> ' + email.bcc + '</li>'
+        + '<li><b>Subject:</b> ' + email.subject + '</li>'
+        + '</ul></div>');
+    
+    var outputFileName = 'Email-' + email.subject.replace(/\W/g, '') + '.html';
+
+    async.series([
+        // Make sure output path exists
+        function(next){
+            fs.exists(outputPath, function(exists){
+                if (!exists) {
+                    fs.mkdir(outputPath, function(){
+                        next();
+                    });
+                } else {
+                    next();
+                }
+            });
+        },
+        
+        // Find a filename that is not yet being used
+        function(next){
+            fs.readdir(outputPath, function(err, files){
+                if (err) next(err);
+                var counter = 1;
+                var nameCheck = outputFileName;
+                while (files.indexOf(nameCheck) >= 0) {
+                    nameCheck = nameCheck.replace(/.html$/, '-' + counter + '.html');
+                    counter += 1;
+                }
+                outputFileName = nameCheck;
+                next();
+            });
+        },
+        
+        // Write email to the file
+        function(next){
+            fs.writeFile(outputPath + '/' + outputFileName, outputHTML, function(err){
+                if (err) next(err);
+                else next();
+            });
+        }
+    
+    ], function(err){
+        if (err) {
+            AD.log(err);
+            dfd.reject(err);
+        }
+        else {
+            dfd.resolve('Email dry run successful: ' + outputPath + '/' + outputFileName);
+        }
+    });
+    
+    return dfd;
+}
 
 
 module.exports= {
@@ -13,16 +84,21 @@ module.exports= {
     send:function(transportKey, email) {
         // format 1:  send('smtp', { to:'', from:'', ... });
         // format 2:  send({to:'', from:'', ... });
-
-        var dfd = AD.sal.Deferred();
-
-
+        
         // verify params properly set
         if (typeof transportKey == 'object') {
             email = transportKey;
             transportKey = sails.config.nodemailer['default'];
         }
 
+        // If the site has been configured for test mode then perform a dry run
+        // instead.
+        if (sails.config.nodemailer.dryRun) {
+            return dryRun(transportKey, email);
+        }
+        
+
+        var dfd = AD.sal.Deferred();
 
         // make sure transport is defined
         if (!sails.config.nodemailer[transportKey]) {
