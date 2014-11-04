@@ -58,10 +58,26 @@ var dryRun = function(transportKey, email) {
         
         // Write email to the file
         function(next){
-            fs.writeFile(outputPath + '/' + outputFileName, outputHTML, function(err){
-                if (err) next(err);
-                else next();
-            });
+            var path = outputPath + '/' + outputFileName;
+            var attempts = 0;
+            var saveIt = function() {
+                fs.writeFile(path, outputHTML, function(err){
+                    if (err) {
+                        if (err.errno == 20 && (attempts < 15)) {
+                            // Too many files currently open. So wait a bit 
+                            // and try again.
+                            attempts += 1;
+                            setTimeout(saveIt, parseInt(Math.random() * 1000));
+                        } else {
+                            // Some other error. Fail and report.
+                            next(err);
+                        }
+                    } else {
+                        next();
+                    }
+                });
+            }
+            saveIt();
         }
     
     ], function(err){
