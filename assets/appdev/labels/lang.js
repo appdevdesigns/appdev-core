@@ -176,9 +176,9 @@
         var span = '';
 
         if (label) {
-            span = '<span '+AD.controllers.Label.defaults.keyAttribute+'="'+key+'" >'+label+'</span>';
+            span = '<span '+AD.controllers.Label.constants.keyAttribute+'="'+key+'" >'+label+'</span>';
         } else {
-            span = '<span '+AD.controllers.Label.defaults.keyAttribute+'="'+key+'" >'+key+'</span>';
+            span = '<span '+AD.controllers.Label.constants.keyAttribute+'="'+key+'" >'+key+'</span>';
         }
 
         return span;
