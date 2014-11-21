@@ -20,6 +20,7 @@
 */
 
 steal(
+        'appdev/ad.js',
         'js/OpenAjax.js'
 ).then(function() {
 

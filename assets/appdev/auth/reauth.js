@@ -1,5 +1,5 @@
 steal(
-        'appdev/widgets/ad_ui_reauth/ad_ui_reauth.js',
+        'appdev/widgets/ad_ui_reauth',
 		'appdev/comm/hub.js'
 
 ).then(function() {
