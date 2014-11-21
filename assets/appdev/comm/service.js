@@ -17,6 +17,8 @@
 */
 
 steal(
+
+        'appdev/ad.js',
         'appdev/sal/web-jquery.js',
         'appdev/comm/hub.js'
 

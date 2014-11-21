@@ -25,12 +25,6 @@ steal(
 ).then(function() {
 
 
-
-
-    (function() {
-
-
-
         /**
          * @class AD.sal
          * @parent AD_Client
@@ -54,7 +48,7 @@ steal(
          * use this for making http requests
          */
         AD.sal.http = function(options) {
-//            return $.ajax(options);
+           // return $.ajax(options);
             return AD.ui.jQuery.ajax(options);
         };
 
@@ -79,7 +73,5 @@ steal(
             setTimeout(fn,0);
         };
 
-
-    })();
 });
 

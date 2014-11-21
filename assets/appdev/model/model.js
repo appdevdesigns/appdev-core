@@ -24,6 +24,9 @@ steal(
 ).then(function() {
 
 
+//// TODO:  AD.Model.extend( 'app.name', { static }, {instance})
+//// this fn() will add a model to the given AD.models.[name.space]
+//// and register with AD.socket() to listen for any updates for this Model
 
 
 /*

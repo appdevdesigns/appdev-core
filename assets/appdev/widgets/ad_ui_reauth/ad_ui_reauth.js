@@ -1,7 +1,8 @@
 
 steal(
         // List your dependencies here:
-        //'appdev/appdev.js',
+        'appdev/ad.js',
+        'can',
         'appdev/widgets/ad_ui_reauth/ad_ui_reauth.css',
 function(){
 
@@ -42,4 +43,4 @@ function(){
     });
 
 
-})();
+});
