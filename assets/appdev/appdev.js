@@ -3,6 +3,7 @@ steal(
 ).then(
     // 'canjs/can.jquery.js',
     'can',
+    'can/view/ejs',
     'can/construct/super',
     'appdev/ad.js'
 ).then (

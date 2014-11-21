@@ -40,6 +40,12 @@ steal(
          * @return Label
          */
         keylessCreate: function ($element) {
+
+            // make sure $element is actually a jQuery object
+            if (!$element.html) {
+                $element = $($element);
+            }
+
             // Use the original text as the label key
             var originalText = $element.html();
             $element.attr(this.constants.keyAttribute, originalText);
@@ -115,7 +121,6 @@ steal(
                 // Init the HTML
                 this.$span = this.constructor.transform($element);
 
-                $element.addClass(this.options.cssClass);
                 
                 // Update static collection
                 this.constructor.collection.push(this);
