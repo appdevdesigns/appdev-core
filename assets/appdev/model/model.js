@@ -20,7 +20,8 @@
 */
 
 steal(
-        'appdev/comm/hub.js'
+        'appdev/comm/hub.js',
+        'appdev/comm/socket.js'
 ).then(function() {
 
 
@@ -28,6 +29,99 @@ steal(
 //// this fn() will add a model to the given AD.models.[name.space]
 //// and register with AD.socket() to listen for any updates for this Model
 
+    /**
+     * @class AD.Model
+     * @parent AD_Client
+     *
+     * This is our default 
+     */
+    if (typeof AD.Model == "undefined") {
+        AD.Model = {
+
+
+            Base: {
+                extend:function(){
+
+                }
+            },
+
+
+
+            /**
+             * @function extend
+             * Create a can.Control object namespaced under AD.controllers.* 
+             * 
+             * @param [string] name      The name of the controller.  The
+             *        name can be namespaced like so: 'application.info.list'.
+             *        This will create a: AD.controllers.application.info.list
+             *        controller, that you would then attach to the DOM like:
+             *        AD.controllers.application.info.list('#infoList', {
+             *          options:true
+             *        });
+             *
+             * @param [object] static    [optioinal] The static method 
+             *        definitions
+             * @param [object] instance  The instance definition
+             */
+            extend:function(name, staticDef, instanceDef) {
+
+
+                // first lets figure out our namespacing:
+                // var nameList = name.split('.');
+                var controlName = nameSpace(AD.models, name);
+
+                // // for each remaining name segments, make sure we have a 
+                // // namespace container for it:
+                // var curr = AD.models;
+                // nameList.forEach(function(name) {
+
+                //     if (typeof curr[name] == 'undefined' ) {
+                //         curr[name] = {};
+                //     }
+                //     curr = curr[name];
+                // })
+
+
+                // now let's create our final control:
+                // We subclass the UIController here so our UI controllers have
+                // built in translation capabilities.
+                curr[controlName] = AD.models_base[controlName].extend(staticDef, instanceDef);
+
+
+                AD.comm.socket.subscribe(controlName, function(message, data) {
+//// keep in mind the controlName is what will be used by sails to return data.
+//// we have to resolve this back to the given namespacing ... 
+
+console.log('socket: message['+message+'] ');
+console.log(data);
+console.log('............................');
+
+
+                });
+            }
+        };
+    }
+
+
+    var nameSpace = function(baseObj, name) {
+
+        // first lets figure out our namespacing:
+        var nameList = name.split('.');
+        var controlName = nameList.pop(); // remove the last one.
+
+        // for each remaining name segments, make sure we have a 
+        // namespace container for it:
+        var curr = baseObj;
+        nameList.forEach(function(name) {
+
+            if (typeof curr[name] == 'undefined' ) {
+                curr[name] = {};
+            }
+            curr = curr[name];
+        })
+
+        return controlName;
+    }
 
 /*
  * @function model.update

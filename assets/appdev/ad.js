@@ -16,12 +16,22 @@ if (typeof window.AD == 'undefined') {
     AD = {};
 
 
+    // AD.xxxx      These properties hold the defined Class/Controller/Model definitions
+    //              for our loaded projects.
     AD.controllers = {};    // UI Controllers: user interactions and displays
     AD.models = {};         // Models and data access
     AD.models_base = {};    //    --> appdev generated Model Files
     AD.widgets = {};        // Reusable Widgets for UI display
     AD.classes = {};        // Domain Models
     AD.ui = {};
+
+
+    // AD.Xxxxx     These properties hold helper/factory methods for our Class/Controller/Model
+    // AD.Model     // factory for making models & base_models
+    // AD.Control   // factory for making Controllers
+    // AD.Class     // factory for making Class 
+
+
 
     AD.defaults = function(defObj, optObj) {
         if (optObj) {
