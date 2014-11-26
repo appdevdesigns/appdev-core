@@ -54,9 +54,58 @@ steal('appdev/UIController.js',
                     // built in translation capabilities.
                     curr[controlName] = AD.classes.UIController.extend(staticDef, instanceDef);
 
+                },
+
+
+                get:function(name) {
+
+                    return findObject(AD.controllers, name);
+
                 }
             };
         }
 
 
+
+        /*
+         * @function findObject
+         *
+         * Return the object specified by the given name space:
+         *
+         * @param {object} baseObj  The base object to search on
+         *                          usually AD.models or AD.models_base
+         *
+         * @param {string} name   The provided namespace to parse and search for
+         *                        The name can be spaced using '.' 
+         *                        eg.  'coolTool.Resource1' => AD.models.coolTool.Resource1
+         *                             'coolerApp.tool1.Resource1' => AD.models.coolerApp.tool1.Resource1
+         *
+         * @returns {object}  the object resolved by the namespaced base 
+         *                    eg:  findObject(AD.models, 'Resource') => return AD.models.Resource
+         *                         findObject(AD.models, 'coolTool.Resource1') => AD.models.coolTool.Resource1
+         *
+         *                    if an object is not found, null is returned.
+         */
+        var findObject = function(baseObj, name) {
+
+            // first lets figure out our namespacing:
+            var nameList = name.split('.');
+
+            // for each remaining name segments, make sure we have a 
+            // namespace container for it:
+            var curr = baseObj;
+            nameList.forEach(function(name) {
+
+                if (typeof curr[name] == 'undefined' ) {
+                    curr = null;
+                }
+                if (curr) curr = curr[name];
+            })
+
+            return curr;
+        }
+
+
 });
+
+
