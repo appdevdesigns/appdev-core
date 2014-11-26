@@ -4,7 +4,6 @@ steal('appdev/UIController.js',
 
 
 
-    // (function() {
 
         /**
          * @class AD.Control
@@ -12,8 +11,8 @@ steal('appdev/UIController.js',
          *
          * This is our default 
          */
-    	if (typeof AD.Control == "undefined") {
-    		AD.Control = {
+        if (typeof AD.Control == "undefined") {
+            AD.Control = {
 
                 /**
                  * @function extend
@@ -57,9 +56,7 @@ steal('appdev/UIController.js',
 
                 }
             };
-    	}
-        
+        }
 
-    // })();
 
 });

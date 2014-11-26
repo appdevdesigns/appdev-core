@@ -26,7 +26,7 @@ steal(
 
 
 
-    (function() {
+    // (function() {
 
 
 
@@ -115,8 +115,9 @@ steal(
 
             // now if we have not already registered message with io.socket
             if (!notified[message]) {
-
+// console.log('AD.comm.socket.subscribe(): registering message['+message+'] with io.socket.on()');
                 io.socket.on(message, function(data) {
+// console.log('io.socket.on(): message['+message+']');
                     processMessage(message,data);
                 });
 
@@ -154,6 +155,17 @@ steal(
         var subscriptionCount = 0;
         var subscriptionIDs = {};
 
+
+
+        /*
+         * @function processMessage
+         *
+         * Process all messages coming back from our io.socket.on() subscriptions
+         * and direct them to any of our more complex subscriptions.
+         *
+         * This fn() will attempt to narrow the messages down to message+verb
+         * or message+value subscriptions.
+         */
         var processMessage = function(message, data) {
 
             
@@ -498,6 +510,6 @@ dfd.reject(data.data);
 
         }; // request
 
-    })();
+    // })();
 });
 
