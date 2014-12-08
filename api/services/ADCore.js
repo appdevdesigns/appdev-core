@@ -42,13 +42,24 @@ module.exports = {
         },
 
 
-
-        markAuthenticated: function(req, guid) {
+        
+        // @param httpRequest req
+        // @param string/object properties
+        //      Either a string for guid
+        //      or a basic object containing
+        //          - guid
+        //          - username
+        //          - password
+        //          - languageCode
+        markAuthenticated: function(req, properties) {
+            if (typeof properties == 'string') {
+                properties = { guid: properties };
+            }
+            
             req.session.authenticated = true;
             req.session.appdev = req.session.appdev || ADCore.session.default();
-            req.session.appdev.auth.guid = guid;
-            ADCore.user.init(req, {guid:guid});
-
+            req.session.appdev.auth.guid = properties.guid;
+            ADCore.user.init(req, properties);
         },
 
 
@@ -314,8 +325,15 @@ module.exports = {
          *
          */
         init:function(req, data) {
-            req.session.appdev.actualUser = new User(data);
-            req.session.appdev.user = req.session.appdev.actualUser;
+            var user = new User(data)
+            req.session.appdev.actualUser = user;
+            req.session.appdev.user = user;
+            
+            // Do it again after async operations complete.
+            user.whenReady.done(function(){
+                req.session.appdev.actualUser = user;
+                req.session.appdev.user = user;
+            });
         }
     }
 };
@@ -330,19 +348,87 @@ module.exports = {
  *
  */
 var User = function (opts) {
-    this.data = opts;
+    this.data = opts || {};
+    var self = this;
+    
+    // This deferred will resolve when the object has finished initializing
+    // to/from the DB.
+    self.whenReady = AD.sal.Deferred();
 
-//// TODO: implement a site_user table:
-    // if opts.guid
-        // then lookup ADUser.find({guid:opts.guid})
-        // this.data.user = user;
-
+    // Internal reference to the DB model
+    this.user = null;
+    
+    // Initialization may be done from session stored data. In which case
+    // the data is already loaded and we won't need to do a find().
+    var shouldFind = false;
+    if (!this.data.isLoaded) {
+        // Typically you would init by guid, username, or username+password.
+        // We will allow init by other combinations of those fields. There is no 
+        // legitimate use for those but it is safe when done server side.
+        var findOpts = {};
+        [ 'username', 'guid', 'password' ].forEach(function(k) {
+            if (opts[k]) {
+                findOpts[k] = opts[k];
+                shouldFind = true;
+            }
+        });
+    }
+    
+    if (shouldFind) {
+        SiteUser.hashedFind(findOpts)
+        .then(function(list){
+            if (list[0]) {
+                // User found in the DB
+                self.user = list[0];
+                self.data.guid = self.user.guid;
+                self.data.languageCode = self.user.languageCode;
+                self.data.isLoaded = true;
+                self.whenReady.resolve();
+                
+                // Update username / language, and freshen timestamp.
+                // Don't really care when it finishes.
+                var username = opts.username || list[0].username;
+                var languageCode = opts.languageCode || list[0].langaugeCode;
+                SiteUser.update(
+                    { id: list[0].id }, 
+                    { 
+                        username: username,
+                        languageCode: languageCode
+                    }
+                )
+                .then(function(){});
+            }
+            else {
+                // User not in the DB. Insert now.
+                SiteUser.create(opts)
+                .then(function(user){
+                    self.user = user;
+                    self.data.isLoaded = true;
+                    self.whenReady.resolve();
+                })
+                .fail(function(err){
+                    console.log('User create failed:', opts, err);
+                    self.whenReady.reject(err);
+                })
+                .done();
+            }
+        })
+        .fail(function(err){
+            console.log('User init failed:', findOpts, err);
+            self.whenReady.reject();
+        })
+        .done();
+    }
+    else {
+        self.whenReady.resolve();
+    }
+    
 };
 
 
 
 User.prototype.getLanguageCode = function() {
-    return 'en';
+    return this.data.languageCode || 'en';
 };
 
 
