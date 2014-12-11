@@ -24,7 +24,8 @@ module.exports = {
 
         id: {
             type: 'integer',
-            primaryKey: true
+            primaryKey: true,
+            autoIncrement: true
         },
         
         // GUID from external authentication service such as CAS
