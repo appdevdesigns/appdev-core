@@ -8,6 +8,7 @@
  */
 var $ = require('jquery-deferred');
 var AD = require('ad-utils');
+var _ = require('lodash');
 
 module.exports = {
 
@@ -212,6 +213,109 @@ module.exports = {
         });
 
         return dfd;
+    },
+
+
+
+
+    model:{
+        /*
+         * 
+         */
+        translate:function(opt){
+
+            var dfd = AD.sal.Deferred();
+    
+            var model = opt.model || null;
+            var code = opt.code || sails.config.appdev['lang.default']; // use sails default here!!!
+
+            var Klass = model._Klass();
+            if (!Klass.attributes.translations) {
+                dfd.reject(new Error('given model doesn\'t seem to be multilingual.'));
+            } else {
+console.log('... Klass ok!');
+
+                // if we are already populated with translations
+                if ((model.translations)
+                    && (_.isArray(model.translations))
+                    && (!model.translations.add)) {
+
+console.log('... existing .translations found:');
+console.log(model.translations);
+
+                    var found = Translate({
+                        translations:model.translations,
+                        model:model,
+                        code:code
+                    });
+                    // if we matched 
+                    if (found) {
+console.log('... match found ... resolving() ');
+                        dfd.resolve();
+                    } else {
+console.log('... NO MATCH!  rejecting()');
+
+                        dfd.reject(new Error('PermissionRole: translation for language code ['+code+'] not found.'));  // error: no language code found.
+                    }
+                
+
+                } else {
+console.log('... no existing .translations, so lookup!');
+
+                    var name = Klass.attributes.translations.collection.toLowerCase();
+
+                    if (!sails.models[name]) {
+
+                        dfd.reject(new Error('translation model ['+name+'] not found.'));
+
+                    } else {
+
+console.log('... sails.models['+name+'] found');
+                        var transModel = sails.models[name];
+                        var condKey = Klass.attributes.translations.via;
+
+                    
+                        var cond = {};
+                        cond[condKey] = model.id;
+                        cond.language_code = code;
+
+console.log('... performing .find() operation for labels');
+
+                        transModel.find(cond)
+                        .fail(function(err){
+console.log('... BOOM!');
+                            dfd.reject(err);
+                        })
+                        .then(function(translations){
+console.log('... got something... ');
+
+                            var found = Translate({
+                                translations:translations,
+                                model:model,
+                                code:code
+                            });
+                            // if we matched 
+                            if (found) {
+console.log('... label match found.');
+                                dfd.resolve();
+                            } else {
+console.log('... label match not found.');
+                                dfd.reject(new Error('PermissionRole: translation for language code ['+code+'] not found.'));  // error: no language code found.
+                            }
+                        })
+                        .done();
+
+                    }
+                }
+
+
+            }
+
+            return dfd;
+
+
+
+        }
     },
 
 
@@ -447,3 +551,51 @@ User.prototype.GUID = function() {
 
 //// LEFT OFF:
 //// - figure out unit tests for testing the controller output.
+
+
+
+
+
+
+/*
+ * @function Translate
+ *
+ * attempt to find a translation entry that matches the provided language code.
+ * 
+ * if a translation entry is found, then copy the translation fields into the 
+ * provided model.
+ *
+ * @param {object} opt  an object parameter with the following fields:
+ *                      opt.translations : {array} of translation entries
+ *                      opt.model   {obj} The PermissionRole object being translated
+ *                      opt.code    {string} the language_code we are translating to.
+ * @return {bool}  true if a translation code was found, false otherwise
+ */
+var Translate = function(opt) {  
+    // opt.translations, 
+    // opt.model, 
+    // opt.code
+
+    var ignoreFields = ['id', 'createdAt', 'updatedAt', 'language_code', 'role'];
+    var found = false;
+    opt.translations.forEach(function(trans){
+
+        if (trans.language_code == opt.code) {
+            found = true;
+
+            for (var f in trans) {
+console.log('f=['+f+']');
+                if ( !_.contains(ignoreFields, f)) {
+                    opt.model[f] = trans[f];
+                }
+            }
+            
+        }
+    });
+
+    return found;
+    
+}
+
+
+
