@@ -5,12 +5,14 @@ var async = require('async');
 
 var sailsObj;
 var role;
+var user;
 
 var oldLangDefault = 'xx';
 
 
 var LABEL_EN = 'new role - testing';
 var LABEL_KO = '[ko]new role - testing';
+var USER_GUID_TEST = 'stupidTestUser';
 
 describe('ADCore.model.translate tests', function(){
 
@@ -57,6 +59,34 @@ describe('ADCore.model.translate tests', function(){
                 .catch(function(err){
                     next(err);
                 });
+            },
+
+            // get a SiteUser object to use
+            function(next) {
+
+                SiteUser.find()
+                .then(function(list){
+
+                    if (list[0]) {
+                        user = list[0];
+                        next();
+                    } else {
+
+                        // didn't find one, so create one:
+                        SiteUser.create({ guid:USER_GUID_TEST})
+                        .then(function(newUser){
+                            user = newUser;
+                            next();
+                        })
+                        .catch(function(err){
+                            next(err);
+                        })
+                    }
+                    
+                })
+                .catch(function(err){
+                    next(err);
+                })
             }
 
         ],function(err, results) {
@@ -76,6 +106,29 @@ describe('ADCore.model.translate tests', function(){
     it('calling without a model object results in a rejected deferred :', function(done){
 
         var res = ADCore.model.translate({ 
+            code:'en'
+        });
+
+
+        assert.isDefined(res, ' --> returns a valid deferred/promise/something.');
+
+        res.fail(function(err){
+            assert.ok(true, ' --> this should have been called.');
+            done();
+        })
+        .then(function(results){
+            assert.ok(false, ' --> this should NOT have been called.');
+            done();
+        })
+        .done();
+
+    }); 
+
+
+    it('calling with a non multilingual model object results in a rejected deferred :', function(done){
+
+        var res = ADCore.model.translate({ 
+            model:user,
             code:'en'
         });
 
@@ -146,14 +199,40 @@ describe('ADCore.model.translate tests', function(){
 
     after(function(ok){
         
-        // remove our new role:
-        role.destroy()
-        .then(function(role){
-            ok();
-        })
-        .catch(function(err){
+        async.series([
+
+            // clean up our new role
+            function(next){
+
+                // remove our new role:
+                role.destroy()
+                .then(function(role){
+                    next();
+                })
+                .catch(function(err){
+                    next(err);
+                })
+
+            },
+
+            // clean up our user if we created one:
+            function(next) {
+                if (user.guid == USER_GUID_TEST) {
+                    user.destroy()
+                    .then(function(){
+                        next();
+                    })
+                    .catch(function(err){
+                        next(err);
+                    })
+                } else {
+                    next();
+                }
+            }
+        ], function(err, results){
             ok(err);
         })
+        
     });
 
 });
