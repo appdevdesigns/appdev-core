@@ -68,7 +68,8 @@ describe('SiteUser model', function(){
             ok();
         })
         .fail(function(err){
-            throw err;
+            assert.ok(false, ' --> error creating user: '+err);
+            // ok(err);
         })
         .done();
     
@@ -105,7 +106,8 @@ describe('SiteUser model', function(){
             ok();
         })
         .fail(function(err){
-            throw err;
+            assert.ok(false, ' --> error creating user: '+err);
+            // ok(err);
         })
         .done();
     
@@ -122,7 +124,8 @@ describe('SiteUser model', function(){
             ok();
         })
         .fail(function(err){
-            throw err;
+            assert.ok(false, ' --> error using hashedFind(): '+err);
+            // ok(err);
         })
         .done();
     });
@@ -138,7 +141,8 @@ describe('SiteUser model', function(){
             ok();
         })
         .fail(function(err){
-            throw err;
+            assert.ok(false, ' --> error using update(): '+err);
+            // ok(err);
         })
         .done();
     });
@@ -147,7 +151,10 @@ describe('SiteUser model', function(){
     after(function(ok){
         SiteUser.destroy({ id: cleanupIDs })
         .exec(function(err){
-            if (err) throw err;
+            if (err) {
+                assert.ok(false, ' --> error destroy()-ing user: '+err);
+                ok(err);
+            }
             else ok();
         });
     });

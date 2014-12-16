@@ -266,7 +266,13 @@ module.exports = {
             var model = opt.model || null;
             var code = opt.code || sails.config.appdev['lang.default']; // use sails default here!!!
 
-
+            // Error Check
+            // did we receive a model object?
+            if(!model) {
+                dfd.reject(new Error('model object not provided!'));
+                return dfd;
+            }
+            
             // Error Check 1
             // if model doesn't have a _Klass() method => error!
             if (!model._Klass) {
@@ -283,7 +289,7 @@ module.exports = {
                 dfd.reject(new Error('given model doesn\'t seem to be multilingual.'));
                 return dfd;
             } 
-console.log('... Klass ok!');
+// console.log('... Klass ok!');
 
             
             // get the name of our TranslationModel
@@ -317,7 +323,8 @@ console.log(model.translations);
                 var found = Translate({
                     translations:model.translations,
                     model:model,
-                    code:code
+                    code:code,
+                    ignore:opt.ignore
                 });
                 // if we matched 
                 if (found) {
@@ -325,7 +332,6 @@ console.log('... match found ... resolving() ');
                     dfd.resolve();
                 } else {
 console.log('... NO MATCH!  rejecting()');
-
                     dfd.reject(new Error(nameTransModel+': translation for language code ['+code+'] not found.'));  // error: no language code found.
                 }
             
@@ -337,7 +343,6 @@ console.log('... no existing .translations, so lookup!');
                 // the right one.
 
                 // 1st find the Model that represents the translation Model
-                
                 if (!sails.models[nameTransModel]) {
 
                     dfd.reject(new Error('translation model ['+nameTransModel+'] not found.'));
@@ -372,7 +377,8 @@ console.log('... got something... ');
                         var found = Translate({
                             translations:translations,
                             model:model,
-                            code:code
+                            code:code,
+                            ignore:opt.ignore
                         });
                         // if we matched 
                         if (found) {
@@ -651,7 +657,14 @@ var Translate = function(opt) {
     // opt.model, 
     // opt.code
 
-    var ignoreFields = ['id', 'createdAt', 'updatedAt', 'language_code', 'role'];
+    // these are standard translation table fields that we want to ignore:
+    var ignoreFields = ['id', 'createdAt', 'updatedAt', 'language_code', 'inspect'];
+
+    // if they include some fields to ignore, then include that as well:
+    if (opt.ignore) {
+        ignoreFields = ignoreFields.concat(opt.ignore);
+    }
+
     var found = false;
     opt.translations.forEach(function(trans){
 
@@ -662,6 +675,7 @@ var Translate = function(opt) {
             keys.forEach(function(f) { 
 console.log('f=['+f+']');
                 if ( !_.contains(ignoreFields, f)) {
+console.log('... assigning!');
                     opt.model[f] = trans[f];
                 }
             });
