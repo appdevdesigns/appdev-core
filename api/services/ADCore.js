@@ -272,19 +272,20 @@ module.exports = {
                 dfd.reject(new Error('model object not provided!'));
                 return dfd;
             }
-            
+
             // Error Check 1
             // if model doesn't have a _Klass() method => error!
             if (!model._Klass) {
                 dfd.reject(new Error('model does not have a _Klass() method.  Not multilingual?'));
                 return dfd;
             }
+            var Klass = model._Klass();
 
 
             // Error Check 2
             // if Model doesn't have an attributes.translations definition 
             // then this isn't a Multilingual Model =>  error
-            var Klass = model._Klass();
+
             if (!Klass.attributes.translations) {
                 dfd.reject(new Error('given model doesn\'t seem to be multilingual.'));
                 return dfd;
@@ -317,8 +318,8 @@ module.exports = {
                 && (_.isArray(model.translations))
                 && (!model.translations.add)) {
 
-console.log('... existing .translations found:');
-console.log(model.translations);
+// console.log('... existing .translations found:');
+// console.log(model.translations);
 
                 var found = Translate({
                     translations:model.translations,
@@ -328,16 +329,16 @@ console.log(model.translations);
                 });
                 // if we matched 
                 if (found) {
-console.log('... match found ... resolving() ');
+// console.log('... match found ... resolving() ');
                     dfd.resolve();
                 } else {
-console.log('... NO MATCH!  rejecting()');
+// console.log('... NO MATCH!  rejecting()');
                     dfd.reject(new Error(nameTransModel+': translation for language code ['+code+'] not found.'));  // error: no language code found.
                 }
             
 
             } else {
-console.log('... no existing .translations, so lookup!');
+// console.log('... no existing .translations, so lookup!');
 
                 // OK, we need to lookup our translations and then choose 
                 // the right one.
@@ -349,7 +350,7 @@ console.log('... no existing .translations, so lookup!');
 
                 } else {
 
-console.log('... sails.models['+nameTransModel+'] found');
+// console.log('... sails.models['+nameTransModel+'] found');
 
                     // 2nd: let's figure out what our condition will be
                     // 
@@ -363,16 +364,16 @@ console.log('... sails.models['+nameTransModel+'] found');
                     cond[condKey] = model.id;
                     cond.language_code = code;
 
-console.log('... performing .find() operation for labels');
+// console.log('... performing .find() operation for labels');
 
                     // now perform the actual lookup:
                     transModel.find(cond)
                     .fail(function(err){
-console.log('... BOOM!');
+// console.log('... BOOM!');
                         dfd.reject(err);
                     })
                     .then(function(translations){
-console.log('... got something... ');
+// console.log('... got something... ');
 
                         var found = Translate({
                             translations:translations,
@@ -382,10 +383,10 @@ console.log('... got something... ');
                         });
                         // if we matched 
                         if (found) {
-console.log('... label match found.');
+// console.log('... label match found.');
                             dfd.resolve();
                         } else {
-console.log('... label match not found.');
+// console.log('... label match not found.');
                             dfd.reject(new Error(nameTransModel+': translation for language code ['+code+'] not found.'));  // error: no language code found.
                         }
                     })
@@ -673,9 +674,9 @@ var Translate = function(opt) {
 
             var keys = _.keys(trans);
             keys.forEach(function(f) { 
-console.log('f=['+f+']');
+// console.log('f=['+f+']');
                 if ( !_.contains(ignoreFields, f)) {
-console.log('... assigning!');
+// console.log('... assigning!');
                     opt.model[f] = trans[f];
                 }
             });
