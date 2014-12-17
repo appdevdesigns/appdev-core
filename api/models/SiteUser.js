@@ -11,10 +11,10 @@ var crypto = require('crypto');
 module.exports = {
 
     tableName:"site_user",
-    autoCreatedAt:true,
-    autoUpdatedAt:true,
+    // autoCreatedAt:true,
+    // autoUpdatedAt:true,
     // autoPK:false,
-    // migrate:'safe',  // don't update the tables!
+    // migrate:'alter',  // don't update the tables!
 
 
     connection:"mysql",

@@ -8,6 +8,7 @@
  */
 var $ = require('jquery-deferred');
 var AD = require('ad-utils');
+var _ = require('lodash');
 
 module.exports = {
 
@@ -121,7 +122,7 @@ module.exports = {
                 packet.data[sails.config.appdev.authType] = {
                         message:"submit username=[username]&password=[password] to this uri",
                         method: 'post',
-                        uri:sails.config.cas.authURI
+                        uri:sails.config.appdev.authURI
                 }
             }
 
@@ -212,6 +213,191 @@ module.exports = {
         });
 
         return dfd;
+    },
+
+
+
+
+    model:{
+
+
+        /**
+         * @function ADCore.model.translate()
+         *
+         * This tool will help an instance of a Multilingual Model find the proper
+         * language translations for the data it currently represents.
+         *
+         * For this to work, a "Multilingual Model" needs to have the following 
+         * definition:
+         *           attributes: {
+         *
+         *               // attribute definitions here ...
+         *
+         *               translations:{
+         *                   collection:'PermissionRolesTrans',
+         *                   via:'role'  // the column in TranslationTable that has our id
+         *               },
+         *               _Klass: function() {
+         *                   return PermissionRoles;
+         *               },
+         *               translate:function(code) {
+         *                   return ADCore.model.translate({
+         *                       model:this, // this instance of this
+         *                       code:code   // the language_code of the translation to use.
+         *                   });
+         *               },
+         *           }
+         *
+         * translations:{}  defines the additional Table that contains the multilingual
+         * data for this row. (the 'TranslationTable')
+         *
+         * _Klass:function(){} allows the instance of the model to return it's own Class
+         * definition.
+         *
+         * translate:function(code){}  is the function to call this one.  
+         *
+         * This 
+         * 
+         */
+        translate:function(opt){
+
+            var dfd = AD.sal.Deferred();
+    
+            var model = opt.model || null;
+            var code = opt.code || sails.config.appdev['lang.default']; // use sails default here!!!
+
+            // Error Check
+            // did we receive a model object?
+            if(!model) {
+                dfd.reject(new Error('model object not provided!'));
+                return dfd;
+            }
+
+            // Error Check 1
+            // if model doesn't have a _Klass() method => error!
+            if (!model._Klass) {
+                dfd.reject(new Error('model does not have a _Klass() method.  Not multilingual?'));
+                return dfd;
+            }
+            var Klass = model._Klass();
+
+
+            // Error Check 2
+            // if Model doesn't have an attributes.translations definition 
+            // then this isn't a Multilingual Model =>  error
+
+            if (!Klass.attributes.translations) {
+                dfd.reject(new Error('given model doesn\'t seem to be multilingual.'));
+                return dfd;
+            } 
+// console.log('... Klass ok!');
+
+            
+            // get the name of our TranslationModel
+            var nameTransModel = Klass.attributes.translations.collection.toLowerCase();
+
+
+            // NOTE: 
+            // if we looked up our information like: 
+            // Model.find().populate('translations').fail().then(function(entries){});
+            //
+            // then each entry will already have an array of translations populated:
+            // [ {  id:1,
+            //      foo:'bar', 
+            //      translations:[ 
+            //          { language_code:'en', row_label:'label here'},
+            //          { language_code:'ko', row_label:'[ko]label here'},
+            //          { language_code:'zh-hans', row_label:'[zh-hans]label here'}
+            //      ]
+            //   }, ... ]
+
+
+            // if we are already populated with translations
+            // then we simply iterate through them and choose the right one.
+            if ((model.translations)
+                && (_.isArray(model.translations))
+                && (!model.translations.add)) {
+
+// console.log('... existing .translations found:');
+// console.log(model.translations);
+
+                var found = Translate({
+                    translations:model.translations,
+                    model:model,
+                    code:code,
+                    ignore:opt.ignore
+                });
+                // if we matched 
+                if (found) {
+// console.log('... match found ... resolving() ');
+                    dfd.resolve();
+                } else {
+// console.log('... NO MATCH!  rejecting()');
+                    dfd.reject(new Error(nameTransModel+': translation for language code ['+code+'] not found.'));  // error: no language code found.
+                }
+            
+
+            } else {
+// console.log('... no existing .translations, so lookup!');
+
+                // OK, we need to lookup our translations and then choose 
+                // the right one.
+
+                // 1st find the Model that represents the translation Model
+                if (!sails.models[nameTransModel]) {
+
+                    dfd.reject(new Error('translation model ['+nameTransModel+'] not found.'));
+
+                } else {
+
+// console.log('... sails.models['+nameTransModel+'] found');
+
+                    // 2nd: let's figure out what our condition will be
+                    // 
+                    // in our translation:{} definition, we had a .via field, this 
+                    // is the column in the TranslationModel that has our .id value 
+                    // in it:
+                    var transModel = sails.models[nameTransModel];
+                    var condKey = Klass.attributes.translations.via;
+                
+                    var cond = {};
+                    cond[condKey] = model.id;
+                    cond.language_code = code;
+
+// console.log('... performing .find() operation for labels');
+
+                    // now perform the actual lookup:
+                    transModel.find(cond)
+                    .fail(function(err){
+// console.log('... BOOM!');
+                        dfd.reject(err);
+                    })
+                    .then(function(translations){
+// console.log('... got something... ');
+
+                        var found = Translate({
+                            translations:translations,
+                            model:model,
+                            code:code,
+                            ignore:opt.ignore
+                        });
+                        // if we matched 
+                        if (found) {
+// console.log('... label match found.');
+                            dfd.resolve();
+                        } else {
+// console.log('... label match not found.');
+                            dfd.reject(new Error(nameTransModel+': translation for language code ['+code+'] not found.'));  // error: no language code found.
+                        }
+                    })
+                    .done();  // remember to use .done() to release the errors.
+
+                }
+            }
+
+            return dfd;
+
+        }
     },
 
 
@@ -447,3 +633,60 @@ User.prototype.GUID = function() {
 
 //// LEFT OFF:
 //// - figure out unit tests for testing the controller output.
+
+
+
+
+
+
+/*
+ * @function Translate
+ *
+ * attempt to find a translation entry that matches the provided language code.
+ * 
+ * if a translation entry is found, then copy the translation fields into the 
+ * provided model.
+ *
+ * @param {object} opt  an object parameter with the following fields:
+ *                      opt.translations : {array} of translation entries
+ *                      opt.model   {obj} The model instance being translated
+ *                      opt.code    {string} the language_code we are translating to.
+ * @return {bool}  true if a translation code was found, false otherwise
+ */
+var Translate = function(opt) {  
+    // opt.translations, 
+    // opt.model, 
+    // opt.code
+
+    // these are standard translation table fields that we want to ignore:
+    var ignoreFields = ['id', 'createdAt', 'updatedAt', 'language_code', 'inspect'];
+
+    // if they include some fields to ignore, then include that as well:
+    if (opt.ignore) {
+        ignoreFields = ignoreFields.concat(opt.ignore);
+    }
+
+    var found = false;
+    opt.translations.forEach(function(trans){
+
+        if (trans.language_code == opt.code) {
+            found = true;
+
+            var keys = _.keys(trans);
+            keys.forEach(function(f) { 
+// console.log('f=['+f+']');
+                if ( !_.contains(ignoreFields, f)) {
+// console.log('... assigning!');
+                    opt.model[f] = trans[f];
+                }
+            });
+            
+        }
+    });
+
+    return found;
+    
+}
+
+
+
