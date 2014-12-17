@@ -122,7 +122,7 @@ module.exports = {
                 packet.data[sails.config.appdev.authType] = {
                         message:"submit username=[username]&password=[password] to this uri",
                         method: 'post',
-                        uri:sails.config.cas.authURI
+                        uri:sails.config.appdev.authURI
                 }
             }
 
