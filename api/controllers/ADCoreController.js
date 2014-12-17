@@ -104,7 +104,7 @@ module.exports = {
 
         } else {
 
-            // The 'authenticated' policy takes care of logging in the user. Any page
+            // The 'sessionAuth' policy takes care of logging in the user. Any page
             // visited will automatically direct the user to the CAS login screen.
             // This is just a self-closing HTML page for the client side script to open
             // in a frame or pop-up.
@@ -118,7 +118,7 @@ module.exports = {
     /**
      * /session/logout
      *
-     * This route should be exempt from the 'isAuthenticated' policy
+     * This route should be exempt from the 'sessionAuth' policy
      */
     logout: function (req,res) {
 
