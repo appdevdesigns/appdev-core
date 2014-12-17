@@ -18,6 +18,7 @@
 var path = require('path');
 var fs = require('fs');
 var url = require('url');
+var AD = require('ad-utils');
 
 module.exports = {
 
@@ -56,11 +57,13 @@ module.exports = {
      labelConfigFile: function (req, res) {
 
          var context = req.param('context');
+         // let's make sure context is not a filename:
+         context = context.split('.')[0];
 
 //// TODO: pull user's default language from their session and save to template:
          // var currLangCode = req.session.languageCode
          //                    || req.session.preferences.defaultLanguage;
-         var currLangCode = 'en';
+         var currLangCode = ADCore.user.current(req).getLanguageCode(); // 'en';
 
          ADCore.labelsForContext(context, currLangCode, function(err, data) {
 
@@ -101,7 +104,7 @@ module.exports = {
 
         } else {
 
-            // The 'authenticated' policy takes care of logging in the user. Any page
+            // The 'sessionAuth' policy takes care of logging in the user. Any page
             // visited will automatically direct the user to the CAS login screen.
             // This is just a self-closing HTML page for the client side script to open
             // in a frame or pop-up.
@@ -115,7 +118,7 @@ module.exports = {
     /**
      * /session/logout
      *
-     * This route should be exempt from the 'isAuthenticated' policy
+     * This route should be exempt from the 'sessionAuth' policy
      */
     logout: function (req,res) {
 

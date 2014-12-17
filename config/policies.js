@@ -11,12 +11,14 @@
  * http://sailsjs.org/#documentation
  */
 
+var sessionStack = [ 'sessionAuth', 'initUser', 'initSession' ];
 
 module.exports = {
+	'*': sessionStack,
 
     'appdev-core/ADCoreController': {
-        configData: ['sessionAuth'],
-        labelConfigFile:[ 'sessionAuth' ],
+        configData: sessionStack,
+        labelConfigFile:sessionStack,
         logout:true,
         siteAuth:['sessionAuth']
     }

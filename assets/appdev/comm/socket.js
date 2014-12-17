@@ -16,15 +16,17 @@
 */
 
 steal(
+
+        'appdev/ad.js',
         'appdev/sal/web-jquery.js',
-        '/js/dependencies/sails.io.js'
+        'js/dependencies/sails.io.js'
 
 ).then(function() {
 
 
 
 
-    (function() {
+    // (function() {
 
 
 
@@ -113,8 +115,9 @@ steal(
 
             // now if we have not already registered message with io.socket
             if (!notified[message]) {
-
+// console.log('AD.comm.socket.subscribe(): registering message['+message+'] with io.socket.on()');
                 io.socket.on(message, function(data) {
+// console.log('io.socket.on(): message['+message+']');
                     processMessage(message,data);
                 });
 
@@ -126,7 +129,7 @@ steal(
             // now register this request with a subscriptionID
             subscriptionCount++;
             subscriptionIDs[subscriptionCount] = {
-                message:subscriptions[message],
+                message:subscriptions[message],         // links to the {} at [message]
                 verb:verb,
                 cb:cb
             }
@@ -139,7 +142,7 @@ steal(
         // track our socket.subscriptions here:
         // format:
         // [message]: {
-            // all:[ cb, cb, cb],   // these cb's get called on all messages by message
+            // _all:[ cb, cb, cb],   // these cb's get called on all messages by message
             // 'value': [cb, cb, cb] .. these cb's get called when there are values in the message that match 'value'
             // examples:
             // 'created': [cb],     // call when a verb: 'created'   is sent
@@ -152,20 +155,39 @@ steal(
         var subscriptionCount = 0;
         var subscriptionIDs = {};
 
+
+
+        /*
+         * @function processMessage
+         *
+         * Process all messages coming back from our io.socket.on() subscriptions
+         * and direct them to any of our more complex subscriptions.
+         *
+         * This fn() will attempt to narrow the messages down to message+verb
+         * or message+value subscriptions.
+         */
         var processMessage = function(message, data) {
+
+            
 
             // if we have any subscriptions for message:
             if (subscriptions[message]) {
+
+                var keyVerb = message + '.' + data.verb;
 
                 var sub = subscriptions[message];
 
                 // process any '_all' subscriptions:
                 sub['_all'].forEach(function(cb){
-                    cb(data);
+                    cb(keyVerb, data);
                 });
 
 
                 // convert the values in data to an array:
+//// Question:  did I mean to do data  or data.data ?  
+////            if all I wanted to do was capture { id: # } then why not simply 
+////            pull data.id out and see if there is a subscription for that?
+////
                 var arryData = [];
                 for (var d in data) {
                     arryData.push(data[d]);
@@ -173,10 +195,12 @@ steal(
 
                 // now check each 'key' of subscription and see if it is in arryData
                 for (var k in sub) {
+
+                    var keyKey =  message + '.' + k;
                     if (arryData.indexOf(k) != -1) {
                         // found a match, so call those cb's:
                         sub[k].forEach(function(cb){
-                            cb(data);
+                            cb(keyKey, data);
                         })
                     }
 
@@ -187,7 +211,7 @@ steal(
                         if (arryData.indexOf(kFloat) != -1) {
                             // found a match, so call those cb's:
                             sub[k].forEach(function(cb){
-                                cb(data);
+                                cb(keyKey, data);
                             })
                         }
                     }
@@ -486,6 +510,6 @@ dfd.reject(data.data);
 
         }; // request
 
-    })();
+    // })();
 });
 

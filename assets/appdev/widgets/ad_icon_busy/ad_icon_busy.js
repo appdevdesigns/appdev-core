@@ -1,7 +1,7 @@
 
 steal(
         // List your dependencies here:
-        'appdev/appdev.js',
+        'can',
         'appdev/widgets/ad_icon_busy/ad_icon_busy.css',
 function(){
 
@@ -108,8 +108,6 @@ function(){
             this.div.addClass('hidden');
 
         }
-
-
 
     });
 

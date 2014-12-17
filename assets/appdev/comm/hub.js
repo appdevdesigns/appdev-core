@@ -20,6 +20,7 @@
 */
 
 steal(
+        'appdev/ad.js',
         'js/OpenAjax.js'
 ).then(function() {
 
@@ -65,6 +66,14 @@ steal(
      *          listWidget.addEntry(data);
      *      });
      *  @codeend
+     *
+     *  @param {string} key     The subscription key to listen for.
+     *  @param {funcion} callback  The callback fn to call when the subscription is published.
+     *                          The callback should be fn(message, data)
+     *                              {string} message    the actual published key
+     *                              {obj} data  the data published 
+     *
+     *  @return {integer}  a unique subscription ID useful for unsubscribing this callback.
      */
     AD.comm.hub.subscribe = function(key,callback){
         return OpenAjax.hub.subscribe(key,callback);
