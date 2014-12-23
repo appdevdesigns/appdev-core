@@ -96,8 +96,7 @@ module.exports = {
      * /site/login
      */
     login: function (req, res) {
-
-        if (req.isJson) {
+        if (req.wantsJSON) {
 
             // is is from a service so respond with a success packet
             ADCore.comm.success(res, {});

@@ -1,1 +1,26 @@
-Spiffy login.ejs
+<!DOCTYPE html>
+<!--
+    This is the response for /site/login when requested as a page, rather than
+    a JSON service. Typically, it will only be used for CAS reauthentication.
+    The user can only see this page after being authenticated.
+-->
+<html>
+  <head>
+    <script type="text/javascript">
+
+        if (top.AD) {
+          // Signal that reauthentication has successfully completed
+          top.AD.ui.reauth.end();
+        }
+        else {
+          window.close();
+        }
+
+    </script>
+  </head>
+  
+  <body>
+    <div style=" background-image: url(/appdev/widgets/ad_icon_busy/circleball_black.gif); background-position: center center; background-repeat: no-repeat; height: 16px; margin-top: 30%;
+    ">&nbsp;</div>
+  </body>
+</html>
