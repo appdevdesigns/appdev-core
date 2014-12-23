@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<!--
+
+    Client side unit tests for reauthentication, via mocha-phantomjs.
+
+    USAGE:
+        mocha-phantomjs test-reauth.html
+        (Has to be done on the file from the 'appdev-core' in the node_modules
+         directory of an AppDev site installation. NOT via the link in the
+         'assets' folder.)
+
+-->
+<head>
+    <title>Reauthentication Test</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../../node_modules/mocha/mocha.css" />
+    <style>
+        body { font-family: 'sans-serif'; }
+    </style>
+    <script src="../../../node_modules/mocha/mocha.js"></script>
+    <script src="../../../node_modules/chai/chai.js"></script>
+
+    <!-- 3rd party libraries -->
+    <script src="../../../../../assets/js/jquery.min.js"></script>
+    <script src="../../../../../assets/canjs/can.jquery.js"></script>
+    <script src="../../../../../assets/bootstrap/js/bootstrap.js"></script>
+    <script>
+        mocha.setup({
+            ui: 'bdd',
+            timeout: 9000,
+            reporter: 'html'
+        });
+        expect = chai.expect;
+        assert = chai.assert;
+    </script>
+    
+    <!-- prevent the real steal() from loading stuff we don't want -->
+    <script src="mockups/steal.js"></script>
+    
+    <!-- real AppDev framework -->
+    <script src="../ad.js"></script>
+    <script>
+        AD.ui.jQuery = jQuery;
+    </script>
+    <script src="../sal/web-jquery.js"></script>
+    <script src="../config/config.js"></script>
+    <script src="../config/data.js"></script>
+    
+    <!-- mockup framework -->
+    <script>
+        // Mock labels
+        AD.controllers.Label = {};
+        AD.controllers.Label.keylessCreate = function() {};
+        
+        // Mock ad_icon_busy widget
+        AD.widgets.ad_icon_busy = function() {};
+        AD.widgets.ad_icon_busy.prototype.hide = function() {};
+        AD.widgets.ad_icon_busy.prototype.show = function() {};
+    </script>
+
+    <!-- reauth scripts to be tested -->
+    <script src="../widgets/ad_ui_reauth/ad_ui_reauth.js"></script>
+    <script src="../auth/reauth.js"></script>
+
+    <!-- TESTS -->
+    <script src="ad_ui_reauth.js"></script>
+    <script src="appdev_client_reauth.js"></script>
+    
+</head>
+
+<body>
+    <div id="mocha"></div>
+
+    <script>
+    // Execute the tests
+    if (window.mochaPhantomJS) {
+        mochaPhantomJS.run();
+    } else {
+        mocha.run();
+    }
+    </script>
+</body>
+</html>

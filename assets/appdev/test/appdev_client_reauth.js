@@ -1,49 +1,32 @@
 (function() {
 
-    var buildTestingHTML = function() {
-        var html = [
-                    '<div id="reauth-test" class="ad-ui-reauth">',
-                    '</div>'
-                    ].join('\n');
-
-        $('body').append($(html));
-    }
-
-
     //Define the unit tests
     describe('ReAuthentication Controller', function(){
-
-        var widget;
-		var $reauthTest;
-
-        before(function(){
-
-            buildTestingHTML();
-
-			widget = new AD.ui.reauth($('body'));
-			$reauthTest = $('#reauth-test');
+        
+        var dfd;
+        
+        it('is not inProgress before start()', function() {
+            chai.assert.isFalse(AD.ui.reauth.inProgress());
+        });
+        
+        it('returns a Deferred on start()', function(){
+            dfd = AD.ui.reauth.start();
+            chai.assert.isObject(dfd);
+            chai.assert.isFunction(dfd.done);
+            chai.assert.isFunction(dfd.fail);
         });
 
-        it('transforms the HTML', function(){
-			var htmlContent = $reauthTest.html();
-			chai.assert.isTrue((htmlContent.indexOf('appDev-formLogin') != -1),"Widget wasn't shown");
+        it('is inProgress after start()', function() {
+            chai.assert.isTrue(AD.ui.reauth.inProgress());
         });
-
-        it('test inProgress', function() {
-			var value = widget.inProgress();
-			chai.assert.deepEqual(value,false);
+        
+        it('resolves the Deferred after end()', function() {
+            AD.ui.reauth.end();
+            chai.assert.equal('resolved', dfd.state());
         });
-		
-		it('test subscribe ad.auth.reauthenticate', function() {
-			AD.comm.hub.publish('AD.auth.reauthenticate', {});
-			var value = widget.inProgress();
-			chai.assert.deepEqual(value,false);
-        });
-				
-		it('test success', function() {
-			widget.success();
-			var value = widget.inProgress();
-			chai.assert.deepEqual(value,false);
+        
+        it('is not inProgress after end()', function() {
+            chai.assert.isFalse(AD.ui.reauth.inProgress());
         });
 
     });
