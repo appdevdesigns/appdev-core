@@ -7,6 +7,10 @@ test:
 
 	@NODE_ENV=test mocha-phantomjs \
     -R $(REPORTER) \
+    assets/appdev/test/test-reauth.html 
+
+	@NODE_ENV=test mocha-phantomjs \
+    -R $(REPORTER) \
     assets/appdev/test/test-all.html 
 
 .PHONY: test
