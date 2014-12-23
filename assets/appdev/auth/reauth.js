@@ -1,9 +1,9 @@
 steal(
-        'appdev/widgets/ad_ui_reauth',
-		'appdev/comm/hub.js'
+        'appdev/widgets/ad_ui_reauth'
+        //'appdev/comm/hub.js'
 
 ).then(function() {
-	
+    
 /**
 * @class AD.ui
 * @parent AD_Client
@@ -16,58 +16,57 @@ if (typeof AD.ui == "undefined") {
 
 /**
  * @class AD.ui.reauth
- * This is the controller object used for configuring reAuthentication on the page.
+ * This is the object used for configuring reAuthentication on the page.
  */
-AD.ui.reauth = can.Control.extend({
-},{
-		/**
-     	* @function init
-     	* Initialize the object for reauthentication
-     	* @param $element Object 
-     	*/
-	    init: function($element) {
-			this.reauthenting = false;
-        	this.reauthKey = $element.find('.ad-ui-reauth');
-			
-			this.widget = new AD.widgets.ad_ui_reauth($element.find('.ad-ui-reauth'));
-			
-			$element.append(this.widget);
-    	},
-		
-	 	/**
-     	* @function inProgress
-     	* Return true is the user need to be reauthenticated and false otherwise 
-     	*/
-    	inProgress: function() {
-			
-			if (this.reauthenting){
-				return true;
-			}else{
-				return false;
-			}
-    	},
+AD.ui.reauth = {
+        /**
+        * @function init
+        * Initialize the object for reauthentication
+        */
+        init: function() {
+            this.reauthenticating = false;
+            this.widget = new AD.widgets.ad_ui_reauth();
+            this.dfd = null;
+        },
+        
+        /**
+        * @function inProgress
+        * @return boolean
+        *   true if re-authentication is currently in progress
+        */
+        inProgress: function() {
+            if (this.reauthenticating) {
+                return true;
+            } else {
+                return false;
+            }
+        },
+        
+        /**
+         * Begin re-authentication.
+         * @return Deferred
+         *      The deferred will resolve when authentication completes
+         */
+        start: function() {
+            if (!this.reauthenticating) {
+                this.reauthenticating = true;
+                this.widget.show();
+                this.dfd = AD.sal.Deferred();
+            }
+            return this.dfd;
+        },
+        
+        /**
+         * Called after the user has been authenticated
+         */
+        end: function() {
+            this.reauthenticating = false;
+            this.widget.hide();
+            this.dfd.resolve();
+        }
+        
+};
 
-	 	/**
-     	* @function 'ad.auth.reauthenticate' subscribe
-     	*  Listen to initiate reauthenicating the user
-     	*/
-    	"AD.auth.reauthenticate subscribe": function() {
-			this.reauthenting = true;
-        	this.show();
-    	},
-		
-		/**
-     	* @function success
-     	* Reauthenication is finished and the message is sent out.
-     	*/
-		success: function(){
-			
-			this.reauthenting = false;
-			this.widget.hide();
-			AD.comm.hub.publish('ad.auth.reauthentication.successful', {});	
-		
-		}
-		
+AD.ui.reauth.init();
+
 });
-
-})();
