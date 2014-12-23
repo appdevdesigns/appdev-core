@@ -1,3 +1,36 @@
-<div id="appDev-formLogin" class="local" button_text="Submit">
-    <div class="alert"></div>
+<div>
+
+    <div id="appDev-formLogin" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" aria-labelledby="">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" translate=1>Re-login required</h4>
+                    <div class="busy-icon"></div>
+                </div>
+
+                <div class="modal-body">
+                    <form role="form">
+                      <div class="form-group">
+                        <label for="username" translate=1>Username</label>
+                        <input type="text" class="form-control" id="username">
+                      </div>
+                      <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" class="form-control" id="password">
+                      </div>
+                    </form>
+                    
+                    <div class="alert alert-danger" role="alert">
+                    </div>
+                    
+                </div>
+                
+                <div class="modal-footer">
+                      <button type="button" class="btn btn-default login" translate=1>Submit</button>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
 </div>
