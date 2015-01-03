@@ -29,8 +29,38 @@ steal(
 
 
     (function() {
-
-
+        
+        /**
+         * CSRF object for internal use only.
+         */
+        var CSRF = {
+            token: null,
+            /**
+             * Fetch the user's CSRF token from sails.js
+             * @return Deferred
+             *    Resolves with the CSRF token string when it has been fetched
+             */
+            fetch: function() {
+                var dfd = AD.sal.Deferred();
+                AD.sal.http({
+                    type: 'GET',
+                    url: '/csrfToken',
+                    dataType: 'json',
+                    cache: false
+                })
+                .done(function(data, status, res){
+                    CSRF.token = data._csrf;
+                    dfd.resolve(CSRF.token);
+                })
+                .fail(function(res, status, err){
+                    var csrfError = new Error('Unable to get CSRF token: ' + err.message);
+                    console.log(csrfError);
+                    dfd.reject(csrfError);
+                    //dfd.resolve(null);
+                });
+                return dfd;
+            }
+        }
 
         /**
          * @class AD.comm.service
@@ -138,6 +168,19 @@ steal(
                 options.params = options.data;
             }
             
+            // Fetch CSRF token if needed
+            if (!CSRF.token && options.method != 'GET') {
+                CSRF.fetch()
+                .done(function(){
+                    // Resubmit request after getting token
+                    request(options, cb)
+                    .done(dfd.resolve)
+                    .fail(dfd.reject);
+                })
+                .fail(dfd.reject);
+                return dfd;
+            }
+            
             
             // if we are currently in process of authenticating, then
             // queue request
@@ -187,6 +230,9 @@ steal(
                 contentType: options['contentType'],
                 dataType: 'json',
                 data: options['params'],
+                headers: {
+                    'X-CSRF-Token': CSRF.token
+                },
                 cache: false
             })
             .fail(function(req, status, statusText) {
