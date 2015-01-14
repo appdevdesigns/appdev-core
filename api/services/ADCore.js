@@ -181,7 +181,7 @@ module.exports = {
         if (typeof code == 'function') {
             if (typeof cb == 'undefined') {
                 cb = code;
-                code = sails.config.appdev['lang.default']; // 'en';    // <-- this should come from site Default
+                code = Multilingual.languages.default(); // <-- this should come from site Default
             }
         }
 
@@ -219,6 +219,7 @@ module.exports = {
 
 
     model:{
+
 
 
         /**
@@ -264,7 +265,7 @@ module.exports = {
             var dfd = AD.sal.Deferred();
     
             var model = opt.model || null;
-            var code = opt.code || sails.config.appdev['lang.default']; // use sails default here!!!
+            var code = opt.code || Multilingual.languages.default(); // use sails default here!!!
 
             // Error Check
             // did we receive a model object?
@@ -312,7 +313,7 @@ module.exports = {
             //   }, ... ]
 
 
-            // if we are already populated with translations
+            // if we are already populated with translations on this instance
             // then we simply iterate through them and choose the right one.
             if ((model.translations)
                 && (_.isArray(model.translations))
