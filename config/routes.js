@@ -15,6 +15,11 @@ module.exports = {
     'get /site/logout'              : 'appdev-core/ADCoreController.logout',
 
 
+    //// Permissions
+
+    'get /site/permission/role'	: 'appdev-core/PermissionsController.getRoles',
+
+
     //// only active in development environment:
     'get /node_modules/**' : 'appdev-core/ADCoreController.testingFiles'
 

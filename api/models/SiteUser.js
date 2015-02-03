@@ -55,7 +55,13 @@ module.exports = {
             defaultsTo: function() {
                 return sails.config.appdev['lang.default'];
             }
-        }
+        },
+
+
+        // roles:{
+        //     collection:'PermissionRoles',
+        //     via:'users'
+        // }
 
     },
     

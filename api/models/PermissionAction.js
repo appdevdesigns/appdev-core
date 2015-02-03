@@ -7,8 +7,6 @@
 
 module.exports = {
 
-    connection:"mysql",
-
     tableName:"site_perm_actions",
     // migrate:'safe',  // don't update the tables!
 migrate:'alter',  // modify the tables
@@ -16,7 +14,12 @@ migrate:'alter',  // modify the tables
 
     attributes: {
 
-        action_key : { type: 'string' }
+        action_key : { type: 'string' },
+
+        roles:{
+            collection:'PermissionRoles',
+            via:'actions'
+        }
           
         //// 
         //// AppDev Multilingual Extensions:

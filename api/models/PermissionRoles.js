@@ -11,7 +11,7 @@ module.exports = {
 
     tableName:"site_perm_role",
     // migrate:'safe',  // don't update the tables!
-// migrate:'alter',  // modify the tables
+migrate:'alter',  // modify the tables
 
 
     connection:"mysql",
@@ -19,6 +19,30 @@ module.exports = {
 
     attributes: {
         // this table just has the default id, createdAt, updatedAt fields.
+
+
+
+        // // SiteUser
+        // // @Relationship:  many-to-many
+        // users:{
+        //     collection:'SiteUser',
+        //     via:'roles',
+        //     dominant:true
+        // },
+
+
+        // PermissionAction
+        // @Relationship:  many-to-many  
+        actions:{
+            collection:'PermissionAction',
+            via:'roles',
+            dominant:true
+        },
+
+
+
+
+
 
         // this will pull in the translations using .populate('translations')
         translations:{
