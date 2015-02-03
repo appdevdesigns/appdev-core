@@ -25,6 +25,7 @@ steal(
         'appdev/config/config.js'
 )
 .then(
+        'appdev/config/data.js',
         'appdev/model/model.js',
         'appdev/labels/lang.js',
         'appdev/labels/label.js',
