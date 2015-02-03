@@ -238,7 +238,7 @@ module.exports = {
                 if (err) {
                     dfd.reject(err);
                 } else {
-                    dfd.resolve();
+                    dfd.resolve(instanceDataModel);
                 }
             })
 
