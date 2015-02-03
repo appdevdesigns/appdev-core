@@ -21,6 +21,7 @@ steal(
         'appdev/comm/hub.js',
         'appdev/util/uuid.js',
         'appdev/util/async.js',
+        'appdev/util/string.js',
         'appdev/config/config.js'
 )
 .then(
