@@ -20,7 +20,8 @@ steal(
 
         'appdev/ad.js',
         'appdev/sal/web-jquery.js',
-        'appdev/comm/hub.js'
+        'appdev/comm/hub.js',
+        'appdev/auth/reauth.js'
 
 ).then(function() {
 
@@ -28,8 +29,38 @@ steal(
 
 
     (function() {
-
-
+        
+        /**
+         * CSRF object for internal use only.
+         */
+        var CSRF = {
+            token: null,
+            /**
+             * Fetch the user's CSRF token from sails.js
+             * @return Deferred
+             *    Resolves with the CSRF token string when it has been fetched
+             */
+            fetch: function() {
+                var dfd = AD.sal.Deferred();
+                AD.sal.http({
+                    type: 'GET',
+                    url: '/csrfToken',
+                    dataType: 'json',
+                    cache: false
+                })
+                .done(function(data, status, res){
+                    CSRF.token = data._csrf;
+                    dfd.resolve(CSRF.token);
+                })
+                .fail(function(res, status, err){
+                    var csrfError = new Error('Unable to get CSRF token: ' + err.message);
+                    console.log(csrfError);
+                    dfd.reject(csrfError);
+                    //dfd.resolve(null);
+                });
+                return dfd;
+            }
+        }
 
         /**
          * @class AD.comm.service
@@ -67,8 +98,8 @@ steal(
         /*
          * @private
          *
-         * An array to hold any pending requests that are waiting for authentication
-         * to complete.
+         * An array to hold any pending requests that are waiting for 
+         * authentication to complete.
          *
          * The individual entries in the array are objects:
          * { opts:options,  cb:callback,  dfd:deferred }
@@ -98,18 +129,6 @@ steal(
 
 
 
-        var onAuthSuccessful = function(handle, data) {
-
-            var currReq;
-            while( currReq = pendingRequests.shift() ) {
-                processRequest(currReq);
-            }
-
-        };
-        AD.comm.hub.subscribe('ad.auth.reauthentication.successful', onAuthSuccessful);
-
-
-
         /**
          * @function request()
          * @private
@@ -129,13 +148,8 @@ steal(
          *    The callback function to execute if the request is successful.
          * @param {Function} options.failure
          *    The callback function to execute if the request failed.
-         * @param {jQuery} options.messageBox
-         *    jQuery selection of the message box to display any error messages
-         *    in. If not specified, then a dialog box will be used.
-         * @param {String} options.showErrors
-         *    "ON", "OFF", or "AUTO". Default is AUTO.
-         *    Auto means errors will be shown unless a failure callback is
-         *    provided.
+         *
+         * @return Deferred
          */
         var request = function(options, cb) {
             var dfd = AD.sal.Deferred();
@@ -146,79 +160,58 @@ steal(
             if (options.sync) {
                 asyncMode = false;
             }
-            if (!options.method) {
-                options.method = 'POST';
-            }
+            options.method = options.method || 'POST';
             
             // The documented option key is 'params', but 'data' will also
             // be accepted.
             if (!options.params && options.data) {
                 options.params = options.data;
             }
-
-
-            // if we are currently in process of authenticating, then
-            // queue request
-/*            if ((typeof AD.winLogin.isVisible != 'undefined')
-                && (AppDev.winLogin.isVisible())) {
-
-                var dfd = $.Deferred();
-                pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
-
+            
+            // Fetch CSRF token if needed
+            if (!CSRF.token && options.method != 'GET') {
+                CSRF.fetch()
+                .done(function(){
+                    // Resubmit request after getting token
+                    request(options, cb)
+                    .done(dfd.resolve)
+                    .fail(dfd.reject);
+                })
+                .fail(dfd.reject);
                 return dfd;
             }
-*/
-
+            
+            
+            // if we are currently in process of authenticating, then
+            // queue request
+            if (AD.ui.reauth.inProgress()) {
+                pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
+                return dfd;
+            }
+            
             // responds to a { status = false;  .... } responses.
             var _handleAppdevError = function( data ) {
-
+                
                 var errorID = data.id;
                 // Authentication failure (i.e. session timeout)
                 if (errorID == 5) {
-
+                    
                     // store current request
                     pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
-
+                    
                     // Reauthenticate
-                    AD.comm.hub.publish('ad.auth.reauthenticate', {});
-
+                    AD.ui.reauth.start()
+                    .done(function(){
+                        var currReq;
+                        while (currReq = pendingRequests.shift()) {
+                            processRequest(currReq);
+                        }
+                    });
+                    
                     return;
                 }
                 // Some other error
                 else {
-
-/*
-                    var showErrors = options['showErrors'];
-
-                    // Execute the optional failure callback
-                    if ($.isFunction(options['failure'])) {
-                        options.failure(data);
-                        // Turn off showErrors if it wasn't enabled
-                        // explicitly.
-                        if (!showErrors || showErrors == 'AUTO') {
-                            showErrors = 'OFF';
-                        }
-                    }
-                    // No failure callback given
-                    else if (!showErrors || showErrors == 'AUTO') {
-                      // Turn on showErrors if it wasn't disabled
-                      // explicitly.
-                      showErrors = 'ON';
-                    }
-
-                    // Display error message if needed
-                    if (showErrors == 'ON') {
-                        var errorMSG = data.error
-                            || data.errorMSG
-                            || data.errorMessage
-                            || data.message;
-                        if (!errorMSG) { errorMSG = "Error"; }
-                        AppDev.displayMessage(
-                            errorMSG,
-                            options['messageBox']
-                        );
-                    }
-*/
 
                     AD.comm.hub.publish('ad.err.notification', data);
                     if (cb) {
@@ -237,6 +230,9 @@ steal(
                 contentType: options['contentType'],
                 dataType: 'json',
                 data: options['params'],
+                headers: {
+                    'X-CSRF-Token': CSRF.token
+                },
                 cache: false
             })
             .fail(function(req, status, statusText) {

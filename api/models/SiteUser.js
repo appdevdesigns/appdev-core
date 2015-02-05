@@ -17,7 +17,7 @@ module.exports = {
     // migrate:'alter',  // don't update the tables!
 
 
-    connection:"mysql",
+    // connection:"appdev_default",
 
 
     attributes: {
