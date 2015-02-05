@@ -2,5 +2,6 @@
 
 appdev install ad-test <<EOF
 memory
+no
 local
 EOF
