@@ -21,7 +21,7 @@ steal(
             
             // After initializing, the text element will be assigned this CSS class
             // for identification.
-            cssClass: "ad-label",
+            cssClass: "app-label",
             
             // A reference to the controller object will be stored in the element
             // via jQuery data under this name.
