@@ -48,7 +48,7 @@ console.log(tmpl);
                     { from:'<!--', to:'<%'},
                     { from:'-->', to:'%>'},
                     { from:'[[=', to:'<%='},
-                    { from:']]', to:'%>'},
+                    { from:']]', to:'%>'}
                 ];
                 expectedTags.forEach(function(tag) {
                     tmpl = AD.util.string.replaceAll(tmpl, tag.from, tag.to);
