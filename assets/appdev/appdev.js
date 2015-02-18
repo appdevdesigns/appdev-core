@@ -21,15 +21,18 @@ steal(
         'appdev/comm/hub.js',
         'appdev/util/uuid.js',
         'appdev/util/async.js',
+        'appdev/util/string.js',
         'appdev/config/config.js'
 )
 .then(
+        'appdev/config/data.js',
         'appdev/model/model.js',
         'appdev/labels/lang.js',
         'appdev/labels/label.js',
         'appdev/comm/service.js',
         'appdev/comm/socket.js',
-        'appdev/auth/reauth.js'
+        'appdev/auth/reauth.js',
+        'appdev/form/form.js'
 )
 .then(
         'appdev/UIController.js',
