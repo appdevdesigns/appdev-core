@@ -12,7 +12,7 @@ module.exports = {
 migrate:'alter',  // modify the tables
 
 
-    connection:"mysql",
+    // connection:"mysql",
 
 
     attributes: {

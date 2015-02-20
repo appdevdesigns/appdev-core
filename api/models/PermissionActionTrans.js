@@ -7,7 +7,7 @@
 
 module.exports = {
 
-    connection:"mysql",
+    // connection:"mysql",
 
 
     tableName:"site_perm_actions_trans",

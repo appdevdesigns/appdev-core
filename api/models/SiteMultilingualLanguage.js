@@ -11,7 +11,7 @@ module.exports = {
 //  migrate:'safe',  // don't update the tables!
 migrate:'alter',
 
-  connection:"mysql",
+  // connection:"mysql",
 
 
   attributes: {
