@@ -88,7 +88,10 @@ module.exports = {
             // default to HTTP status code: 400
             if ('undefined' == typeof code) code = 400; 
 
-            res.header('Content-type', 'application/json');
+
+            // Sails v0.11 no longer has res.header on socket connections
+            if(res.header) res.header('Content-type', 'application/json'); 
+
             res.send(JSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
         },
 
@@ -142,7 +145,9 @@ module.exports = {
             // default to HTTP status code: 200
             if ('undefined' == typeof code) code = 200; //AD.Const.HTTP.OK;  // 200: assume all is ok
 
-            res.header('Content-type', 'application/json');
+            // Sails v0.11 no longer has res.header on socket connections
+            if(res.header) res.header('Content-type', 'application/json');
+            
             res.send(JSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
         }
 
