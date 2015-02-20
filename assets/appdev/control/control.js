@@ -61,6 +61,14 @@ steal('appdev/UIController.js',
 
                     return findObject(AD.controllers, name);
 
+                },
+
+
+                new: function(name, el, options) {
+
+                    var Obj = findObject(AD.controllers, name);
+
+                    new Obj(el, options);
                 }
             };
         }
