@@ -186,7 +186,7 @@ module.exports = {
         if (typeof code == 'function') {
             if (typeof cb == 'undefined') {
                 cb = code;
-                code = sails.config.appdev['lang.default']; // 'en';    // <-- this should come from site Default
+                code = Multilingual.languages.default(); // <-- this should come from site Default
             }
         }
 
@@ -224,6 +224,71 @@ module.exports = {
 
 
     model:{
+
+
+        join:function(options) {
+            var dfd = AD.sal.Deferred();
+
+
+            var list = options.list || [];
+
+            var fk = options.fk || options.pk;  // the fk value in the existing list
+            var pk = options.pk;    // the pk value in my definition
+            var destKey = options.destKey; // what to store my model instance in list object
+            var Model = options.Model;  // this Model
+
+// AD.log('<green>join();</green> list:', list);
+
+            // go through each list entry and compile the valid fk's
+            var ids = [];
+            list.forEach(function(entry){
+                if (entry[fk]) {
+                    ids.push(entry[fk]);
+                }
+            })
+// AD.log('<green>join():</green> ids:', ids);
+
+            // if we have some matches 
+            if (ids.length == 0) {
+// AD.log('... no ids, so resolve');
+                dfd.resolve(list);
+
+            } else {
+
+                var filter = {};
+                filter[pk] = ids;
+// AD.log("... filter:",filter);
+
+                Model.find(filter)
+                .fail(function(err){
+                    dfd.reject(err);
+                })
+                .then(function(listModels){
+                    var hashModels = _.indexBy(listModels, pk);
+// AD.log('<green>join():</green> hashModels:', hashModels);
+
+                    list.forEach(function(entry){
+
+                        entry[destKey] = null;
+
+                        // if this entry's fk is in our hashModel
+                        if (hashModels[entry[fk]]) {
+
+                            // add it 
+                            entry[destKey] = hashModels[entry[fk]];
+
+                        }
+                    });
+// AD.log('... list:', list);
+                    dfd.resolve(list);
+                })
+            }
+
+
+            return dfd;   
+
+        },
+
 
 
         /**
@@ -269,7 +334,7 @@ module.exports = {
             var dfd = AD.sal.Deferred();
     
             var model = opt.model || null;
-            var code = opt.code || sails.config.appdev['lang.default']; // use sails default here!!!
+            var code = opt.code || Multilingual.languages.default(); // use sails default here!!!
 
             // Error Check
             // did we receive a model object?
@@ -317,11 +382,11 @@ module.exports = {
             //   }, ... ]
 
 
-            // if we are already populated with translations
+            // if we are already populated with translations on this instance
             // then we simply iterate through them and choose the right one.
             if ((model.translations)
-                && (_.isArray(model.translations))
-                && (!model.translations.add)) {
+                && (_.isArray(model.translations)) ) {
+                // && (!model.translations.add)) {
 
 // console.log('... existing .translations found:');
 // console.log(model.translations);
@@ -344,6 +409,10 @@ module.exports = {
 
             } else {
 // console.log('... no existing .translations, so lookup!');
+// console.log('isArray:', _.isArray(model.translations));
+// console.log('!add():', !model.translations.add);
+// console.log('model:');
+// console.log(model);
 
                 // OK, we need to lookup our translations and then choose 
                 // the right one.
