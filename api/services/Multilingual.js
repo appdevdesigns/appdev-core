@@ -37,11 +37,15 @@ module.exports = {
         all:function() {
             var dfd = AD.sal.Deferred();
 
-            if (!_listLanguages) {
+            if ((!_listLanguages)
+                || (_listLanguages.length < 1)) {
 
                 SiteMultilingualLanguage.find()
                 .then(function(list){
                     _listLanguages = list;
+                    if (list.length == 0) {
+                        AD.log('<yellow><bold>WARN:</bold> Multilingual.languages.all() : no languages in table!</yellow>');
+                    }
                     dfd.resolve(list);
                 })
                 .catch(function(err){

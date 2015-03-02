@@ -37,31 +37,36 @@ steal(
              */
             domToTemplate: function($el) {
 
+if ($el.length == 0) {
+    console.error('domToTemplate(): no $el found. ');
+}
                 // remove anything specifically marked as mockup
                 $el.find('.mockup').remove();
                 
                 var tmpl = $el.html();
-console.log();
-console.log(tmpl);
-// <!--" (el) -> can.data(el, 'person', person) "-->
-                var expectedTags = [ 
-                    { from:'<!--', to:'<%'},
-                    { from:'-->', to:'%>'},
-                    { from:'[[=', to:'<%='},
-                    { from:']]', to:'%>'}
-                ];
-                expectedTags.forEach(function(tag) {
-                    tmpl = AD.util.string.replaceAll(tmpl, tag.from, tag.to);
-                });
+                if (tmpl != '') {
+
+                    var expectedTags = [ 
+                        { from:'<!--', to:'<%'},
+                        { from:'-->', to:'%>'},
+                        { from:'[[=', to:'<%='},
+                        { from:']]', to:'%>'}
+                    ];
+                    expectedTags.forEach(function(tag) {
+                        tmpl = AD.util.string.replaceAll(tmpl, tag.from, tag.to);
+                    });
 
 
-                // now embed any specified object references:
-                tmpl = tmpl.replace(/obj-embed="(\w+)"/g, function($0, $1 ) {
-                    return "<%= (el) -> can.data(el, '"+$1+"', "+$1+") %>";
-                });
+                    // now embed any specified object references:
+                    // <%= (el) -> can.data(el, 'person', person) %>
+                    tmpl = tmpl.replace(/obj-embed="(\w+)"/g, function($0, $1 ) {
+                        return "<%= (el) -> can.data(el, '"+$1+"', "+$1+") %>";
+                    });
 
-console.log();
-console.log(tmpl);
+                }
+
+// console.log();
+// console.log(tmpl);
                 return tmpl;
 
             },

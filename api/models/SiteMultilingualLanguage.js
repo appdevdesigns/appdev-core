@@ -9,9 +9,8 @@ module.exports = {
 
   tableName:"site_multilingual_language",
 //  migrate:'safe',  // don't update the tables!
-migrate:'alter',
+// migrate:'alter',
 
-  // connection:"mysql",
 
 
   attributes: {
