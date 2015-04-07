@@ -11,7 +11,7 @@
  * http://sailsjs.org/#documentation
  */
 
-var sessionStack = [ 'sessionAuth', 'initUser', 'initSession' ];
+var sessionStack = [ 'sessionAuth', 'initUser', 'initSession', 'noTimestamp' ];
 
 module.exports = {
 	'*': sessionStack,

@@ -45,6 +45,16 @@ steal(
                     var modelName = objectName(name);
 
 
+
+                    // overwrite the staticDef.findOne, .findAll, .create, .update, .delete
+                    // with our functions:
+                    staticDef.findAll = convertFindAll(staticDef.findAll);
+                    staticDef.findOne = convertFindOne(staticDef.findOne);
+                    staticDef.create  = convertCreate(staticDef.create);
+                    staticDef.update  = convertUpdate(staticDef.update);
+                    staticDef.destroy = convertDestroy(staticDef.destroy);
+
+
                     // now let's create our base Model:
                     curr[modelName] = can.Model.extend(staticDef, instanceDef);
                 },
@@ -152,6 +162,331 @@ steal(
 
 
 
+    /*
+     * @function convertFindAll
+     *
+     * Return a function to implement the findAll routine that reuses our AD.comm.service()
+     * method.
+     *
+     * @param {string} def    The expected url definition for the findAll method
+     *                        eg.  'GET /url/to/resource'
+     *
+     * @returns {function}  the fn() that CanJS will use for this model's findAll() 
+     */
+    var convertFindAll = function(def) {
+
+        // if a definition exists
+        if (def) {
+
+            var parts = def.split(' ');
+            var verb = parts[0].toLowerCase();
+            var uri  = parts.pop();
+
+            // if we know this verb
+            if (AD.comm.service[verb]) {
+
+
+                // return our function()
+                return function( cond, cbSuccess, cbErr ) {
+                    var dfd = AD.sal.Deferred();
+
+                    AD.comm.service[verb]({ url:uri, params:cond })
+                    .fail(function(err){
+                        if (cbErr) cbErr(err);
+                        dfd.reject(err);
+                    })
+                    .done(function(data) {
+                        data = data.data || data;
+
+                        // CanJS really wants an array for findAll()
+                        // but our blueprint methods might return a single obj if
+                        // our match only found 1 object ... 
+                        if (!can.isArray(data)) {
+                            data = [data];
+                        }
+
+                        // package for CanJS:
+                        // canJS find/findAll expectes response in { data: data } format:
+                        var rData = { data: data };
+
+                        if (cbSuccess) cbSuccess(rData);
+                        dfd.resolve(rData);
+                    })
+
+                    return dfd;
+                }
+
+
+            } else {
+                console.error('improper findAll verb:'+verb);
+            }
+
+
+        } 
+            
+
+        // if we get here, either because def == undefined, 
+        // or the verb in def is not understood: just return def
+        return def;
+        
+    }
+
+
+
+    /*
+     * @function convertFindOne
+     *
+     * Return a function to implement the findOne routine that reuses our AD.comm.service()
+     * method.
+     *
+     * @param {string} def    The expected url definition for the findOne method
+     *                        eg.  'GET /url/to/resource/{id}'
+     *
+     * @returns {function}  the fn() that CanJS will use for this model's findOne() 
+     */
+    var convertFindOne = function(def) {
+
+        // if a definition exists
+        if (def) {
+
+            var parts = def.split(' ');
+            var verb = parts[0].toLowerCase();
+            var uri  = parts.pop(); 
+
+            // if we know this verb
+            if (AD.comm.service[verb]) {
+
+
+                // return our function()
+                return function( cond, cbSuccess, cbErr ) {
+                    var dfd = AD.sal.Deferred();
+
+                    var nURI = uri;
+                    for (var k in cond) {
+                        var oURI = nURI;
+                        nURI = AD.util.string.replaceAll(nURI, "{"+k+"}", cond[k]);
+
+                        // if there was a change, remove k from cond:
+                        if (oURI != nURI) {
+                            delete cond[k];
+                        }
+                    }
+
+                    AD.comm.service[verb]({ url:nURI, params:cond })
+                    .fail(function(err){
+                        if (cbErr) cbErr(err);
+                        dfd.reject(err);
+                    })
+                    .done(function(data) {
+                        data = data.data || data;
+
+                        if (cbSuccess) cbSuccess(data);
+                        dfd.resolve(data);
+                    })
+
+                    return dfd;
+                }
+
+
+            } else {
+                console.error('improper findAll verb:'+verb);
+            }
+
+
+        } 
+            
+
+        // if we get here, either because def == undefined, 
+        // or the verb in def is not understood: just return def
+        return def;
+        
+    }
+
+
+
+    /*
+     * @function convertCreate
+     *
+     * Return a function to implement the create routine that reuses our AD.comm.service()
+     * method.
+     *
+     * @param {string} def    The expected url definition for the create method
+     *                        eg.  'POST /opstool-emailNotifications/enrecipient'
+     *
+     * @returns {function}  the fn() that CanJS will use for this model's create() 
+     */
+    var convertCreate = function(def) {
+
+        // if a definition exists
+        if (def) {
+
+            var parts = def.split(' ');
+            var verb = parts[0].toLowerCase();
+            var uri  = parts.pop(); 
+
+            // if we know this verb
+            if (AD.comm.service[verb]) {
+
+
+                // return our function()
+                return function( attr, cbSuccess, cbErr ) {
+                    var dfd = AD.sal.Deferred();
+
+                    AD.comm.service[verb]({ url:uri, params:attr })
+                    .fail(function(err){
+                        if (cbErr) cbErr(err);
+                        dfd.reject(err);
+                    })
+                    .done(function(data) {
+                        data = data.data || data;
+
+                        if (cbSuccess) cbSuccess(data);
+                        dfd.resolve(data);
+                    })
+
+                    return dfd;
+                }
+
+
+            } else {
+                console.error('improper findAll verb:'+verb);
+            }
+
+
+        } 
+            
+
+        // if we get here, either because def == undefined, 
+        // or the verb in def is not understood: just return def
+        return def;
+        
+    }
+
+
+
+    /*
+     * @function convertUpdate
+     *
+     * Return a function to implement the update() routine that reuses our AD.comm.service()
+     * method.
+     *
+     * @param {string} def    The expected url definition for the update method
+     *                        eg.  'PUT /opstool-emailNotifications/enrecipient/{id}',
+     *
+     * @returns {function}  the fn() that CanJS will use for this model's create() 
+     */
+    var convertUpdate = function(def) {
+
+        // if a definition exists
+        if (def) {
+
+            var parts = def.split(' ');
+            var verb = parts[0].toLowerCase();
+            var uri  = parts.pop(); 
+
+            // if we know this verb
+            if (AD.comm.service[verb]) {
+
+
+                // return our function()
+                return function( id, attr, cbSuccess, cbErr ) {
+                    var dfd = AD.sal.Deferred();
+
+                    var key = '{'+this.fieldId+'}';
+                    var nURI = AD.util.string.replaceAll(uri, key, id);
+
+                    AD.comm.service[verb]({ url:nURI, params:attr })
+                    .fail(function(err){
+                        if (cbErr) cbErr(err);
+                        dfd.reject(err);
+                    })
+                    .done(function(data) {
+                        data = data.data || data;
+
+                        if (cbSuccess) cbSuccess(data);
+                        dfd.resolve(data);
+                    })
+
+                    return dfd;
+                }
+
+
+            } else {
+                console.error('improper findAll verb:'+verb);
+            }
+
+
+        } 
+            
+
+        // if we get here, either because def == undefined, 
+        // or the verb in def is not understood: just return def
+        return def;
+        
+    }
+
+
+
+    /*
+     * @function convertDestroy
+     *
+     * Return a function to implement the destroy() routine that reuses our AD.comm.service()
+     * method.
+     *
+     * @param {string} def    The expected url definition for the destroy method
+     *                        eg.  'DELETE /path/to/resource/{id}',
+     *
+     * @returns {function}  the fn() that CanJS will use for this model's destroy() 
+     */
+    var convertDestroy = function(def) {
+
+        // if a definition exists
+        if (def) {
+
+            var parts = def.split(' ');
+            var verb = parts[0].toLowerCase(); // the 1st entry
+            var uri  = parts.pop();  // the last entry
+
+            // if we know this verb
+            if (AD.comm.service[verb]) {
+
+
+                // return our function()
+                return function( id, cbSuccess, cbErr ) {
+                    var dfd = AD.sal.Deferred();
+
+                    var key = '{'+this.fieldId+'}';
+                    var nURI = AD.util.string.replaceAll(uri, key, id);
+
+                    AD.comm.service[verb]({ url:nURI, params:{} })
+                    .fail(function(err){
+                        if (cbErr) cbErr(err);
+                        dfd.reject(err);
+                    })
+                    .done(function(data) {
+                        data = data.data || data;
+
+                        if (cbSuccess) cbSuccess(data);
+                        dfd.resolve(data);
+                    })
+
+                    return dfd;
+                }
+
+
+            } else {
+                console.error('improper findAll verb:'+verb);
+            }
+
+
+        } 
+            
+
+        // if we get here, either because def == undefined, 
+        // or the verb in def is not understood: just return def
+        return def;
+        
+    }
 
 
 
