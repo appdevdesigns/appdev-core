@@ -22,11 +22,11 @@ module.exports = {
 
     attributes: {
 
-        id: {
-            type: 'integer',
-            primaryKey: true,
-            autoIncrement: true
-        },
+        // id: {
+        //     type: 'integer',
+        //     primaryKey: true,
+        //     autoIncrement: true
+        // },
         
         // GUID from external authentication service such as CAS
         guid: {
@@ -58,10 +58,10 @@ module.exports = {
         },
 
 
-        // roles:{
-        //     collection:'PermissionRoles',
-        //     via:'users'
-        // }
+        permission:{
+            collection:'Permission',
+            via:'user'
+        }
 
     },
     

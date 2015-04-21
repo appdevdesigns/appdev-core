@@ -14,13 +14,14 @@ migrate:'alter',  // modify the tables
 
     attributes: {
 
-        action_key : { type: 'string' },
+        action_key : { type: 'string', required:true },
 
         roles:{
-            collection:'PermissionRoles',
+            collection:'PermissionRole',
             via:'actions'
         }
-          
+        
+        
         //// 
         //// AppDev Multilingual Extensions:
         ////

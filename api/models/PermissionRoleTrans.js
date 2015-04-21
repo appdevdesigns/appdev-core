@@ -25,7 +25,7 @@ migrate:'alter',  // modify the tables
         // }, 
 
         role:{
-            model:'PermissionRoles'
+            model:'PermissionRole'
         },
         
 
