@@ -31,8 +31,7 @@ steal(
         'appdev/labels/label.js',
         'appdev/comm/service.js',
         'appdev/comm/socket.js',
-        'appdev/auth/reauth.js',
-        'appdev/form/form.js'
+        'appdev/auth/reauth.js'
 )
 .then(
         'appdev/UIController.js',

@@ -14,21 +14,18 @@ module.exports = {
 migrate:'alter',  // modify the tables
 
 
-    // connection:"mysql",
-
-
     attributes: {
         // this table just has the default id, createdAt, updatedAt fields.
 
 
 
-        // // SiteUser
-        // // @Relationship:  many-to-many
-        // users:{
-        //     collection:'SiteUser',
-        //     via:'roles',
-        //     dominant:true
-        // },
+        // Permissions
+        // @Relationship:  hasMany
+        permissions:{
+            collection:'Permission',
+            via:'role',
+            dominant:true
+        },
 
 
         // PermissionAction
@@ -42,11 +39,9 @@ migrate:'alter',  // modify the tables
 
 
 
-
-
         // this will pull in the translations using .populate('translations')
         translations:{
-            collection:'PermissionRolesTrans',
+            collection:'PermissionRoleTrans',
             via:'role'
         },
 
