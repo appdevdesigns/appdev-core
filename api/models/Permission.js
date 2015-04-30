@@ -17,9 +17,12 @@ module.exports = {
 
     role : {
         model:'PermissionRole'
-    },
+    }, 
 
-    scope : { type: 'string' }
+    scope:{
+        collection:'PermissionScope',
+        via:'permission'
+    }
   }
 };
 

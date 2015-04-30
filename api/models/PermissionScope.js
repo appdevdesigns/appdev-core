@@ -13,7 +13,12 @@ migrate:'alter',  // modify the tables
 
   attributes: {
 
-    label : { type: 'string' }
+    label : { type: 'string' }, 
+
+    permission:{
+        collection:'Permission',
+        via:'scope'
+    }
   }
 };
 

@@ -520,10 +520,16 @@ steal(
         var curr = baseObj;
         nameList.forEach(function(name) {
 
-            if (typeof curr[name] == 'undefined' ) {
-                curr = null;
+if (curr == null) {
+    var whoops = true;
+    console.error('! current name segment is null.  Check your given name to make sure it is properly given: ', name);
+}
+            if (curr) {
+                if (typeof curr[name] == 'undefined' ) {
+                    curr = null;
+                }
+                if (curr) curr = curr[name];
             }
-            if (curr) curr = curr[name];
         })
 
         return curr;
