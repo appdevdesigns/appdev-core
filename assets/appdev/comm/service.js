@@ -237,6 +237,21 @@ steal(
             })
             .fail(function(req, status, statusText) {
 
+                    // was this a CSRF error?
+                    if (req.responseText.toLowerCase().indexOf('csrf') != -1) {
+
+                        // reset our CSRF token
+                        CSRF.token = null;
+
+                        // resubmit the request 
+                        request(options, cb)
+                        .done(dfd.resolve)
+                        .fail(dfd.reject);
+                        return;
+                    }
+
+
+
                     // check to see if responseText is our json response
                     var data = AD.sal.parseJSON(req.responseText);
                     if (('object' == typeof data) && (data != null)) {

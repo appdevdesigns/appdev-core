@@ -7,6 +7,8 @@
 
 module.exports = {
 
+    // connection:"appdev_default",
+ 
     tableName:"site_perm_actions",
     // migrate:'safe',  // don't update the tables!
 migrate:'alter',  // modify the tables
@@ -14,7 +16,11 @@ migrate:'alter',  // modify the tables
 
     attributes: {
 
-        action_key : { type: 'string', required:true },
+        action_key : { 
+            type: 'string', 
+            required:true, 
+            unique:true 
+        },
 
         roles:{
             collection:'PermissionRole',

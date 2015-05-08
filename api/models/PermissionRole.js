@@ -57,5 +57,21 @@ migrate:'alter',  // modify the tables
             return PermissionRoles;
         }
 
+    },
+
+    afterDestroy: function(destroyedRecords, cb) {
+
+        Multilingual.model.removeTranslations({
+            model:this,
+            records:destroyedRecords
+        })
+        .fail(function(err){
+            cb(err);
+        })
+        .then(function(){
+            cb();
+        })
+
     }
+
 };

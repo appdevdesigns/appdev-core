@@ -55,6 +55,45 @@ steal(
                     staticDef.destroy = convertDestroy(staticDef.destroy);
 
 
+                    // prepare default instance definitions:
+                    var defaultInstance = {
+                        model: function() {
+                            if (!this.__myModel) {
+                                this.__myModel = AD.Model.get(name);
+                            }
+                            return this.__myModel;
+                        },
+                        getID: function() {
+                            return this.attr(this.model().fieldId) || 'unknown id field';
+                        },
+                        getLabel: function() {
+                            return this.attr(this.model().fieldLabel) || 'unknown label field';
+                        }
+                    }
+
+
+                    // add in a translation() if staticDef contains multilingualFields:
+                    if (staticDef.multilingualFields) {
+                        defaultInstance.translate = function( lang_code ) {
+                            var _this = this;
+                            lang_code = lang_code || AD.lang.currentLanguage;
+                            var fields = this.model().multilingualFields;
+                            if (this.translations) {
+                                this.translations.forEach(function(trans){ 
+                                    if (trans.language_code == lang_code) {
+                                        fields.forEach(function(f){
+                                            // _this[f] = trans[f];
+                                            _this.attr(f, trans[f]);
+                                        })
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    instanceDef = $.extend( {}, defaultInstance, instanceDef );
+
+
                     // now let's create our base Model:
                     curr[modelName] = can.Model.extend(staticDef, instanceDef);
                 },
@@ -68,8 +107,81 @@ steal(
 
 
             /**
+             * @function clone
+             * return a object representing the cloned data for this instance.
+             *
+             * this will properly prepare embedded multilingual entries. 
+             * 
+             * @param {model instance} instance      This is an instance of a 
+             *        can.Model.  
+             *
+             * @return {obj} updated attributes for creating a new instance of 
+             *        this can.Model
+             */
+            clone:function(instance) {
+
+                // if this is one of our Appdev Model instances:
+                if (instance.model) {
+
+                    var Model = instance.model();
+
+                    var attrs = instance.attr();
+
+
+                    var removeFields = ['id', 'createdAt', 'updatedAt' ];
+                    for (var i = removeFields.length - 1; i >= 0; i--) {
+                        if (attrs[removeFields[i]]) {
+                            delete attrs[removeFields[i]];
+                        }
+                    };
+
+                    if (attrs.translations) {
+
+                        // now make the translations seem like they are new entries:
+                        attrs.translations.forEach(function(trans){
+
+                            // remove the sails instance columns
+                            for (var i = removeFields.length - 1; i >= 0; i--) {
+                                delete trans[removeFields[i]];
+                            };
+
+                            // if this model defines it's Multilingual Fields:
+                            if (Model.multilingualFields) {
+
+                                // make sure only the multilingual fields remain:
+                                for (var k in trans) {
+
+                                    // if not language_code or one of our multilingual Fields
+                                    if (k != 'language_code') {
+                                        if (Model.multilingualFields.indexOf(k) == -1) {
+                                            delete trans[k];
+                                        }
+                                    }
+
+                                }
+                            }
+                            
+                        })
+                    }
+
+                    return attrs;
+
+                } else {
+
+console.warn('**** Using AD.Model.clone() on a model without a .model() method!  why?');
+                    if (instance.attr) {
+                        return instance.attr();
+                    }
+                }
+
+                return null;
+            },
+
+
+
+            /**
              * @function extend
-             * Create a AD.models_base object namespaced under AD.models.* 
+             * Create a AD.models object namespaced under AD.models.* 
              * 
              * @param [string] name      The name of the Model.  The
              *        name can be namespaced like so: 'application.tool.Resource'.
@@ -332,6 +444,9 @@ steal(
                 return function( attr, cbSuccess, cbErr ) {
                     var dfd = AD.sal.Deferred();
 
+                    // make sure any multilingual data ends up in a translations[]
+                    attr = multilingualTransform(attr, this);
+
                     AD.comm.service[verb]({ url:uri, params:attr })
                     .fail(function(err){
                         if (cbErr) cbErr(err);
@@ -365,6 +480,52 @@ steal(
 
 
     /*
+     * @function clearAssociations
+     *
+     * Manually remove all references to an Associated resource.
+     *
+     * @param {string} uri    The proper url for the base resource
+     *                        eg: '/resource/15'  // for resource.id=15
+     * @param {string} field  The field for this association
+     *
+     * @returns {deferred}   
+     */
+    var clearAssociations = function(uri, field) {
+        var dfd = AD.sal.Deferred();
+
+        // find all the current association entries
+        var uriAssociations = uri+'/'+field;
+        AD.comm.service.get({ url: uriAssociations})
+        .fail(function(err){
+// console.log('*** error retrieving associations['+field+']');
+            dfd.reject(err);
+        })
+        .done(function(list){
+
+            var pendingActions = [];
+            list.forEach(function(entry){
+                var uriDelete = uriAssociations+'/'+ entry.id;
+// console.log('... clearing Association['+field+'] url:'+uriDelete);
+                pendingActions.push( AD.comm.service.delete({url:uriDelete }));
+            })
+
+            $.when.apply($, pendingActions)
+            .fail(function(err){
+// console.error('*** error deleting associations!');
+                dfd.reject(err);
+            })
+            .done(function(){
+// console.log('... Success Baby!');
+                dfd.resolve();
+            })
+        })
+      
+        return dfd;
+    }
+
+
+
+    /*
      * @function convertUpdate
      *
      * Return a function to implement the update() routine that reuses our AD.comm.service()
@@ -390,10 +551,15 @@ steal(
 
                 // return our function()
                 return function( id, attr, cbSuccess, cbErr ) {
+                    var _this = this;
                     var dfd = AD.sal.Deferred();
 
                     var key = '{'+this.fieldId+'}';
                     var nURI = AD.util.string.replaceAll(uri, key, id);
+console.log('... provided attributes:', attr);
+
+
+                    attr = multilingualTransform(attr, this);
 
                     AD.comm.service[verb]({ url:nURI, params:attr })
                     .fail(function(err){
@@ -403,8 +569,45 @@ steal(
                     .done(function(data) {
                         data = data.data || data;
 
-                        if (cbSuccess) cbSuccess(data);
-                        dfd.resolve(data);
+                        // check to see if we need to clear any Associations
+                        // NOTE: in jQuery, if you send an empty [], it get's
+                        // ignored.  However, if we send in an empty [] for a 
+                        // value that is an association, then we want to remove
+                        // all the associations.  We have to do that manually 
+                        // since jQuery won't pass that on for us.
+
+                        var pendingActions = [];
+                        if (_this.associations) {
+
+                            _this.associations.forEach(function(a){
+
+                                if((attr[a]) && (attr[a].length ==0)) {
+
+                                    // clear all associations
+                                    pendingActions.push( clearAssociations(nURI, a));
+
+                                    // remove associations from returned data
+                                    if (data.attr) {
+                                        data.attr(a, attr[a]);
+                                    } else {
+                                        data[a] = attr[a];
+                                    }
+                                   
+                                }
+
+                            })
+
+                        }
+                        $.when.apply($, pendingActions)
+                        .fail(function(err){
+                            if (cbErr) cbErr(err);
+                            dfd.reject(err);
+                        })
+                        .done(function(){
+                            if (cbSuccess) cbSuccess(data);
+                            dfd.resolve(data);
+                        })
+                        
                     })
 
                     return dfd;
@@ -452,23 +655,38 @@ steal(
 
 
                 // return our function()
-                return function( id, cbSuccess, cbErr ) {
+                return function( id ) {
                     var dfd = AD.sal.Deferred();
 
                     var key = '{'+this.fieldId+'}';
                     var nURI = AD.util.string.replaceAll(uri, key, id);
 
-                    AD.comm.service[verb]({ url:nURI, params:{} })
-                    .fail(function(err){
-                        if (cbErr) cbErr(err);
-                        dfd.reject(err);
-                    })
-                    .done(function(data) {
-                        data = data.data || data;
 
-                        if (cbSuccess) cbSuccess(data);
-                        dfd.resolve(data);
-                    })
+                    // // in a multilingual model, remove your xLations
+                    // var pendingActions = [];
+                    // if (this.multilingualFields) {
+                    //     pendingActions.push(clearAssociations(nURI, 'translations'))
+                    // }
+
+                    // $.when.apply($, pendingActions)
+                    // .fail(function(err){
+                    //     dfd.reject(err);
+                    // })
+                    // .then(function(){
+
+                        AD.comm.service[verb]({ url:nURI, params:{} })
+                        .fail(function(err){
+                            
+                            dfd.reject(err);
+                        })
+                        .done(function(data) {
+                            data = data.data || data;
+
+                            dfd.resolve(data);
+                        })
+
+                    // })
+
 
                     return dfd;
                 }
@@ -486,6 +704,80 @@ steal(
         // or the verb in def is not understood: just return def
         return def;
         
+    }
+
+
+
+    var multilingualTransform = function(attr, Model) {
+
+        // perform any multilingual translation updates here:
+        // we assume any top level multilingual values should
+        // override any embedded translation entries:
+
+        // if this is a multilingual Model:
+        var fields = Model.multilingualFields;
+        if (fields) {
+
+            var newEntry = function() {
+
+                // create a translation entry:
+                var trans = {};
+
+                // assume current languageCode:
+                trans.language_code = AD.lang.currentLanguage;
+
+                fields.forEach(function(field){
+                    if (attr[field]) {
+                        trans[field] = attr[field];
+                    }
+                })
+
+                attr.translations.push(trans);
+            }
+
+
+            // if a translations[] present:
+            var xlations = attr.translations;
+            if (xlations) {
+
+                var foundOne = false;
+
+                // find a current translation with our currentlanguage
+                xlations.forEach(function(trans) {
+                    if (trans.language_code == AD.lang.currentLanguage) {
+
+                        foundOne = true;
+                        fields.forEach(function(field){
+
+                            // if our content has a field value:
+                            if (attr[field]) {
+
+                                // if we have an .attr() method use it
+                                if (trans.attr) {
+                                    trans.attr(field, attr[field]);
+                                } else {
+                                    trans[field] = attr[field];
+                                }
+                            }
+                        })
+                    }
+                })
+
+                if (!foundOne) {
+                    newEntry();
+                }
+
+            } else {
+
+                attr.translations = [];
+                newEntry();
+
+            }
+            
+        }
+
+
+        return attr;
     }
 
 
