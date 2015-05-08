@@ -61,6 +61,10 @@ migrate:'alter',  // modify the tables
 
     afterDestroy: function(destroyedRecords, cb) {
 
+        var roleIDs = _.pluck(destroyedRecords, 'id');
+
+
+        // make sure their translations are removed
         Multilingual.model.removeTranslations({
             model:this,
             records:destroyedRecords
@@ -69,8 +73,19 @@ migrate:'alter',  // modify the tables
             cb(err);
         })
         .then(function(){
-            cb();
+            
+            // remove these roles from any assigned User:
+            // (also remove any where role:null  )
+            Permission.destroy({ or: [{ role: roleIDs }, {role:null}] })
+            .then(function(){
+                cb();
+            })
+            .catch(function(err){
+                cb(err);
+            })
         })
+
+
 
     }
 
