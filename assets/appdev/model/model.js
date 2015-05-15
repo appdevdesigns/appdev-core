@@ -447,6 +447,8 @@ console.warn('**** Using AD.Model.clone() on a model without a .model() method! 
                     // make sure any multilingual data ends up in a translations[]
                     attr = multilingualTransform(attr, this);
 
+//// TODO: attr = multilingualCopy(attr, this);  // for copying additional language entries
+
                     AD.comm.service[verb]({ url:uri, params:attr })
                     .fail(function(err){
                         if (cbErr) cbErr(err);
@@ -560,6 +562,7 @@ console.log('... provided attributes:', attr);
 
 
                     attr = multilingualTransform(attr, this);
+                    // attr = multilingualCurrentLangOnly(attr, this);
 
                     AD.comm.service[verb]({ url:nURI, params:attr })
                     .fail(function(err){
@@ -662,31 +665,16 @@ console.log('... provided attributes:', attr);
                     var nURI = AD.util.string.replaceAll(uri, key, id);
 
 
-                    // // in a multilingual model, remove your xLations
-                    // var pendingActions = [];
-                    // if (this.multilingualFields) {
-                    //     pendingActions.push(clearAssociations(nURI, 'translations'))
-                    // }
+                    AD.comm.service[verb]({ url:nURI, params:{} })
+                    .fail(function(err){
+                        
+                        dfd.reject(err);
+                    })
+                    .done(function(data) {
+                        data = data.data || data;
 
-                    // $.when.apply($, pendingActions)
-                    // .fail(function(err){
-                    //     dfd.reject(err);
-                    // })
-                    // .then(function(){
-
-                        AD.comm.service[verb]({ url:nURI, params:{} })
-                        .fail(function(err){
-                            
-                            dfd.reject(err);
-                        })
-                        .done(function(data) {
-                            data = data.data || data;
-
-                            dfd.resolve(data);
-                        })
-
-                    // })
-
+                        dfd.resolve(data);
+                    })
 
                     return dfd;
                 }
@@ -708,6 +696,45 @@ console.log('... provided attributes:', attr);
 
 
 
+    var multilingualCurrentLangOnly = function(attr, Model) {
+
+        // make sure any submitted multilingual info only submits the current 
+        // language entry
+
+
+        // if this is a multilingual Model:
+        var fields = Model.multilingualFields;
+        if (fields) {
+
+
+            // if a language_code is embedded in the data, use that,
+            // otherwise use the current site default:
+            var langCode = attr.language_code || AD.lang.currentLanguage;
+
+            // if a translations[] present:
+            var xlations = attr.translations;
+            if (xlations) {
+
+                var foundOne = false;
+
+                // find a current translation with our currentlanguage
+                xlations.forEach(function(trans) {
+                    if (trans.language_code != langCode) {
+                        var indx = xlations.indexOf(trans);
+                        xlations.splice(indx,1);
+                    }
+                })
+
+            }
+            
+        }
+
+
+        return attr;
+    }
+
+
+
     var multilingualTransform = function(attr, Model) {
 
         // perform any multilingual translation updates here:
@@ -718,13 +745,17 @@ console.log('... provided attributes:', attr);
         var fields = Model.multilingualFields;
         if (fields) {
 
+            // if a language_code is embedded in the data, use that,
+            // otherwise use the current site default:
+            var langCode = attr.language_code || AD.lang.currentLanguage;
+
             var newEntry = function() {
 
                 // create a translation entry:
                 var trans = {};
 
                 // assume current languageCode:
-                trans.language_code = AD.lang.currentLanguage;
+                trans.language_code = langCode;
 
                 fields.forEach(function(field){
                     if (attr[field]) {
@@ -744,7 +775,7 @@ console.log('... provided attributes:', attr);
 
                 // find a current translation with our currentlanguage
                 xlations.forEach(function(trans) {
-                    if (trans.language_code == AD.lang.currentLanguage) {
+                    if (trans.language_code == langCode) {
 
                         foundOne = true;
                         fields.forEach(function(field){

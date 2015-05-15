@@ -22,6 +22,10 @@ module.exports = {
     scope:{
         collection:'PermissionScope',
         via:'permission'
+    },
+
+    enabled:{
+        type:'boolean'
     }
   }
 };
