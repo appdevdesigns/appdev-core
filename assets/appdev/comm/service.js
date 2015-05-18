@@ -70,6 +70,25 @@ steal(
             AD.comm = {};
         }
 
+
+        AD.comm.csrf = function() {
+            var dfd = AD.sal.Deferred();
+
+            // Fetch CSRF token if needed
+            if (!CSRF.token) {
+
+                CSRF.fetch()
+                .done(function(){
+                    dfd.resolve(CSRF.token);
+                })
+                .fail(dfd.reject);
+            } else {
+                dfd.resolve(CSRF.token);
+            }
+
+            return dfd;
+        }
+
         //--------------------------------------------------------------------------
         AD.comm.service = {};
 
