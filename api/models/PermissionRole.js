@@ -59,9 +59,25 @@ migrate:'alter',  // modify the tables
 
     },
 
+
+    afterUpdate: function(updatedRole, cb) {
+
+        // after a role is updated, make sure all users' permissions
+        // get recalculated:
+        ADCore.user.refreshSession("*"); // update all!
+        cb();
+    },
+
+
+
     afterDestroy: function(destroyedRecords, cb) {
 
         var roleIDs = _.pluck(destroyedRecords, 'id');
+
+
+        // after a role is deleted, make sure all users' permissions
+        // get recalculated:
+        ADCore.user.refreshSession("*"); // update all!
 
 
         // make sure their translations are removed

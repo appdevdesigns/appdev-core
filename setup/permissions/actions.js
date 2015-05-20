@@ -2,7 +2,7 @@
  * This file specifies any system Action permission keys that are used by the 
  * apps in this Module.
  *
- * Action Keys are assigned to a user in the system by the Roles&Permission 
+ * Action Keys are assigned to a user in the system by the Roles & Permission 
  * system.  An Action Key is a unique string usually specified in the following
  * format:  "[application].[subapp].[verb]"  which represents permission to 
  * perform [verb]  for the [subapp] portion of the [application].
@@ -25,15 +25,17 @@
  */
 module.exports = {
 
-    code: 'en',   // what is the i18n code for the language these descriptions 
-                  // are in?  
+    language_code:'en',
 
-/*
-    Action Definitions are in the following format:
+    actions:[
+        { 
+            action_key:'adcore.admin', 
+            action_description:'Allows the user to administrate permissions in the system.' 
+        },
+        { 
+            action_key:'adcore.developer', 
+            action_description:'Designates a User as a developer.' 
+        }
+    ]
 
-    'key' : 'description'
-
- */
-    'adcore.permissions.admin': 'Allows the user to administrate permissions in the system'
-    
 };

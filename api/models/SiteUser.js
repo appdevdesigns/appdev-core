@@ -7,6 +7,8 @@
  */
 
 var crypto = require('crypto');
+var AD = require('ad-utils');
+
 
 module.exports = {
 
