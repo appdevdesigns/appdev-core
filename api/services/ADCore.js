@@ -155,37 +155,6 @@ module.exports = {
 
 
 
-    hasPermission: function(req, res, next, actionKey) {
-        // only continue if current user has an actionKey in one of their
-        // permissions.
-
-//// TODO: <2013/12/12> Johnny : uncomment the unit tests for this action
-////       when implemented.
-
-next();
-/*
-console.log('ADCore.hasPermission() :  actionKey:' + actionKey);
-        var user = ADCore.user.current(req);
-        user.hasPermission(actionKey)
-        .fail(function(err){
-            AD.log('... ADCore.hasPermission() failed looking up error:', err);
-            next(err);
-        })
-        .then(function(hasPerm) {
-            if (hasPerm) {
-                next();
-            } else {
-
-                // the user doesn't have permission for this so 
-                var err = new Error('You don\'t have permission to access this resource.');
-                ADCore.comm.error(res, err, 403);
-            }
-        })
-*/
-    },
-
-
-
     labelsForContext: function(context, code, cb) {
         var dfd = AD.sal.Deferred();
 // AD.log('... labelsForContext():');
@@ -485,6 +454,44 @@ console.log('ADCore.hasPermission() :  actionKey:' + actionKey);
     },
 
 
+    /*
+     * policy
+     *
+     * methods related to our config/policy.js files.
+     */
+    policy: {
+
+
+
+        /** 
+         * @function serviceStack
+         *
+         * return an array of policies that should be run for a service.  
+         *
+         * This will ensure our standard ADCore policies are run before any 
+         * additional policies are processed.
+         *
+         * @param {array} policies  Additional policy definitions to run after
+         *                          our ADCore policies are processed.
+         * @return {array}
+         */
+        serviceStack: function( policies ) {
+
+            policies = policies || []; // make sure we have an array.
+
+            // This is our expected series of standard policies to run for 
+            // our standard service calls.
+            var stack = [ 'sessionAuth', 'initUser', 'initSession', 'noTimestamp', 'hasPermission' ];
+
+            for (var i = policies.length - 1; i >= 0; i--) {
+                stack.push(policies[i]);
+            };
+
+            return  stack;
+        }
+    },
+
+
     session: {
 
         /* 
@@ -775,11 +782,11 @@ User.prototype.hasPermission = function(key) {
 
     if ((this.data.permissions)
         && (this.data.permissions[key])) {
-        AD.log('<green>... User.hasPermission('+key+') = true </green>');
+        // AD.log('<green>... User.hasPermission('+key+') = true </green>');
         return true;
     }
 
-    AD.log('<yellow>... User.hasPermission('+key+') = false </yellow>');
+    // AD.log('<yellow>... User.hasPermission('+key+') = false </yellow>');
     return false;
 };
 
