@@ -364,11 +364,15 @@ module.exports = {
             // if we are already populated with translations on this instance
             // then we simply iterate through them and choose the right one.
             if ((model.translations)
-                && (_.isArray(model.translations)) ) {
-                // && (!model.translations.add)) {
+                && (_.isArray(model.translations)) 
+                && (model.translations.length > 0)) {
+
 
 // console.log('... existing .translations found:');
 // console.log(model.translations);
+// model.translations.forEach(function(t){
+//     console.log('    trans:', t);
+// })
 
                 var found = Translate({
                     translations:model.translations,

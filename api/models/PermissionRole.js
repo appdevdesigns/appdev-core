@@ -54,7 +54,7 @@ migrate:'alter',  // modify the tables
         },
 
         _Klass: function() {
-            return PermissionRoles;
+            return PermissionRole;
         }
 
     },
