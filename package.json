@@ -1,6 +1,6 @@
 {
   "name": "appdev-core",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "A set of core capabilities for our appdev projects in a sails environment.",
   "main": "module.js",
   "directories": {
