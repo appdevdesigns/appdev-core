@@ -70,6 +70,25 @@ steal(
             AD.comm = {};
         }
 
+
+        AD.comm.csrf = function() {
+            var dfd = AD.sal.Deferred();
+
+            // Fetch CSRF token if needed
+            if (!CSRF.token) {
+
+                CSRF.fetch()
+                .done(function(){
+                    dfd.resolve(CSRF.token);
+                })
+                .fail(dfd.reject);
+            } else {
+                dfd.resolve(CSRF.token);
+            }
+
+            return dfd;
+        }
+
         //--------------------------------------------------------------------------
         AD.comm.service = {};
 
@@ -236,6 +255,21 @@ steal(
                 cache: false
             })
             .fail(function(req, status, statusText) {
+
+                    // was this a CSRF error?
+                    if (req.responseText.toLowerCase().indexOf('csrf') != -1) {
+
+                        // reset our CSRF token
+                        CSRF.token = null;
+
+                        // resubmit the request 
+                        request(options, cb)
+                        .done(dfd.resolve)
+                        .fail(dfd.reject);
+                        return;
+                    }
+
+
 
                     // check to see if responseText is our json response
                     var data = AD.sal.parseJSON(req.responseText);

@@ -42,7 +42,7 @@ describe('ADCore.model.translate tests', function(){
             // create a permission role object
             function(next) {
 
-                PermissionRoles.create({ })
+                PermissionRole.create({ })
                 .then(function(newRole){
                     role = newRole;
 
@@ -205,7 +205,7 @@ describe('ADCore.model.translate tests', function(){
             function(next){
 
 
-                PermissionRolesTrans.destroy({role:role.id})
+                PermissionRoleTrans.destroy({role:role.id})
                 .then(function(){
                     // AD.log('translations removed.');
 

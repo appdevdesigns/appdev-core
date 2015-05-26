@@ -71,6 +71,49 @@ if ($el.length == 0) {
 
             },
 
+
+
+            /**
+             * @function entryForID
+             * scan a given array for an entry that has .id == id.
+             * @param {array} list  the list of elements to scan
+             * @param {integer} id  the id we are looking for
+             * @return {obj} || null 
+             */
+            entryForID:function(list, id) {
+
+                id = parseInt(id);  // make sure you have an integer here!
+                
+                for (var i = list.length - 1; i >= 0; i--) {
+                    if (( list[i].id)  && (list[i].id == id)) {
+                        return list[i];
+                    }
+                };
+
+                return null;
+            },
+
+
+
+            /**
+             * @function indexForID
+             * scan a given array for an entry that has .id == id. and return
+             * the index of that entry.
+             * @param {array} list  the list of elements to scan
+             * @param {integer} id  the id we are looking for
+             * @return {int} || -1 if not found 
+             */
+            indexForID:function(list, id) {
+
+                var entry = this.entryForID(list, id);
+                if (entry) {
+                    return list.indexOf(entry);
+                }
+                return -1;
+            },
+
+
+
             hide:function() {
                 this.element.hide();
             },

@@ -54,8 +54,55 @@ migrate:'alter',  // modify the tables
         },
 
         _Klass: function() {
-            return PermissionRoles;
+            return PermissionRole;
         }
 
+    },
+
+
+    afterUpdate: function(updatedRole, cb) {
+
+        // after a role is updated, make sure all users' permissions
+        // get recalculated:
+        ADCore.user.refreshSession("*"); // update all!
+        cb();
+    },
+
+
+
+    afterDestroy: function(destroyedRecords, cb) {
+
+        var roleIDs = _.pluck(destroyedRecords, 'id');
+
+
+        // after a role is deleted, make sure all users' permissions
+        // get recalculated:
+        ADCore.user.refreshSession("*"); // update all!
+
+
+        // make sure their translations are removed
+        Multilingual.model.removeTranslations({
+            model:this,
+            records:destroyedRecords
+        })
+        .fail(function(err){
+            cb(err);
+        })
+        .then(function(){
+            
+            // remove these roles from any assigned User:
+            // (also remove any where role:null  )
+            Permission.destroy({ or: [{ role: roleIDs }, {role:null}] })
+            .then(function(){
+                cb();
+            })
+            .catch(function(err){
+                cb(err);
+            })
+        })
+
+
+
     }
+
 };

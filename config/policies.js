@@ -11,7 +11,10 @@
  * http://sailsjs.org/#documentation
  */
 
-var sessionStack = [ 'sessionAuth', 'initUser', 'initSession', 'noTimestamp' ];
+var path = require('path');
+var ADCore = require(path.join(process.cwd(), 'api', 'services', 'ADCore.js'));
+var sessionStack = ADCore.policy.serviceStack();
+// var sessionStack = [ 'sessionAuth', 'initUser', 'initSession', 'noTimestamp', 'hasPermission' ];
 
 module.exports = {
 	'*': sessionStack,

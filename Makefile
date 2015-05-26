@@ -5,12 +5,12 @@ test:
     --reporter $(REPORTER) \
     test/*.js
 
-	@NODE_ENV=test mocha-phantomjs \
+    @NODE_ENV=test mocha-phantomjs \
     -R $(REPORTER) \
-    assets/appdev/test/test-reauth.html 
+    assets/appdev/test/test-reauth.html
 
-	@NODE_ENV=test mocha-phantomjs \
+    @NODE_ENV=test mocha-phantomjs \
     -R $(REPORTER) \
-    assets/appdev/test/test-all.html 
+    assets/appdev/test/test-all.html
 
 .PHONY: test

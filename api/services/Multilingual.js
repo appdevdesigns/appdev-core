@@ -247,9 +247,81 @@ module.exports = {
             })
 
             return dfd;
+        },
+
+
+
+        /**
+         * @function Multilingual.model.removeTranslations()
+         *
+         * This tool adds will remove any associated translations from a 
+         * multilingual model.
+         *
+         * @param {obj}  opts.model The base Model used for Model.create()
+         * @param {obj}  opts.data  an array of Model records that were deleted
+         * @return {deferred}
+         */
+        removeTranslations:function(opts) {
+            var dfd = AD.sal.Deferred();
+
+            var Model = opts.model;
+            var data = opts.records;
+
+
+            //Error Checking:
+            if (typeof Model == 'undefined') {
+                dfd.reject(new Error('ADCore.model.multilingual.add() called without a model parameter.'));
+                return dfd;
+            }
+
+
+            // figure out trans Model
+            var TransModel = getTransModel(Model);
+            if (!TransModel) {
+                var err = new Error('Unable to figure out Translation Model for Model');
+                err.Model = Model;
+                dfd.reject(err);
+            }
+
+
+            // find out what the primary Key is for Model
+            var pk = getModelPK(Model);
+            if (pk == null) {
+                var err = new Error('Unable to figure out primary key of Model');
+                err.Model = Model;
+                dfd.reject(err);
+            }
+
+            
+            // pluck all the primary keys from our given records
+            var listIDs = _.pluck(data, pk);
+
+
+            // find out the remote fk for our reference:
+            var fk = Model.attributes.translations.via;
+            if (!fk) {
+                var err = new Error('Unable to figure out the translation fk (.via) for our Model');
+                err.Model = Model;
+                dfd.reject(err);
+            }
+
+
+            // now do the deed!
+            var cond = {};
+            cond[fk] = listIDs;
+
+
+            TransModel.destroy(cond)
+            .then(function(data){
+                dfd.resolve(data);
+            })
+            .catch(function(err){
+                dfd.reject(err);
+            })
+
+            return dfd;
+
         }
-
-
     }
 
 
@@ -263,6 +335,32 @@ module.exports = {
 ///// 
 ///// HELPER FUNCTIONS
 /////
+
+
+/*
+ * @function getModelPK
+ *
+ * Find the primary key field for a given Model.
+ *
+ * @param {obj} Model  A Multilingual Model Object (the Data Model)
+ * @return {string}  the attribute name that is the primary key
+ */
+var getModelPK = function(Model) {
+
+    var pk = null;
+
+    if (Model.attributes) {
+
+        for (var k in Model.attributes) {
+            if (Model.attributes[k].primaryKey) {
+                pk = k;
+            }
+        }
+    }
+
+    return pk;
+
+}
 
 
 /*

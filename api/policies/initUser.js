@@ -8,19 +8,29 @@
  */
 module.exports = function(req, res, next) {
 
-    // if User is authenticated, proceed to the next policy,
+
+    // get the user info stored in the req object
     var user = ADCore.user.actual(req);
 
-    // note storing the User obj in the session looses the functions,
+    // NOTE: storing the User obj in the session looses the functions,
     // so we want to recreate the user object:
     if (!user['GUID']) {
 
         // we lost the info, so restore:
-        ADCore.user.init(req, user.data);
+        ADCore.user.init(req, user.data)
+        .fail(function(err){
+            next(err);
+        })
+        .then(function(){
+
+            // ok, user data is now an object:
+            next();
+        })
+
+    } else {
+
+        // user data is now an object:
+        next();
     }
-
-
-    // ok, user data is now an object:
-    next();
 
 };

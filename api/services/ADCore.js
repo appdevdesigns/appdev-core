@@ -155,27 +155,6 @@ module.exports = {
 
 
 
-    hasPermission: function(req, res, next, actionKey) {
-        // only continue if current user has an actionKey in one of their
-        // permissions.
-
-//// TODO: <2013/12/12> Johnny : uncomment the unit tests for this action
-////       when implemented.
-
-// console.log('ADCore.hasPermission() :  actionKey:' + actionKey);
-        // pull req.session.appdev.user
-        // if (user.hasPermission( actionKey) ) {
-        //     next();
-        // } else {
-        //     res.forbidden('you dont have permission to access this resource.');
-        // }
-
-        // for now just
-        next();
-    },
-
-
-
     labelsForContext: function(context, code, cb) {
         var dfd = AD.sal.Deferred();
 // AD.log('... labelsForContext():');
@@ -385,11 +364,15 @@ module.exports = {
             // if we are already populated with translations on this instance
             // then we simply iterate through them and choose the right one.
             if ((model.translations)
-                && (_.isArray(model.translations)) ) {
-                // && (!model.translations.add)) {
+                && (_.isArray(model.translations)) 
+                && (model.translations.length > 0)) {
+
 
 // console.log('... existing .translations found:');
 // console.log(model.translations);
+// model.translations.forEach(function(t){
+//     console.log('    trans:', t);
+// })
 
                 var found = Translate({
                     translations:model.translations,
@@ -471,6 +454,44 @@ module.exports = {
 
             return dfd;
 
+        }
+    },
+
+
+    /*
+     * policy
+     *
+     * methods related to our config/policy.js files.
+     */
+    policy: {
+
+
+
+        /** 
+         * @function serviceStack
+         *
+         * return an array of policies that should be run for a service.  
+         *
+         * This will ensure our standard ADCore policies are run before any 
+         * additional policies are processed.
+         *
+         * @param {array} policies  Additional policy definitions to run after
+         *                          our ADCore policies are processed.
+         * @return {array}
+         */
+        serviceStack: function( policies ) {
+
+            policies = policies || []; // make sure we have an array.
+
+            // This is our expected series of standard policies to run for 
+            // our standard service calls.
+            var stack = [ 'sessionAuth', 'initUser', 'initSession', 'noTimestamp', 'hasPermission' ];
+
+            for (var i = policies.length - 1; i >= 0; i--) {
+                stack.push(policies[i]);
+            };
+
+            return  stack;
         }
     },
 
@@ -583,6 +604,7 @@ module.exports = {
          * @param {object} data   the data to store about this user.  Should at least
          *                  contain { guid: 'xxxxx' }
          *
+         * @return {deferred} ready resolves once the User object is fully ready.
          */
         init:function(req, data) {
             var user = new User(data)
@@ -590,14 +612,52 @@ module.exports = {
             req.session.appdev.user = user;
             
             // Do it again after async operations complete.
-            user.whenReady.done(function(){
+            user.ready().done(function(){
                 req.session.appdev.actualUser = user;
                 req.session.appdev.user = user;
             });
+
+            return user.ready();
+        },
+
+
+        /**
+         * @function refreshSession
+         *
+         * mark a given user's guid as needing to refresh it's session data.
+         * 
+         * @param {string} guid  The GUID of the user account to refresh
+         */
+        refreshSession: function(guid) {
+
+            if ( guid != "*" ) {
+// AD.log('... refreshSession() guid:'+guid);
+                userSessionStatusRefresh[guid] = true;
+            } else {
+// AD.log('... refreshSession() '+guid);
+                for (var g in userSessionStatusRefresh) {
+                    userSessionStatusRefresh[g] = true;
+                }
+                
+            }
         }
     }
 };
 
+
+
+//
+// userSessionStatusRefresh
+// 
+// a hash to hold the status of current users and wether or not
+// their data should be refreshed from the SiteUser DB.
+//
+// Usually changes in the Permission settings will invoke ADCore.user.refreshSession()
+// and effect the status of this table.
+// 
+var userSessionStatusRefresh = {
+    // user.guid  :  bool (should refresh from DB)
+}
 
 
 
@@ -613,7 +673,7 @@ var User = function (opts) {
     
     // This deferred will resolve when the object has finished initializing
     // to/from the DB.
-    self.whenReady = AD.sal.Deferred();
+    self.dfdReady = AD.sal.Deferred();
 
     // Internal reference to the DB model
     this.user = null;
@@ -621,7 +681,9 @@ var User = function (opts) {
     // Initialization may be done from session stored data. In which case
     // the data is already loaded and we won't need to do a find().
     var shouldFind = false;
-    if (!this.data.isLoaded) {
+    if ((!this.data.isLoaded) 
+        || ( userSessionStatusRefresh[this.data.guid] )) {
+
         // Typically you would init by guid, username, or username+password.
         // We will allow init by other combinations of those fields. There is no 
         // legitimate use for those but it is safe when done server side.
@@ -636,19 +698,33 @@ var User = function (opts) {
     
     if (shouldFind) {
         SiteUser.hashedFind(findOpts)
+        .populate('permission')
         .then(function(list){
             if (list[0]) {
+// AD.log('... User() .hashedFind():', list[0]);
                 // User found in the DB
                 self.user = list[0];
                 self.data.guid = self.user.guid;
                 self.data.languageCode = self.user.languageCode;
                 self.data.isLoaded = true;
-                self.whenReady.resolve();
+                self.data.permissions = null;
+
+                // now compute our permissions:
+                self._computePermissions()
+                .fail(function(err){
+                    self.dfdReady.reject(err);
+                })
+                .then(function(permissions){
+                    self.data.permissions = permissions;
+                    userSessionStatusRefresh[self.data.guid] = false;
+                    self.dfdReady.resolve();
+                })
+
                 
                 // Update username / language, and freshen timestamp.
                 // Don't really care when it finishes.
                 var username = opts.username || list[0].username;
-                var languageCode = opts.languageCode || list[0].langaugeCode;
+                var languageCode = opts.languageCode || list[0].languageCode;
                 SiteUser.update(
                     { id: list[0].id }, 
                     { 
@@ -659,43 +735,174 @@ var User = function (opts) {
                 .then(function(){});
             }
             else {
+
+                opts.languageCode = opts.languageCode || Multilingual.languages.default();
+
                 // User not in the DB. Insert now.
                 SiteUser.create(opts)
                 .then(function(user){
                     self.user = user;
+                    self.data.guid = user.guid;
                     self.data.isLoaded = true;
-                    self.whenReady.resolve();
+                    self.data.permissions = null;
+                    userSessionStatusRefresh[self.data.guid] = false;
+                    self.dfdReady.resolve();
                 })
                 .fail(function(err){
                     console.log('User create failed:', opts, err);
-                    self.whenReady.reject(err);
+                    self.dfdReady.reject(err);
                 })
                 .done();
             }
         })
         .fail(function(err){
             console.log('User init failed:', findOpts, err);
-            self.whenReady.reject();
+            self.dfdReady.reject();
         })
         .done();
     }
     else {
-        self.whenReady.resolve();
+// AD.log('<yellow>|||||||||||||||||||  not looking up user ||||||||||||||||||||||</yellow>');
+// AD.log('... data:', this.data);
+        self.dfdReady.resolve();
     }
     
 };
 
 
+User.prototype.ready = function() {
+    return this.dfdReady;
+}
+
+
 
 User.prototype.getLanguageCode = function() {
-    return this.data.languageCode || 'en';
+    return this.data.languageCode || Multilingual.languages.default();
 };
 
 
 
 User.prototype.hasPermission = function(key) {
-    return true;
+
+    if ((this.data.permissions)
+        && (this.data.permissions[key])) {
+        // AD.log('<green>... User.hasPermission('+key+') = true </green>');
+        return true;
+    }
+
+    // AD.log('<yellow>... User.hasPermission('+key+') = false </yellow>');
+    return false;
 };
+
+
+
+User.prototype._computePermissions = function() {
+    var _this = this;
+
+    var dfd = AD.sal.Deferred();
+
+// AD.log('<green>... computing Permissions() : ['+this.data.guid+']</green>');
+
+    var listPermissions = null;
+    var hashRoles = null;
+    var hashPerm = null;
+
+
+if (_this.user == null) {
+    AD.log.error('*******************************************************************');
+    console.trace('.... WHY IS USER NULL???? ');
+    AD.log('... data:', _this.data);
+//// todo: probably because User was initialized with data.isLoaded == true ... when does that happen?
+}
+
+    async.series([
+
+        // step 1) load permissions with populated scopes
+        function(next){
+
+            Permission.find({user: _this.user.id, enabled:true })
+            .populate('scope')
+            .then(function(list){
+                listPermissions = list;
+                next();
+            })
+            .catch(function(err){
+                AD.log.error('*** error looking up permissions:', err);
+                next(err);
+            })
+
+        },
+
+
+        // step 2) load all the roles with associated actions
+        function(next) {
+
+            // var listRoleIDs = [];
+            // for (var i = listPermissions.length - 1; i >= 0; i--) {
+            //     var perm = listPermissions[i];
+            //     listRoleIDs.push(perm.role);
+            // };
+            var listRoleIDs = _.pluck(listPermissions, 'role');
+
+            PermissionRole.find({ id: listRoleIDs })
+            .populate('actions')
+            .then(function(list){
+
+                hashRoles = {};
+                list.forEach(function(role){
+                    hashRoles[ role.id ] = role;
+                })
+
+                next();
+
+            })
+            .catch(function(err){
+                AD.log.error('*** error looking up roles for user\'s permissions:', err);
+                next(err);
+            })
+        },
+
+
+        // step 3) now merge the permissions and roles into a 
+        //         { actionKey : [scopeid] }
+        function(next) {
+
+            hashPerm = {};
+
+            listPermissions.forEach(function( perm ){
+
+                var role = hashRoles[ perm.role ];
+                role.actions.forEach(function(action){
+
+                    // create entry in hashPerm if not there:
+                    if (!hashPerm[action.action_key]) {
+                        hashPerm[action.action_key] = [];
+                    }
+
+                    // now add the current scopes to this action key:
+                    perm.scope.forEach(function(scope){
+                        hashPerm[action.action_key].push(scope.id);
+                    })
+                })
+            })
+
+// AD.log('... hashPerm:', hashPerm);
+            next();
+
+        }
+
+    ], function(err,results){
+
+        if (err) {
+            dfd.reject(err);
+        } else {
+            dfd.resolve(hashPerm);
+        }
+
+    });
+
+    return dfd;
+}
 
 
 

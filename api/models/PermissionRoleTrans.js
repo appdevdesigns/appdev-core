@@ -38,8 +38,14 @@ migrate:'alter',  // modify the tables
         role_label : {
             type : "string",
             size : 100,
-            defaultsTo : "-"
+            defaultsTo : "-",
+            unique: true
         }, 
+
+        role_description : {
+            type : "text",
+            defaultsTo : "-"
+        }
 
 
     }

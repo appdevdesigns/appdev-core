@@ -8,7 +8,7 @@ describe('SiteUser model', function(){
     var cleanupIDs = [];
     
     before(function(ok){
-        this.timeout(60000);
+        this.timeout(80000);
         
         AD.test.sails.load()
         .fail(function(err){
@@ -180,7 +180,7 @@ describe('SiteUser integration with ADCore', function() {
         assert.isDefined(req.session.appdev.user);
         
         var user = req.session.appdev.user;
-        user.whenReady
+        user.ready()
         .fail(function(err){
             throw err;
         })
@@ -202,7 +202,7 @@ describe('SiteUser integration with ADCore', function() {
         var req = { session: { appdev: {} } };
         var data = { guid: guid }; // username not specified
         ADCore.user.init(req, data);
-        req.session.appdev.user.whenReady
+        req.session.appdev.user.ready()
         .fail(function(err){ throw err; })
         .done(function(){
             
