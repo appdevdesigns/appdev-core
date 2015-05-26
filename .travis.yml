@@ -10,6 +10,7 @@ before_script:
 - cd /tmp/ad-test/node_modules
 - mv /home/travis/build/appdevdesigns/appdev-core .
 - cd appdev-core/
+- node setup/setup.js
 - npm install mocha chai mocha-phantomjs phantomjs
 
 script:
