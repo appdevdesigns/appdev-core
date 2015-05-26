@@ -41,7 +41,7 @@ describe('ADCore.model.translate tests', function(){
 
             // create a permission role object
             function(next) {
-console.log('... new version in travis.ci !');
+
                 PermissionRole.create({ })
                 .then(function(newRole){
                     role = newRole;
