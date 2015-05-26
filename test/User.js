@@ -8,7 +8,7 @@ describe('SiteUser model', function(){
     var cleanupIDs = [];
     
     before(function(ok){
-        this.timeout(60000);
+        this.timeout(80000);
         
         AD.test.sails.load()
         .fail(function(err){
