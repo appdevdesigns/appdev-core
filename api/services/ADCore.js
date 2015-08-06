@@ -35,8 +35,27 @@ module.exports = {
                 // process of authenticating them...
                 // handle both web service request & web page requests
 
-                // until this is implemented:
-                ADCore.auth.markAuthenticated(req, 'anonymous.coward');
+
+                // until all the above is implemented, just run with a specified user id
+                var anonymousUserID = 'anonymous.coward'; // <- thank you slashdot
+
+// AD.log('<red>**** </red> local.isAuthenticated()');
+// AD.log('<red>**** </red> sails.environment: '+ sails.config.environment );
+// AD.log('<red>**** </red> sails.appdev: '+ sails.config.appdev );
+
+                // if we are in the development environment, check for 
+                // a setting to override the anonymous user guid:
+                if (sails.config.environment == 'development') {
+                    if (sails.config.appdev.test) {
+                        if (sails.config.appdev.test.anonymousUserID) {
+                            AD.log("<yellow>***** using userid:</yellow><white><bold>"+sails.config.appdev.test.anonymousUserID+"</bold></white><yellow> ******</yellow>");
+                            anonymousUserID = sails.config.appdev.test.anonymousUserID;
+                        }
+                    }
+                }
+
+                
+                ADCore.auth.markAuthenticated(req, anonymousUserID);
 
                 next();
             }

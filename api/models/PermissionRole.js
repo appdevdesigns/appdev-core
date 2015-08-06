@@ -1,5 +1,5 @@
 /**
-* PermissionRoles.js
+* PermissionRole.js
 *
 * @description :: Define Roles that represent collections of Actions and Field level permissions.
 * @docs        :: http://sailsjs.org/#!documentation/models
