@@ -891,18 +891,23 @@ if (_this.user == null) {
             listPermissions.forEach(function( perm ){
 
                 var role = hashRoles[ perm.role ];
-                role.actions.forEach(function(action){
+                if (role) {
 
-                    // create entry in hashPerm if not there:
-                    if (!hashPerm[action.action_key]) {
-                        hashPerm[action.action_key] = [];
-                    }
+                    role.actions.forEach(function(action){
 
-                    // now add the current scopes to this action key:
-                    perm.scope.forEach(function(scope){
-                        hashPerm[action.action_key].push(scope.id);
+                        // create entry in hashPerm if not there:
+                        if (!hashPerm[action.action_key]) {
+                            hashPerm[action.action_key] = [];
+                        }
+
+                        // now add the current scopes to this action key:
+                        perm.scope.forEach(function(scope){
+                            hashPerm[action.action_key].push(scope.id);
+                        })
                     })
-                })
+                } else {
+                    AD.log.error('*** role not found from perm / hashRoles:', perm, hashRoles);
+                }
             })
 
 // AD.log('... hashPerm:', hashPerm);
