@@ -22,7 +22,8 @@ steal(
         'appdev/util/uuid.js',
         'appdev/util/async.js',
         'appdev/util/string.js',
-        'appdev/config/config.js'
+        'appdev/config/config.js',
+        'appdev/util/uiScrollbarSize.js'
 )
 .then(
         'appdev/config/data.js',
