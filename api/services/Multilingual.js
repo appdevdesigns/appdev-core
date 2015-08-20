@@ -45,6 +45,8 @@ module.exports = {
                     _listLanguages = list;
                     if (list.length == 0) {
                         AD.log('<yellow><bold>WARN:</bold> Multilingual.languages.all() : no languages in table!</yellow>');
+                        AD.log('<yellow><bold>WARN:</bold> returning \'en\' ... </yellow>');
+                        list.push({language_code:'en', language_label:'No Languages defined ... so English'});
                     }
                     dfd.resolve(list);
                 })
