@@ -2,92 +2,133 @@
  * ADCore
  *
  * @module      :: Service
- * @description :: This is a collection of core appdev features for an application.
-
+ * @description :: This is a collection of core appdev features for an 
+ *                 application.
  *
  */
 var $ = require('jquery-deferred');
 var AD = require('ad-utils');
 var _ = require('lodash');
 
+var passport = require('passport');
+var CasStrategy = require('passport-cas2').Strategy;
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var LocalStrategy = require('passport-local').Strategy;
+
+passport.serializeUser(function(user, done) {
+    done(null, user.GUID());
+});
+passport.deserializeUser(function(guid, done) {
+    var user = new User({ guid: guid });
+    user.ready()
+    .fail(function(err){
+        done(err);
+    })
+    .done(function(){
+        // Passport will insert the user object into `req`
+        done(null, user);
+    });
+});
+
+// These will be used in the policy stacks
+var passportInitialize = passport.initialize();
+var passportSession = passport.session();
+
 module.exports = {
-
-
+    
     auth: {
+        
+        // Expose some passport related objects
+        passport: passport,
+        local: {},  // assigned during ADCore.auth.init()
+        cas: {},    // assigned during ADCore.auth.init()
+        google: {}, // assigned during ADCore.auth.init()
 
-        isAuthenticated: function( req ) {
-
-            if (req.session.authenticated) {
+        /**
+         * @function ADCore.auth.init()
+         * Initialize the passport strategies. Can only be done after 
+         * sails.config has been defined. This function will be called from 
+         * ADCore's bootstrap.js.
+         */
+        init: function() {
+            this.local = new LocalStrategy(
+                // The `verify` callback
+                function(username, password, done) {
+                    User.init({
+                        username: username,
+                        password: password
+                    })
+                    .fail(function(err){
+                        done(err);
+                    })
+                    .done(function(user){
+                        // Passport will insert the user object into `req`
+                        done(null, user);
+                    });
+                }
+            );
+            passport.use(this.local);
+        
+            this.cas = new CasStrategy(
+                {
+                    casURL: sails.config.cas.baseURL
+                }, 
+                // The `verify` callback
+                function(username, profile, done) {
+                    var guid = profile[sails.config.cas.guidKey];
+                    var user = new User({ guid: guid }, {
+                        guid: guid,
+                        username: username
+                    });
+                    user.ready()
+                    .fail(function(err){
+                        done(err);
+                    })
+                    .done(function(){
+                        // Passport will insert the user object into `req`
+                        done(null, user);
+                    });
+                }
+            );
+            passport.use(this.cas);
+            
+            this.google = new GoogleStrategy(
+                {
+                    clientID: sails.config.google.clientID,
+                    clientSecret: sails.config.google.clientSecret,
+                    callbackURL: sails.getBaseurl() + '/auth/google'
+                },
+                // The `verify` callback
+                function(accessToken, refreshToken, profile, done) {
+                    var profileName = profile.name.givenName + ' ' 
+                                        + profile.name.familyName;
+                    var user = new User({ guid: profile.id }, {
+                        guid: profile.id,
+                        username: profileName 
+                            || profile.displayName 
+                            || profile.id
+                    });
+                    user.ready()
+                    .fail(function(err){
+                        done(err);
+                    })
+                    .done(function(){
+                        // Passport will insert the user object into `req`
+                        done(null, user, profile);
+                    });
+                }
+            );
+            passport.use(this.google);
+        },
+        
+        isAuthenticated: function(req) {
+            if (req.user) {
                 return true;
             } else {
                 return false;
             }
-
         },
 
-
-
-        local: {
-            isAuthenticated:function(req, res, next) {
-            ////TODO: <2014/1/24> Johnny : Implement a Local Auth option
-                // this is used by policy/sessionAuth.js to determine if a
-                // user is authenticated, and if not, what to do to begin the
-                // process of authenticating them...
-                // handle both web service request & web page requests
-
-
-                // until all the above is implemented, just run with a specified user id
-                var anonymousUserID = 'anonymous.coward'; // <- thank you slashdot
-
-// AD.log('<red>**** </red> local.isAuthenticated()');
-// AD.log('<red>**** </red> sails.environment: '+ sails.config.environment );
-// AD.log('<red>**** </red> sails.appdev: '+ sails.config.appdev );
-
-                // if we are in the development environment, check for 
-                // a setting to override the anonymous user guid:
-                if (sails.config.environment == 'development') {
-                    if (sails.config.appdev.test) {
-                        if (sails.config.appdev.test.anonymousUserID) {
-                            AD.log("<yellow>***** using userid:</yellow><white><bold>"+sails.config.appdev.test.anonymousUserID+"</bold></white><yellow> ******</yellow>");
-                            anonymousUserID = sails.config.appdev.test.anonymousUserID;
-                        }
-                    }
-                }
-
-                
-                ADCore.auth.markAuthenticated(req, anonymousUserID);
-
-                next();
-            }
-        },
-
-
-        
-        // @param httpRequest req
-        // @param string/object properties
-        //      Either a string for guid
-        //      or a basic object containing
-        //          - guid
-        //          - username
-        //          - password
-        //          - languageCode
-        markAuthenticated: function(req, properties) {
-            if (typeof properties == 'string') {
-                properties = { guid: properties };
-            }
-            
-            req.session.authenticated = true;
-            req.session.appdev = req.session.appdev || ADCore.session.default();
-            req.session.appdev.auth.guid = properties.guid;
-            ADCore.user.init(req, properties);
-        },
-
-
-
-        markNotAuthenticated: function(req) {
-            req.session.authenticated = false;
-            req.session.appdev = { auth:{}, user:null, actualUser:null };  // drop all appdev info
-        }
     },
 
 
@@ -176,9 +217,6 @@ module.exports = {
 
     labelsForContext: function(context, code, cb) {
         var dfd = AD.sal.Deferred();
-// AD.log('... labelsForContext():');
-// AD.log('... context:'+context);
-// AD.log('... code:'+code);
 
         // verify cb is properly set
         if (typeof code == 'function') {
@@ -223,7 +261,9 @@ module.exports = {
 
     model:{
 
-
+        /**
+         * @function ADCore.model.join
+         */
         join:function(options) {
             var dfd = AD.sal.Deferred();
 
@@ -235,8 +275,6 @@ module.exports = {
             var destKey = options.destKey; // what to store my model instance in list object
             var Model = options.Model;  // this Model
 
-// AD.log('<green>join();</green> list:', list);
-
             // go through each list entry and compile the valid fk's
             var ids = [];
             list.forEach(function(entry){
@@ -244,18 +282,15 @@ module.exports = {
                     ids.push(entry[fk]);
                 }
             })
-// AD.log('<green>join():</green> ids:', ids);
 
             // if we have some matches 
             if (ids.length == 0) {
-// AD.log('... no ids, so resolve');
                 dfd.resolve(list);
 
             } else {
 
                 var filter = {};
                 filter[pk] = ids;
-// AD.log("... filter:",filter);
 
                 Model.find(filter)
                 .fail(function(err){
@@ -263,7 +298,6 @@ module.exports = {
                 })
                 .then(function(listModels){
                     var hashModels = _.indexBy(listModels, pk);
-// AD.log('<green>join():</green> hashModels:', hashModels);
 
                     list.forEach(function(entry){
 
@@ -277,7 +311,6 @@ module.exports = {
 
                         }
                     });
-// AD.log('... list:', list);
                     dfd.resolve(list);
                 })
             }
@@ -358,7 +391,6 @@ module.exports = {
                 dfd.reject(new Error('given model doesn\'t seem to be multilingual.'));
                 return dfd;
             } 
-// console.log('... Klass ok!');
 
             
             // get the name of our TranslationModel
@@ -386,13 +418,6 @@ module.exports = {
                 && (_.isArray(model.translations)) 
                 && (model.translations.length > 0)) {
 
-
-// console.log('... existing .translations found:');
-// console.log(model.translations);
-// model.translations.forEach(function(t){
-//     console.log('    trans:', t);
-// })
-
                 var found = Translate({
                     translations:model.translations,
                     model:model,
@@ -401,20 +426,13 @@ module.exports = {
                 });
                 // if we matched 
                 if (found) {
-// console.log('... match found ... resolving() ');
                     dfd.resolve();
                 } else {
-// console.log('... NO MATCH!  rejecting()');
                     dfd.reject(new Error(nameTransModel+': translation for language code ['+code+'] not found.'));  // error: no language code found.
                 }
             
 
             } else {
-// console.log('... no existing .translations, so lookup!');
-// console.log('isArray:', _.isArray(model.translations));
-// console.log('!add():', !model.translations.add);
-// console.log('model:');
-// console.log(model);
 
                 // OK, we need to lookup our translations and then choose 
                 // the right one.
@@ -425,8 +443,6 @@ module.exports = {
                     dfd.reject(new Error('translation model ['+nameTransModel+'] not found.'));
 
                 } else {
-
-// console.log('... sails.models['+nameTransModel+'] found');
 
                     // 2nd: let's figure out what our condition will be
                     // 
@@ -440,16 +456,12 @@ module.exports = {
                     cond[condKey] = model.id;
                     cond.language_code = code;
 
-// console.log('... performing .find() operation for labels');
-
                     // now perform the actual lookup:
                     transModel.find(cond)
                     .fail(function(err){
-// console.log('... BOOM!');
                         dfd.reject(err);
                     })
                     .then(function(translations){
-// console.log('... got something... ');
 
                         var found = Translate({
                             translations:translations,
@@ -459,10 +471,8 @@ module.exports = {
                         });
                         // if we matched 
                         if (found) {
-// console.log('... label match found.');
                             dfd.resolve();
                         } else {
-// console.log('... label match not found.');
                             dfd.reject(new Error(nameTransModel+': translation for language code ['+code+'] not found.'));  // error: no language code found.
                         }
                     })
@@ -485,9 +495,8 @@ module.exports = {
     policy: {
 
 
-
         /** 
-         * @function serviceStack
+         * @function ADCore.policy.serviceStack
          *
          * return an array of policies that should be run for a service.  
          *
@@ -499,18 +508,32 @@ module.exports = {
          * @return {array}
          */
         serviceStack: function( policies ) {
-
             policies = policies || []; // make sure we have an array.
 
             // This is our expected series of standard policies to run for 
             // our standard service calls.
-            var stack = [ 'sessionAuth', 'initUser', 'initSession', 'noTimestamp', 'hasPermission' ];
+            var stack = [ 
+                passportInitialize, // defined at the top
+                passportSession,    // defined at the top
+                'sessionAuth', 
+                //'initUser', 
+                'initSession', 
+                'noTimestamp', 
+                'hasPermission',
+            ];
 
             for (var i = policies.length - 1; i >= 0; i--) {
                 stack.push(policies[i]);
             };
 
             return  stack;
+        },
+        
+        passportStack: function() {
+            return [
+                passportInitialize,
+                passportSession
+            ];
         }
     },
 
@@ -521,7 +544,7 @@ module.exports = {
          * return a default session object that we use to manage our ADCore info.
          * @return {json}
          */
-        default:function() {
+        default: function() {
 
             return { auth:{}, user:null, actualUser:null, socket:{ id:null } }
         }
@@ -533,6 +556,8 @@ module.exports = {
 
 
         /*
+         * @function ADCore.socket.id
+         *
          * Return the current user's socket id
          *
          * @param {object} req   The current request object.
@@ -562,6 +587,8 @@ module.exports = {
 
 
         /*
+         * @function ADCore.socket.init
+         *
          * Update the socket ID stored in our req.session.appdev.socket value.
          */
         init: function(req) {
@@ -584,6 +611,8 @@ module.exports = {
     user:{
 
         /*
+         * @function ADCore.user.current
+         *
          * Return who the system should think the current user is.
          *
          * Note: this will report what switcheroo wants you to think.
@@ -593,12 +622,13 @@ module.exports = {
          *                 field.
          */
         current: function (req) {
-            return req.session.appdev.user;
+            return req.user;
         },
 
 
 
         /*
+         * @function ADCore.user.actual
          * Return who the current user actually is.
          *
          * Note: switcheroo can not spoof this.
@@ -608,57 +638,20 @@ module.exports = {
          *                 field.
          */
         actual: function (req) {
-            return req.session.appdev.actualUser;
+            return req.user.actualUser;
         },
 
 
-        /**
-         * @function init
-         *
-         * initialize a user object for the current user.
-         *
-         * @param {object} req,  the express/sails request object.  User
-         *                 info is stored in the req.session.appdev.actualUser
-         *                 field.
-         * @param {object} data   the data to store about this user.  Should at least
-         *                  contain { guid: 'xxxxx' }
-         *
-         * @return {deferred} ready resolves once the User object is fully ready.
-         */
-        init:function(req, data) {
-            var user = new User(data)
-            req.session.appdev.actualUser = user;
-            req.session.appdev.user = user;
-            
-            // Do it again after async operations complete.
-            user.ready().done(function(){
-                req.session.appdev.actualUser = user;
-                req.session.appdev.user = user;
-            });
-
-            return user.ready();
-        },
-
 
         /**
-         * @function refreshSession
+         * @function ADCore.user.refreshSession
          *
          * mark a given user's guid as needing to refresh it's session data.
          * 
          * @param {string} guid  The GUID of the user account to refresh
          */
         refreshSession: function(guid) {
-
-            if ( guid != "*" ) {
-// AD.log('... refreshSession() guid:'+guid);
-                userSessionStatusRefresh[guid] = true;
-            } else {
-// AD.log('... refreshSession() '+guid);
-                for (var g in userSessionStatusRefresh) {
-                    userSessionStatusRefresh[g] = true;
-                }
-                
-            }
+            User.refreshSession(guid);
         }
     }
 };
@@ -684,47 +677,56 @@ var userSessionStatusRefresh = {
  * @class User
  *
  * This object represents the User in the system.
+ * Note that this is related to, but separate from the SiteUser model.
  *
+ * @param {object} opts
+ *    The properties used to find the user record.
+ *    Typicaly, either { guid: "USER GUID" }
+ *    or { username: "USER NAME", password: "PLAIN TEXT" }
+ * @param {object} info (Optional)
+ *    The properties used to create the user record if it does not exist yet.
+ *    Default is to use the same properties from `opts`.
  */
-var User = function (opts) {
-    this.data = opts || {};
+var User = function (opts, info) {
     var self = this;
+    opts = opts || {};
+    info = info || {};
+    this.data = {};
     
     // This deferred will resolve when the object has finished initializing
     // to/from the DB.
     self.dfdReady = AD.sal.Deferred();
-
-    // Internal reference to the DB model
-    this.user = null;
     
-    // Initialization may be done from session stored data. In which case
-    // the data is already loaded and we won't need to do a find().
+    // In the event of switcheroo impersonation, this should track the real
+    // identity of the current user.
+    this.actualUser = this;
+    
+    // Internal reference to the SiteUser DB model record
+    this.userModel = null;
+    
+    // Only do a find() if valid options were passed in
     var shouldFind = false;
-    if ((!this.data.isLoaded) 
-        || ( userSessionStatusRefresh[this.data.guid] )) {
 
-        // Typically you would init by guid, username, or username+password.
-        // We will allow init by other combinations of those fields. There is no 
-        // legitimate use for those but it is safe when done server side.
-        var findOpts = {};
-        [ 'username', 'guid', 'password' ].forEach(function(k) {
-            if (opts[k]) {
-                findOpts[k] = opts[k];
-                shouldFind = true;
-            }
-        });
-    }
+    // Typically you would init by guid, username, or username+password.
+    // We will allow init by other combinations of those fields. There is
+    // no legitimate use for those but it is safe when done server side.
+    var findOpts = {};
+    [ 'username', 'guid', 'password' ].forEach(function(k) {
+        if (opts[k]) {
+            findOpts[k] = opts[k];
+            shouldFind = true;
+        }
+    });
     
     if (shouldFind) {
         SiteUser.hashedFind(findOpts)
         .populate('permission')
         .then(function(list){
+            // User found in the DB
             if (list[0]) {
-// AD.log('... User() .hashedFind():', list[0]);
-                // User found in the DB
-                self.user = list[0];
-                self.data.guid = self.user.guid;
-                self.data.languageCode = self.user.languageCode;
+                self.userModel = list[0];
+                self.data.guid = self.userModel.guid;
+                self.data.languageCode = self.userModel.languageCode;
                 self.data.isLoaded = true;
                 self.data.permissions = null;
 
@@ -736,63 +738,124 @@ var User = function (opts) {
                 .then(function(permissions){
                     self.data.permissions = permissions;
                     userSessionStatusRefresh[self.data.guid] = false;
-                    self.dfdReady.resolve();
-                })
+                    self.dfdReady.resolve(self);
+                });
 
-                
                 // Update username / language, and freshen timestamp.
                 // Don't really care when it finishes.
-                var username = opts.username || list[0].username;
-                var languageCode = opts.languageCode || list[0].languageCode;
                 SiteUser.update(
                     { id: list[0].id }, 
                     { 
-                        username: username,
-                        languageCode: languageCode
+                        username: info.username || opts.username || list[0].username,
+                        languageCode: info.languageCode || opts.languageCode || list[0].languageCode
                     }
                 )
+                .fail(function(err){
+                    console.log('SiteUser update error', err);
+                })
                 .then(function(){});
             }
+            
+            // User not found. Stop.
+            else if ('local' == sails.config.appdev.authType.toLowerCase()) {
+                var err = new Error('Username and/or password not found');
+                self.dfdReady.reject(err);
+            }
+            
+            // User not found. Insert now.
             else {
-
-                opts.languageCode = opts.languageCode || Multilingual.languages.default();
-
-                // User not in the DB. Insert now.
-                SiteUser.create(opts)
+                var createOpts = {};
+                [ 'guid', 'username', 'password', 'languageCode' ].forEach(function(k) {
+                    if (info[k]) {
+                        createOpts[k] = info[k];
+                    } 
+                    else if (opts[k]) {
+                        createOpts[k] = opts[k];
+                    }
+                });
+                createOpts.languageCode = createOpts.languageCode || Multilingual.languages.default();
+                
+                SiteUser.create(createOpts)
                 .then(function(user){
-                    self.user = user;
+                    self.userModel = user;
                     self.data.guid = user.guid;
                     self.data.isLoaded = true;
                     self.data.permissions = null;
                     userSessionStatusRefresh[self.data.guid] = false;
-                    self.dfdReady.resolve();
+                    self.dfdReady.resolve(self);
                 })
                 .fail(function(err){
-                    console.log('User create failed:', opts, err);
+                    console.log('User create failed:', createOpts, err);
                     self.dfdReady.reject(err);
                 })
                 .done();
             }
         })
         .fail(function(err){
+            // DB failure?
             console.log('User init failed:', findOpts, err);
-            self.dfdReady.reject();
+            self.dfdReady.reject(err);
         })
         .done();
     }
     else {
-// AD.log('<yellow>|||||||||||||||||||  not looking up user ||||||||||||||||||||||</yellow>');
-// AD.log('... data:', this.data);
-        self.dfdReady.resolve();
+        AD.log(opts);
+        throw new Error('User was initialized with no valid options?');
+        //self.dfdReady.resolve(self);
     }
     
 };
 
 
+// User class functions
+
+/**
+ * @function User.refreshSession
+ *
+ * mark a given user's guid as needing to refresh it's session data.
+ * 
+ * @param {string} guid  The GUID of the user account to refresh
+ */
+User.refreshSession = function(guid) {
+
+    if ( guid != "*" ) {
+        userSessionStatusRefresh[guid] = true;
+    } else {
+        for (var g in userSessionStatusRefresh) {
+            userSessionStatusRefresh[g] = true;
+        }
+    }
+}
+
+
+/**
+ * @function User.init
+ *
+ * Convenience function for instantiating a new User object instance.
+ * 
+ * @param {object} findOpts
+ *      Basic object containing some combination of guid, username, password
+ *      used to load the user model.
+ * @param {object} createOpts (Optional)
+ *      Basic object containing properties to populate the user model in the
+ *      event that a matching user does not already exist.
+ *      Default is to use the same properties from `findOpts`.
+ * @return Deferred
+ *      Resolves with the User object instance when the user model has been
+ *      loaded from the DB
+ */
+User.init = function(findOpts, createOpts) {
+    var user = new User(findOpts, createOpts);
+    return user.ready();
+}
+
+
+
+// User instance methods
+
 User.prototype.ready = function() {
     return this.dfdReady;
 }
-
 
 
 User.prototype.getLanguageCode = function() {
@@ -805,11 +868,9 @@ User.prototype.hasPermission = function(key) {
 
     if ((this.data.permissions)
         && (this.data.permissions[key])) {
-        // AD.log('<green>... User.hasPermission('+key+') = true </green>');
         return true;
     }
 
-    // AD.log('<yellow>... User.hasPermission('+key+') = false </yellow>');
     return false;
 };
 
@@ -820,14 +881,12 @@ User.prototype._computePermissions = function() {
 
     var dfd = AD.sal.Deferred();
 
-// AD.log('<green>... computing Permissions() : ['+this.data.guid+']</green>');
-
     var listPermissions = null;
     var hashRoles = null;
     var hashPerm = null;
 
 
-if (_this.user == null) {
+if (_this.userModel == null) {
     AD.log.error('*******************************************************************');
     console.trace('.... WHY IS USER NULL???? ');
     AD.log('... data:', _this.data);
@@ -839,7 +898,7 @@ if (_this.user == null) {
         // step 1) load permissions with populated scopes
         function(next){
 
-            Permission.find({user: _this.user.id, enabled:true })
+            Permission.find({user: _this.userModel.id, enabled:true })
             .populate('scope')
             .then(function(list){
                 listPermissions = list;
@@ -910,7 +969,6 @@ if (_this.user == null) {
                 }
             })
 
-// AD.log('... hashPerm:', hashPerm);
             next();
 
         }
@@ -979,9 +1037,7 @@ var Translate = function(opt) {
 
             var keys = _.keys(trans);
             keys.forEach(function(f) { 
-// console.log('f=['+f+']');
                 if ( !_.contains(ignoreFields, f)) {
-// console.log('... assigning!');
                     opt.model[f] = trans[f];
                 }
             });

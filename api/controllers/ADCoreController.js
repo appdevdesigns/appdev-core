@@ -89,13 +89,62 @@ module.exports = {
          });
 
     },
-
-
-
+    
+    
+    
     /**
-     * /site/login
+     * GET /site/login
+     *
+     * Used for local authentication. Displays a login form that posts 
+     * username and password back to the site.
      */
-    login: function (req, res) {
+    loginForm: function (req, res) {
+        if ('local' == sails.config.appdev.authType.toLowerCase()) {
+            res.view();
+        }
+        else {
+            // Users should not even be coming here if the site isn't using
+            // local auth. 
+            res.redirect('/site/login-done');
+        }
+    },
+    
+    
+    
+    /**
+     * POST /site/login
+     * 
+     * Used for local authentication. The form or script should post
+     * parameters `username` and `password`.
+     *
+     * @TODO: Fix issue where Sails won't even let the controller handle
+     *  post requests to this route. 403
+     */
+    loginPost: function (req, res) {
+        if ('local' == sails.config.appdev.authType.toLowerCase()) {
+            var localAuth = ADCore.auth.passport.authenticate('local', {
+                failureRedirect: '/site/login'
+            });
+            localAuth(req, res, function() {
+                // Logged in. Redirect to their originally requested page
+                var url = req.session.originalURL || '/site/login-done';
+                res.redirect(url);
+            });
+        }
+        else {
+            // Users should not even be coming here if the site isn't using
+            // local auth. 
+            res.redirect('/site/login-done');
+        }
+    },
+    
+    
+    /**
+     * /site/login-done
+     */
+    loginDone: function (req, res) {
+        // The site policies will have ensured that the users are authenticated
+        // by the time they reach here.
         if (req.wantsJSON) {
 
             // is is from a service so respond with a success packet
@@ -103,10 +152,10 @@ module.exports = {
 
         } else {
 
-            // The 'sessionAuth' policy takes care of logging in the user. Any page
-            // visited will automatically direct the user to the CAS login screen.
-            // This is just a self-closing HTML page for the client side script to open
-            // in a frame or pop-up.
+            // The 'sessionAuth' policy takes care of logging in the user. Any
+            // page visited will automatically direct the user to the CAS login
+            // screen. This is just a self-closing HTML page for the client 
+            // side script to open in a frame or pop-up.
             res.view({ layout: false });
         }
         return;
@@ -115,37 +164,67 @@ module.exports = {
 
 
     /**
-     * /session/logout
+     * /site/logout
      *
      * This route should be exempt from the 'sessionAuth' policy
      */
     logout: function (req,res) {
-
-        // Not authenticated. Assume this means we have just logged out.
-        if (!ADCore.auth.isAuthenticated(req)) {
-            if (req.query.close) {
-                // "close" was specified, so stop here with a self-closing HTML page
-                res.view({ layout: false });
+        
+        delete req.session.appdev;
+        
+        // Currently authenticated. Do logout now.
+        if (ADCore.auth.isAuthenticated(req)) {
+            if ('cas' == sails.config.appdev.authType.toLowerCase()) {
+                // CAS logout
+                var returnURL = url.format({
+                    protocol: req.protocol || 'http',
+                    host: req.headers.host,
+                    pathname: '/site/logout',
+                    query: req.query
+                });
+                // This will redirect to CAS and return in a logged out state.
+                ADCore.auth.cas.logout(req, res, returnURL);
+                return;
             } else {
-                // redirect to the login page to allow another session to start
-                res.redirect(sails.config.appdev.authURI); // '/site/login'
+                // All other logouts are handled by Passport
+                req.logout();
             }
         }
-        // Currently authenticated. Do logout now.
-        else {
-            var returnURL = url.format({
-                protocol: req.protocol || 'http',
-                host: req.headers.host,
-                pathname: '/site/logout',
-                query: req.query
-            });
-            CAS.logout(req, res, returnURL);
-        }
+        
+        res.view();
+        
+    },
+    
+    
+    
+    /**
+     * /auth/fail
+     *
+     * Users will be directed here if authentication fails
+     */
+    authFail: function (req, res) {
+        res.view();
     },
 
 
 
-
+    /**
+     * /auth/google
+     * Callback route for Passport Google authentication.
+     */
+    authGoogle: function (req, res) {
+        var passportGoogle = ADCore.auth.passport.authenticate(
+            'google', 
+            { failureRedirect: '/auth/fail' }
+        );
+        passportGoogle(req, res, function() {
+            var url = req.session.originalURL || '/';
+            res.redirect(url);
+        });
+    },
+    
+    
+    
     testingFiles:function(req,res) {
         // in order to allow mocha-phantomjs to include files in our
         // installed node_modules/ folders we add this action that

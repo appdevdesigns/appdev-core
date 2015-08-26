@@ -11,11 +11,11 @@ function(){
         init: function( element, options ) {
 			this.authType = AD.config.getValue( 'authType' );
 			var domFrag;
-			if (this.authType == "CAS") {
-				domFrag = can.view('../../appdev/widgets/ad_ui_reauth/reauth_cas.ejs', {} );
-			} else {
+			if (this.authType == 'local') {
 				domFrag = can.view('../../appdev/widgets/ad_ui_reauth/reauth_local.ejs', {} );
-			}
+			} else {
+				domFrag = can.view('../../appdev/widgets/ad_ui_reauth/reauth_cas.ejs', {} );
+            }
 
 			// Bootstrap Modal does not play well with documentFragment,
 			// and the template must be good for adding into the DOM multiple
@@ -71,7 +71,7 @@ function(){
             self.find('.alert').hide();
             
             AD.comm.service.post({
-                url: '...',
+                url: '/site/login',
                 data: {
                     username: self.element.find('#username'),
                     password: self.element.find('#password')

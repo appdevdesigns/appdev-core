@@ -11,8 +11,15 @@ module.exports = {
     'get /site/config/data.js'      : 'appdev-core/ADCoreController.configData',
     'get /site/labels/:context'     : 'appdev-core/ADCoreController.labelConfigFile',
     'get /site/labels/:context/*'   : 'appdev-core/ADCoreController.labelConfigFile',
-    'get /site/login'               : 'appdev-core/ADCoreController.login',
+    
+    //// Authentication
+    
+    'get /site/login'               : 'appdev-core/ADCoreController.loginForm',
+    'post /site/login'              : 'appdev-core/ADCoreController.loginPost',
+    'get /site/login-done'          : 'appdev-core/ADCoreController.loginDone',
     'get /site/logout'              : 'appdev-core/ADCoreController.logout',
+    'get /auth/google'              : 'appdev-core/ADCoreController.authGoogle',
+    'get /auth/fail'                : 'appdev-core/ADCoreController.authFail',
 
 
     //// Permissions
