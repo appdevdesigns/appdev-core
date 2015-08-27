@@ -36,7 +36,6 @@ module.exports = {
      * code file.
      */
     configData: function(req, res) {
-//console.log(sails);
      // prepare proper content type headers
         res.setHeader('content-type', 'application/javascript');
 
@@ -99,8 +98,12 @@ module.exports = {
      * username and password back to the site.
      */
     loginForm: function (req, res) {
+        // Check for error message from authentication failure
+        var authErrMessage = req.session.authErrMessage;
+        delete req.session.authErrMessage;
+        
         if ('local' == sails.config.appdev.authType.toLowerCase()) {
-            res.view();
+            res.view({ authErrMessage: authErrMessage });
         }
         else {
             // Users should not even be coming here if the site isn't using
@@ -116,20 +119,50 @@ module.exports = {
      * 
      * Used for local authentication. The form or script should post
      * parameters `username` and `password`.
-     *
-     * @TODO: Fix issue where Sails won't even let the controller handle
-     *  post requests to this route. 403
+     * 
+     * Don't forget the CSRF token.
      */
     loginPost: function (req, res) {
         if ('local' == sails.config.appdev.authType.toLowerCase()) {
-            var localAuth = ADCore.auth.passport.authenticate('local', {
-                failureRedirect: '/site/login'
-            });
-            localAuth(req, res, function() {
-                // Logged in. Redirect to their originally requested page
-                var url = req.session.originalURL || '/site/login-done';
-                res.redirect(url);
-            });
+            ADCore.auth.passport.authenticate('local', 
+                function(err, user, info) {
+                    // No error, but passport has a message on why auth failed
+                    if (!user && !err && info && info.message) {
+                        err = new Error(info.message);
+                    }
+                    // No error, and no idea why auth failed
+                    if (!user && !err) {
+                        err = new Error('Passport local auth error');
+                    }
+                    
+                    if (err) {
+                        if (req.wantsJSON) {
+                            ADCore.comm.error(res, err);
+                        } else {
+                            // Go back to the login form, show message there
+                            req.session.authErrMessage = err.message;
+                            res.redirect('/site/login');
+                        }
+                    }
+                    // User was authenticated
+                    else {
+                        req.login(user, function() {
+                            if (req.wantsJSON) {
+                                ADCore.comm.success(res, {});
+                            } else {
+                                // Logged in. Redirect to their original page.
+                                var url = req.session.originalURL;
+                                if (!url || url == '/site/login') {
+                                    // If the original page was the login form
+                                    // we need to go somewhere else.
+                                    url = '/site/login-done';
+                                }
+                                res.redirect(url);
+                            }
+                        });
+                    }
+                }
+            )(req, res);
         }
         else {
             // Users should not even be coming here if the site isn't using
@@ -141,13 +174,16 @@ module.exports = {
     
     /**
      * /site/login-done
+     *
+     * Authentication is enforeced for this page. When it is successfully loaded
+     * it will show a "busy" animation. The page will try to close itself.
      */
     loginDone: function (req, res) {
         // The site policies will have ensured that the users are authenticated
         // by the time they reach here.
         if (req.wantsJSON) {
 
-            // is is from a service so respond with a success packet
+            // it is from a service so respond with a success packet
             ADCore.comm.success(res, {});
 
         } else {
@@ -200,7 +236,7 @@ module.exports = {
     /**
      * /auth/fail
      *
-     * Users will be directed here if authentication fails
+     * Users can be directed here if authentication fails beyond recovery
      */
     authFail: function (req, res) {
         res.view();
@@ -210,7 +246,9 @@ module.exports = {
 
     /**
      * /auth/google
-     * Callback route for Passport Google authentication.
+     *
+     * Callback route needed for Passport Google authentication.
+     * Needs to be whitelisted in your Google Developer account.
      */
     authGoogle: function (req, res) {
         var passportGoogle = ADCore.auth.passport.authenticate(
@@ -218,7 +256,7 @@ module.exports = {
             { failureRedirect: '/auth/fail' }
         );
         passportGoogle(req, res, function() {
-            var url = req.session.originalURL || '/';
+            var url = req.session.originalURL || '/site/login-done';
             res.redirect(url);
         });
     },

@@ -15,6 +15,11 @@ module.exports = function(req, res, next) {
     if (ADCore.auth.isAuthenticated(req)) {
         return next();
     }
+    // unauthenticated JSON requests
+    else if (req.wantsJSON) {
+        ADCore.comm.reauth(res);
+        return;
+    }
     // Otherwise authenticate now
     else {
         // Save the current path in the session so we can restore it after

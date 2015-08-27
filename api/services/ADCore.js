@@ -171,21 +171,20 @@ module.exports = {
 
             packet.data = {};
 
-            if ('CAS' == sails.config.appdev.authType) {
-                // include CAS: { uri:'cas/url/here' }
-                packet.data[sails.config.appdev.authType] = {
-                        message:"1st authenticate with CAS.uri, then call our CAS.authUri:",
-                        uri:sails.config.cas.baseURL,
-                        authUri: sails.config.appdev.authURI
-                }
-            }
-
             if ('local' == sails.config.appdev.authType) {
                 
                 packet.data[sails.config.appdev.authType] = {
                         message:"submit username=[username]&password=[password] to this uri",
                         method: 'post',
                         uri:sails.config.appdev.authURI
+                }
+            }
+            else {
+                // include CAS: { uri:'cas/url/here' }
+                packet.data[sails.config.appdev.authType] = {
+                        message:"1st authenticate with CAS.uri, then call our CAS.authUri:",
+                        uri:sails.config.cas.baseURL,
+                        authUri: sails.config.appdev.authURI
                 }
             }
 
@@ -717,7 +716,6 @@ var User = function (opts, info) {
             shouldFind = true;
         }
     });
-    
     if (shouldFind) {
         SiteUser.hashedFind(findOpts)
         .populate('permission')
@@ -756,7 +754,7 @@ var User = function (opts, info) {
                 .then(function(){});
             }
             
-            // User not found. Stop.
+            // User not found in local auth. Stop.
             else if ('local' == sails.config.appdev.authType.toLowerCase()) {
                 var err = new Error('Username and/or password not found');
                 self.dfdReady.reject(err);

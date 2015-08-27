@@ -14,8 +14,8 @@ module.exports = {
     
     //// Authentication
     
-    'get /site/login'               : 'appdev-core/ADCoreController.loginForm',
     'post /site/login'              : 'appdev-core/ADCoreController.loginPost',
+    'get /site/login'               : 'appdev-core/ADCoreController.loginForm',
     'get /site/login-done'          : 'appdev-core/ADCoreController.loginDone',
     'get /site/logout'              : 'appdev-core/ADCoreController.logout',
     'get /auth/google'              : 'appdev-core/ADCoreController.authGoogle',
