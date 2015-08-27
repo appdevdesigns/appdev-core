@@ -1,5 +1,6 @@
 /**
  * initUser
+ * NOT USED
  *
  * @module      :: Policy
  * @description :: make sure the user object is properly initialized

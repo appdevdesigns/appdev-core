@@ -36,7 +36,6 @@ module.exports = {
      * code file.
      */
     configData: function(req, res) {
-//console.log(sails);
      // prepare proper content type headers
         res.setHeader('content-type', 'application/javascript');
 
@@ -89,24 +88,110 @@ module.exports = {
          });
 
     },
-
-
-
+    
+    
+    
     /**
-     * /site/login
+     * GET /site/login
+     *
+     * Used for local authentication. Displays a login form that posts 
+     * username and password back to the site.
      */
-    login: function (req, res) {
+    loginForm: function (req, res) {
+        // Check for error message from authentication failure
+        var authErrMessage = req.session.authErrMessage;
+        delete req.session.authErrMessage;
+        
+        if ('local' == sails.config.appdev.authType.toLowerCase()) {
+            res.view({ authErrMessage: authErrMessage });
+        }
+        else {
+            // Users should not even be coming here if the site isn't using
+            // local auth. 
+            res.redirect('/site/login-done');
+        }
+    },
+    
+    
+    
+    /**
+     * POST /site/login
+     * 
+     * Used for local authentication. The form or script should post
+     * parameters `username` and `password`.
+     * 
+     * Don't forget the CSRF token.
+     */
+    loginPost: function (req, res) {
+        if ('local' == sails.config.appdev.authType.toLowerCase()) {
+            ADCore.auth.passport.authenticate('local', 
+                function(err, user, info) {
+                    // No error, but passport has a message on why auth failed
+                    if (!user && !err && info && info.message) {
+                        err = new Error(info.message);
+                    }
+                    // No error, and no idea why auth failed
+                    if (!user && !err) {
+                        err = new Error('Passport local auth error');
+                    }
+                    
+                    if (err) {
+                        if (req.wantsJSON) {
+                            ADCore.comm.error(res, err);
+                        } else {
+                            // Go back to the login form, show message there
+                            req.session.authErrMessage = err.message;
+                            res.redirect('/site/login');
+                        }
+                    }
+                    // User was authenticated
+                    else {
+                        req.login(user, function() {
+                            if (req.wantsJSON) {
+                                ADCore.comm.success(res, {});
+                            } else {
+                                // Logged in. Redirect to their original page.
+                                var url = req.session.originalURL;
+                                if (!url || url == '/site/login') {
+                                    // If the original page was the login form
+                                    // we need to go somewhere else.
+                                    url = '/site/login-done';
+                                }
+                                res.redirect(url);
+                            }
+                        });
+                    }
+                }
+            )(req, res);
+        }
+        else {
+            // Users should not even be coming here if the site isn't using
+            // local auth. 
+            res.redirect('/site/login-done');
+        }
+    },
+    
+    
+    /**
+     * /site/login-done
+     *
+     * Authentication is enforeced for this page. When it is successfully loaded
+     * it will show a "busy" animation. The page will try to close itself.
+     */
+    loginDone: function (req, res) {
+        // The site policies will have ensured that the users are authenticated
+        // by the time they reach here.
         if (req.wantsJSON) {
 
-            // is is from a service so respond with a success packet
+            // it is from a service so respond with a success packet
             ADCore.comm.success(res, {});
 
         } else {
 
-            // The 'sessionAuth' policy takes care of logging in the user. Any page
-            // visited will automatically direct the user to the CAS login screen.
-            // This is just a self-closing HTML page for the client side script to open
-            // in a frame or pop-up.
+            // The 'sessionAuth' policy takes care of logging in the user. Any
+            // page visited will automatically direct the user to the CAS login
+            // screen. This is just a self-closing HTML page for the client 
+            // side script to open in a frame or pop-up.
             res.view({ layout: false });
         }
         return;
@@ -115,37 +200,69 @@ module.exports = {
 
 
     /**
-     * /session/logout
+     * /site/logout
      *
      * This route should be exempt from the 'sessionAuth' policy
      */
     logout: function (req,res) {
-
-        // Not authenticated. Assume this means we have just logged out.
-        if (!ADCore.auth.isAuthenticated(req)) {
-            if (req.query.close) {
-                // "close" was specified, so stop here with a self-closing HTML page
-                res.view({ layout: false });
+        
+        delete req.session.appdev;
+        
+        // Currently authenticated. Do logout now.
+        if (ADCore.auth.isAuthenticated(req)) {
+            if ('cas' == sails.config.appdev.authType.toLowerCase()) {
+                // CAS logout
+                var returnURL = url.format({
+                    protocol: req.protocol || 'http',
+                    host: req.headers.host,
+                    pathname: '/site/logout',
+                    query: req.query
+                });
+                // This will redirect to CAS and return in a logged out state.
+                ADCore.auth.cas.logout(req, res, returnURL);
+                return;
             } else {
-                // redirect to the login page to allow another session to start
-                res.redirect(sails.config.appdev.authURI); // '/site/login'
+                // All other logouts are handled by Passport
+                req.logout();
             }
         }
-        // Currently authenticated. Do logout now.
-        else {
-            var returnURL = url.format({
-                protocol: req.protocol || 'http',
-                host: req.headers.host,
-                pathname: '/site/logout',
-                query: req.query
-            });
-            CAS.logout(req, res, returnURL);
-        }
+        
+        res.view();
+        
+    },
+    
+    
+    
+    /**
+     * /auth/fail
+     *
+     * Users can be directed here if authentication fails beyond recovery
+     */
+    authFail: function (req, res) {
+        res.view();
     },
 
 
 
-
+    /**
+     * /auth/google
+     *
+     * Callback route needed for Passport Google authentication.
+     * Needs to be whitelisted in your Google Developer account.
+     */
+    authGoogle: function (req, res) {
+        var passportGoogle = ADCore.auth.passport.authenticate(
+            'google', 
+            { failureRedirect: '/auth/fail' }
+        );
+        passportGoogle(req, res, function() {
+            var url = req.session.originalURL || '/site/login-done';
+            res.redirect(url);
+        });
+    },
+    
+    
+    
     testingFiles:function(req,res) {
         // in order to allow mocha-phantomjs to include files in our
         // installed node_modules/ folders we add this action that

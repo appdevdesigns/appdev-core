@@ -14,15 +14,19 @@
 var path = require('path');
 var ADCore = require(path.join(process.cwd(), 'api', 'services', 'ADCore.js'));
 var sessionStack = ADCore.policy.serviceStack();
-// var sessionStack = [ 'sessionAuth', 'initUser', 'initSession', 'noTimestamp', 'hasPermission' ];
+var passportStack = ADCore.policy.passportStack();
 
 module.exports = {
 	'*': sessionStack,
-
+        
     'appdev-core/ADCoreController': {
         configData: sessionStack,
-        labelConfigFile:sessionStack,
-        logout:true,
-        siteAuth:['sessionAuth']
+        labelConfigFile: sessionStack,
+        logout: passportStack,
+        authGoogle: passportStack,
+        loginPost: passportStack,
+        loginForm: passportStack,
+        authFail: true,
+        siteAuth: ['sessionAuth']
     }
 };

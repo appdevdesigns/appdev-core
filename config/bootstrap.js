@@ -12,4 +12,8 @@ var AD = require('ad-utils');
 module.exports = function (cb) {
 
 	AD.module.permissions(path.join(__dirname, '..', 'setup', 'permissions'), cb);
+	
+	// Initialize passport strategies
+	ADCore.auth.init();
+	
 };
