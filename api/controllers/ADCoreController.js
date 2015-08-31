@@ -175,7 +175,7 @@ module.exports = {
     /**
      * /site/login-done
      *
-     * Authentication is enforeced for this page. When it is successfully loaded
+     * Authentication is enforced for this page. When it is successfully loaded
      * it will show a "busy" animation. The page will try to close itself.
      */
     loginDone: function (req, res) {

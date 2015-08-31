@@ -51,6 +51,8 @@ module.exports = {
          * ADCore's bootstrap.js.
          */
         init: function() {
+            // Local auth
+            // @see /site/login
             this.local = new LocalStrategy(
                 // The `verify` callback
                 function(username, password, done) {
@@ -68,10 +70,13 @@ module.exports = {
                 }
             );
             passport.use(this.local);
-        
+            
+            // CAS
+            sails.config.cas = sails.config.cas || {};
             this.cas = new CasStrategy(
                 {
-                    casURL: sails.config.cas.baseURL
+                    casURL: sails.config.cas.baseURL,
+                    pgtURL: sails.config.cas.pgtURL || sails.config.cas.proxyURL
                 }, 
                 // The `verify` callback
                 function(username, profile, done) {
@@ -92,6 +97,9 @@ module.exports = {
             );
             passport.use(this.cas);
             
+            // Google OAuth2
+            // @see /auth/google
+            sails.config.google = sails.config.google || {};
             this.google = new GoogleStrategy(
                 {
                     clientID: sails.config.google.clientID,

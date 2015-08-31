@@ -39,11 +39,11 @@ module.exports = function(req, res, next) {
                 // will return here and proceed to ...
                 var auth = ADCore.auth.passport.authenticate('cas');
                 auth(req, res, function() {
-                    // ... authenticated!
+                    // ... here. Authenticated!
                     // Instead of going directly to next(), we can redirect
                     // to the original URL to remove the 'ticket' from the
                     // address bar.
-                    res.redirect(req.session.originalURL || '/');
+                    res.redirect(req.session.originalURL || '/site/login-done');
                 });
                 break;
                 
