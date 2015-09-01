@@ -72,61 +72,75 @@ module.exports = {
             passport.use(this.local);
             
             // CAS
-            sails.config.cas = sails.config.cas || {};
-            this.cas = new CasStrategy(
-                {
-                    casURL: sails.config.cas.baseURL,
-                    pgtURL: sails.config.cas.pgtURL || sails.config.cas.proxyURL
-                }, 
-                // The `verify` callback
-                function(username, profile, done) {
-                    var guid = profile[sails.config.cas.guidKey];
-                    var user = new User({ guid: guid }, {
-                        guid: guid,
-                        username: username
-                    });
-                    user.ready()
-                    .fail(function(err){
-                        done(err);
-                    })
-                    .done(function(){
-                        // Passport will insert the user object into `req`
-                        done(null, user);
-                    });
-                }
-            );
-            passport.use(this.cas);
+            if (sails.config.cas) {
+                this.cas = new CasStrategy(
+                    {
+                        casURL: sails.config.cas.baseURL,
+                        pgtURL: sails.config.cas.pgtURL || sails.config.cas.proxyURL
+                    }, 
+                    // The `verify` callback
+                    function(username, profile, done) {
+                        var guidKey = sails.config.cas.guidKey || 'id';
+                        var guid = profile[guidKey];
+                        if (Array.isArray(guid)) {
+                            guid = guid[0];
+                        }
+                        var findOpts = {};
+                        if (guid) {
+                            findOpts.guid = guid;
+                        } else {
+                            findOpts.username = username;
+                        }
+                        var user = new User(findOpts, {
+                            guid: guid,
+                            username: username
+                        });
+                        user.ready()
+                        .fail(function(err){
+                            done(err);
+                        })
+                        .done(function(){
+                            // Passport will insert the user object into `req`
+                            done(null, user);
+                        });
+                    }
+                );
+                passport.use(this.cas);
+            }
             
             // Google OAuth2
             // @see /auth/google
-            sails.config.google = sails.config.google || {};
-            this.google = new GoogleStrategy(
-                {
-                    clientID: sails.config.google.clientID,
-                    clientSecret: sails.config.google.clientSecret,
-                    callbackURL: sails.getBaseurl() + '/auth/google'
-                },
-                // The `verify` callback
-                function(accessToken, refreshToken, profile, done) {
-                    var profileName = profile.name.givenName + ' ' 
-                                        + profile.name.familyName;
-                    var user = new User({ guid: profile.id }, {
-                        guid: profile.id,
-                        username: profileName 
-                            || profile.displayName 
-                            || profile.id
-                    });
-                    user.ready()
-                    .fail(function(err){
-                        done(err);
-                    })
-                    .done(function(){
-                        // Passport will insert the user object into `req`
-                        done(null, user, profile);
-                    });
-                }
-            );
-            passport.use(this.google);
+            if (sails.config.google) {
+                this.google = new GoogleStrategy(
+                    {
+                        clientID: sails.config.google.clientID,
+                        clientSecret: sails.config.google.clientSecret,
+                        callbackURL: (sails.config.google.baseURL || 
+                                        sails.getBaseurl())
+                                        + '/auth/google'
+                    },
+                    // The `verify` callback
+                    function(accessToken, refreshToken, profile, done) {
+                        var profileName = profile.name.givenName + ' ' 
+                                            + profile.name.familyName;
+                        var user = new User({ guid: profile.id }, {
+                            guid: profile.id,
+                            username: profileName 
+                                || profile.displayName 
+                                || profile.id
+                        });
+                        user.ready()
+                        .fail(function(err){
+                            done(err);
+                        })
+                        .done(function(){
+                            // Passport will insert the user object into `req`
+                            done(null, user, profile);
+                        });
+                    }
+                );
+                passport.use(this.google);
+            }
         },
         
         isAuthenticated: function(req) {

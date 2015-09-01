@@ -27,7 +27,7 @@
     "jquery-deferred": "^0.3.0",
     "lodash": "^2.4.1",
     "nodemailer": "^0.6.3",
-    "passport": "0.2.x",
+    "passport": "0.3.x",
     "passport-local": "1.0.x",
     "passport-cas2": "*",
     "passport-google-oauth": "0.2.x"

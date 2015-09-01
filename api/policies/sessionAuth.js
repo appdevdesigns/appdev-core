@@ -24,13 +24,13 @@ module.exports = function(req, res, next) {
     else {
         // Save the current path in the session so we can restore it after
         // authentication if needed.
-        var cleanQuery = _.clone(req.query);
-        delete cleanQuery.ticket;
-        req.session.originalURL = url.format({
-            protocol: req.protocol || 'http',
-            host: req.headers.host,
-            pathname: req.path,
-            query: cleanQuery
+        var reqURL = url.parse(req.url, true);
+        delete reqURL.query['ticket'];
+        req.session.orginalURL = url.format({
+          protocol: req.headers['x-proxied-protocol'] || req.protocol || 'http',
+          host: req.headers['x-forwarded-host'] || req.headers.host || reqURL.host,
+          pathname: req.headers['x-proxied-request-uri'] || reqURL.pathname,
+          query: reqURL.query
         });
         
         switch (sails.config.appdev.authType.toLowerCase()) {
@@ -43,7 +43,11 @@ module.exports = function(req, res, next) {
                     // Instead of going directly to next(), we can redirect
                     // to the original URL to remove the 'ticket' from the
                     // address bar.
-                    res.redirect(req.session.originalURL || '/site/login-done');
+                    if (req.session.originalURL) {
+                        res.redirect(req.session.originalURL);
+                    } else {
+                        next();
+                    }
                 });
                 break;
                 
