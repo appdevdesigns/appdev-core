@@ -12,26 +12,19 @@ module.exports = function(req, res, next) {
 
     // if User is authenticated, proceed to the next policy,
     // or if this is the last policy, the controller
-    if (ADCore.auth.isAuthenticated(req)) {
+    if (req.AD.isAuthenticated()) {
         return next();
     }
     // unauthenticated JSON requests
     else if (req.wantsJSON) {
-        ADCore.comm.reauth(res);
+        res.AD.reauth();
         return;
     }
     // Otherwise authenticate now
     else {
         // Save the current path in the session so we can restore it after
         // authentication if needed.
-        var reqURL = url.parse(req.url, true);
-        delete reqURL.query['ticket'];
-        req.session.originalURL = url.format({
-          protocol: req.headers['x-proxied-protocol'] || req.protocol || 'http',
-          host: req.headers['x-forwarded-host'] || req.headers.host || reqURL.host,
-          pathname: req.headers['x-proxied-request-uri'] || reqURL.pathname,
-          query: reqURL.query
-        });
+        req.session.originalURL = req.externalCleanURL;
         
         switch (sails.config.appdev.authType.toLowerCase()) {
             case 'cas':
@@ -44,7 +37,7 @@ module.exports = function(req, res, next) {
                     // to the original URL to remove the 'ticket' from the
                     // address bar.
                     if (req.session.originalURL) {
-                        res.redirect(req.session.originalURL);
+                        res.AD.redirect(req.session.originalURL);
                     } else {
                         next();
                     }

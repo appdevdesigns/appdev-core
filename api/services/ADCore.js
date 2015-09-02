@@ -534,11 +534,11 @@ module.exports = {
             // This is our expected series of standard policies to run for 
             // our standard service calls.
             var stack = [ 
+                'util',
                 passportInitialize, // defined at the top
                 passportSession,    // defined at the top
                 'sessionAuth', 
-                //'initUser', 
-                'initSession', 
+                'initSession',
                 'noTimestamp', 
                 'hasPermission',
             ];
@@ -552,6 +552,7 @@ module.exports = {
         
         passportStack: function() {
             return [
+                'util',
                 passportInitialize,
                 passportSession
             ];

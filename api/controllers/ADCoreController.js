@@ -137,7 +137,7 @@ module.exports = {
                     
                     if (err) {
                         if (req.wantsJSON) {
-                            ADCore.comm.error(res, err);
+                            res.AD.error(err);
                         } else {
                             // Go back to the login form, show message there
                             req.session.authErrMessage = err.message;
@@ -148,7 +148,7 @@ module.exports = {
                     else {
                         req.login(user, function() {
                             if (req.wantsJSON) {
-                                ADCore.comm.success(res, {});
+                                res.AD.success({});
                             } else {
                                 // Logged in. Redirect to their original page.
                                 var url = req.session.originalURL;
@@ -184,7 +184,7 @@ module.exports = {
         if (req.wantsJSON) {
 
             // it is from a service so respond with a success packet
-            ADCore.comm.success(res, {});
+            res.AD.success({});
 
         } else {
 
@@ -212,12 +212,7 @@ module.exports = {
         if (ADCore.auth.isAuthenticated(req)) {
             if ('cas' == sails.config.appdev.authType.toLowerCase()) {
                 // CAS logout
-                var returnURL = url.format({
-                    protocol: req.protocol || 'http',
-                    host: req.headers.host,
-                    pathname: '/site/logout',
-                    query: req.query
-                });
+                var returnURL = req.externalURL;
                 // This will redirect to CAS and return in a logged out state.
                 ADCore.auth.cas.logout(req, res, returnURL);
                 return;
