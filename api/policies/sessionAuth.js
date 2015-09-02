@@ -26,7 +26,7 @@ module.exports = function(req, res, next) {
         // authentication if needed.
         var reqURL = url.parse(req.url, true);
         delete reqURL.query['ticket'];
-        req.session.orginalURL = url.format({
+        req.session.originalURL = url.format({
           protocol: req.headers['x-proxied-protocol'] || req.protocol || 'http',
           host: req.headers['x-forwarded-host'] || req.headers.host || reqURL.host,
           pathname: req.headers['x-proxied-request-uri'] || reqURL.pathname,
