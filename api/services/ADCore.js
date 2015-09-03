@@ -6,6 +6,13 @@
  *                 application.
  *
  */
+
+// Try not to execute this again if it's already loaded globally
+if (typeof ADCore == 'object') {
+    module.exports = ADCore;
+    return;
+}
+
 var $ = require('jquery-deferred');
 var AD = require('ad-utils');
 var _ = require('lodash');

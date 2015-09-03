@@ -12,11 +12,12 @@
  */
 
 var path = require('path');
-var ADCore = require(path.join(process.cwd(), 'api', 'services', 'ADCore.js'));
 var sessionStack = ADCore.policy.serviceStack();
 var passportStack = ADCore.policy.passportStack();
 
 module.exports = {
+    // This means any route that does not have its own policy will go through
+    // the session stack.
 	'*': sessionStack,
         
     'appdev-core/ADCoreController': {
@@ -26,7 +27,6 @@ module.exports = {
         authGoogle: passportStack,
         loginPost: passportStack,
         loginForm: passportStack,
-        authFail: true,
-        siteAuth: ['sessionAuth']
+        authFail: true
     }
 };
