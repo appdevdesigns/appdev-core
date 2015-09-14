@@ -204,12 +204,12 @@ module.exports = {
      *
      * This route should be exempt from the 'sessionAuth' policy
      */
-    logout: function (req,res) {
+    logout: function (req, res) {
         
         delete req.session.appdev;
         
         // Currently authenticated. Do logout now.
-        if (ADCore.auth.isAuthenticated(req)) {
+        if (req.AD.isAuthenticated()) {
             if ('cas' == sails.config.appdev.authType.toLowerCase()) {
                 // CAS logout
                 var returnURL = req.externalURL;

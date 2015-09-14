@@ -83,22 +83,19 @@ module.exports = {
                 this.cas = new CasStrategy(
                     {
                         casURL: sails.config.cas.baseURL,
-                        pgtURL: sails.config.cas.pgtURL || sails.config.cas.proxyURL
+                        pgtURL: sails.config.cas.pgtURL || sails.config.cas.proxyURL,
+                        sslCert: sails.config.cas.sslCert || null,
+                        sslKey: sails.config.cas.sslKey || null,
+                        sslCA: sails.config.cas.sslCA || []
                     }, 
                     // The `verify` callback
                     function(username, profile, done) {
                         var guidKey = sails.config.cas.guidKey || 'id';
-                        var guid = profile[guidKey];
+                        var guid = profile[guidKey] || username;
                         if (Array.isArray(guid)) {
                             guid = guid[0];
                         }
-                        var findOpts = {};
-                        if (guid) {
-                            findOpts.guid = guid;
-                        } else {
-                            findOpts.username = username;
-                        }
-                        var user = new User(findOpts, {
+                        var user = new User({ guid: guid }, {
                             guid: guid,
                             username: username
                         });

@@ -9,6 +9,7 @@
  */
 
 var url = require('url');
+var AD = require('ad-utils');
 
 module.exports = function(req, res, next) {
     
@@ -75,6 +76,37 @@ module.exports = function(req, res, next) {
     //// Auth
     req.AD.isAuthenticated = function() {
         return ADCore.auth.isAuthenticated(req);
+    };
+    
+    /**
+     * Wrapper for passport-cas2 CasStrategy.getProxyTicket().
+     * Only useful if user has authenticated via CAS.
+     * 
+     * Example usage:
+     *
+     *    var myURL = 'http://example.com/user/info';
+     *    req.AD.getProxyTicket(myURL)
+     *    .fail(function(err) { throw err; })
+     *    .done(function(ticket) {
+     *        request.get({ url: myURL + '?ticket=' + ticket })
+     *        // ...
+     *    });
+     *          
+     *
+     * @param {string} targetURL
+     * @return Deferred
+     *      Resolves with the CAS ticket for the given target URL
+     */
+    req.AD.getProxyTicket = function(targetURL) {
+        var dfd = AD.sal.Deferred();
+        ADCore.auth.cas.getProxyTicket(req, targetURL, function(err, ticket) {
+            if (err) {
+                dfd.reject(err);
+            } else {
+                dfd.resolve(ticket);
+            }
+        });
+        return dfd;
     };
     
     

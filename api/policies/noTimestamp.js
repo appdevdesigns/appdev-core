@@ -2,8 +2,7 @@
  * noTimestamp.js
  *
  * @module      :: Policy
- * @description :: Simple policy to allow any authenticated user
- *                 Assumes that your login action in one of your controllers sets `req.session.authenticated = true;`
+ * @description :: Removes _ from the query
  * @docs        :: http://sailsjs.org/#!documentation/policies
  *
  */
