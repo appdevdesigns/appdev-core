@@ -28,14 +28,14 @@
     "lodash": "^2.4.1",
     "nodemailer": "^0.6.3",
     "passport": "0.3.x",
-    "passport-local": "1.0.x",
     "passport-cas2": "*",
-    "passport-google-oauth": "0.2.x"
+    "passport-google-oauth": "0.2.x",
+    "passport-local": "1.0.x"
   },
   "devDependencies": {
     "mocha": "^1.18.2",
     "chai": "^1.9.1",
-    "phantomjs": "^1.9.7-5",
+    "phantomjs": "1.9.7-15",
     "mocha-phantomjs": "^3.4.0"
   }
 }
