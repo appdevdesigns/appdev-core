@@ -162,7 +162,20 @@ module.exports = {
                         });
                     }
                 }
-            )(req, res);
+            )(req, res, function(err) {
+
+                if (!err) err = new Error('unknown error');
+
+                if (req.wantsJSON) {
+                    res.AD.error(err);
+                } else {
+                    // Go back to the login form, show message there
+                    req.session.authErrMessage = err.message;
+                    res.redirect('/site/login');
+                }
+                
+
+            });
         }
         else {
             // Users should not even be coming here if the site isn't using
