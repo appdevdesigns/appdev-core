@@ -5,8 +5,8 @@ steal(
     'can',
     'can/view/ejs',
     'can/construct/super',
-    'appdev/ad.js',
-// ).then (
+    'appdev/ad.js'
+).then (
     function() {
 
        AD.ui.jQuery = window.jQuery; //$;
@@ -15,8 +15,8 @@ steal(
             console.log(' .... trying to not conflict with existing jQuery');
             $.noConflict();  // return things as they were.
         }
-    },
-// ).then(
+    }
+).then(
 
         'appdev/comm/hub.js',
         'appdev/util/uuid.js',
