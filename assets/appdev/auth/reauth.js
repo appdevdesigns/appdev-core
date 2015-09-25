@@ -1,4 +1,5 @@
 steal(
+        // 'appdev',
         'appdev/widgets/ad_ui_reauth'
         //'appdev/comm/hub.js'
 

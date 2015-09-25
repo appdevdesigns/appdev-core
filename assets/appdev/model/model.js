@@ -508,7 +508,7 @@ console.warn('**** Using AD.Model.clone() on a model without a .model() method! 
             list.forEach(function(entry){
                 var uriDelete = uriAssociations+'/'+ entry.id;
 // console.log('... clearing Association['+field+'] url:'+uriDelete);
-                pendingActions.push( AD.comm.service.delete({url:uriDelete }));
+                pendingActions.push( AD.comm.service['delete']({url:uriDelete }));
             })
 
             $.when.apply($, pendingActions)

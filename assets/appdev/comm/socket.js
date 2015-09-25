@@ -116,11 +116,16 @@ steal(
             // now if we have not already registered message with io.socket
             if (!notified[message]) {
 // console.log('AD.comm.socket.subscribe(): registering message['+message+'] with io.socket.on()');
+
+
+                // BUILD FIX: steal build will die because the io library wont properly compile
+                if (typeof io != 'undefined') {
                 io.socket.on(message, function(data) {
 // console.log('io.socket.on(): message['+message+']');
                     processMessage(message,data);
                 });
-
+                }
+                
                 notified[message] = true;
 
             }
@@ -386,6 +391,8 @@ steal(
             };
 
 
+            // this prevents our build process from crashing on undefined 'io'
+            if (typeof io != "undefined") {
             io.socket[options.method](options.url, options.params, function(data, jwres){
 
 console.log('AD.comm.socket.'+options.method+'() response:');
@@ -449,6 +456,7 @@ dfd.reject(data.data);
 
             });
 
+            } // end if(io)
 /*
 //            $.ajax({
             AD.sal.http({
