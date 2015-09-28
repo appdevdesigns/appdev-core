@@ -1,0 +1,12 @@
+.app-progressbar {
+  background-color: black;
+  border-radius: 8px; /* (height of inner div) / 2 + padding */
+  padding: 3px;
+}
+
+.app-progressbar > div {
+   background-color: yellow;
+   width: 40%; /* Adjust with JavaScript */
+   height: 10px;
+   border-radius: 10px;
+}
