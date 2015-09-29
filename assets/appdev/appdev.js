@@ -1,13 +1,23 @@
 steal(
-    'jquery'
+    'jquery',
+    'appdev/loading.css',
+    'appdev/ad.js'
 ).then(
     // 'canjs/can.jquery.js',
+    function(){
+        AD.ui.loading.attach(); // just append to DOM
+        AD.ui.loading.text('initializing appdev library');
+        AD.ui.loading.resources(21);
+
+    },
     'can',
     'can/view/ejs',
-    'can/construct/super',
-    'appdev/ad.js'
+    'can/construct/super'
+
 ).then (
     function() {
+
+        AD.ui.loading.completed(3);
 
        AD.ui.jQuery = window.jQuery; //$;
 
@@ -42,6 +52,7 @@ steal(
         'site/labels/appdev.js',
         function($) {
 
+            AD.ui.loading.completed(18);
 console.log('AD setup done ...');
 
         }
