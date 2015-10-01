@@ -270,7 +270,10 @@ if (typeof window.AD == 'undefined') {
                 
                 // BUILD FIX: prevents minification engine error.
                 if (typeof AD.ui.loading._el.querySelector != 'undefined'){
-                AD.ui.loading._el.querySelector('.app-progressbar-inner').style.width = percent+"%";
+                    var div = AD.ui.loading._el.querySelector('.app-progressbar-inner');
+                    if (div) {
+                        div.style.width = percent+"%";
+                    }
                 }
             }
 
