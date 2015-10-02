@@ -183,10 +183,9 @@ if (typeof window.AD == 'undefined') {
         
         AD.ui.loading._el = null;
         AD.ui.loading.reset();
-        // AD.ui.loading._total = 0;
-        // AD.ui.loading._current = 0;
 
-        // BUILD FIX: prevents minification engine error.
+
+        // BUILD FIX: typeof check prevents minification engine error.
         if (typeof document.querySelector != 'undefined'){
         var el = document.querySelector(sel);
         if (el) {
@@ -196,7 +195,10 @@ if (typeof window.AD == 'undefined') {
 
             AD.ui.loading._el = el;
 
-            el.querySelector('.app-progressbar-inner').style.width = "0%";
+            var div = el.querySelector('.app-progressbar-inner');
+            if (div) {
+                div.style.width = "0%";
+            }
 
         }
         }
@@ -213,7 +215,7 @@ if (typeof window.AD == 'undefined') {
             console.error('Calling AD.ui.loading.text() before AD.ui.loading.attach()!  No can do!');
         } else {
 
-            // BUILD FIX: prevents minification engine error.
+            // BUILD FIX: typeof check prevents minification engine error.
             if (typeof AD.ui.loading._el.querySelector != 'undefined'){
             AD.ui.loading._el.querySelector('.app-progressbar-text').innerHTML = text;
             }
