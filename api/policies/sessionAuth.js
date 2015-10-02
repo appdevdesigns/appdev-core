@@ -16,7 +16,7 @@ module.exports = function(req, res, next) {
         return next();
     }
     // unauthenticated JSON requests
-    else if (req.wantsJSON) {
+    else if (req.wantsJSON && !req.param('ticket')) {
         res.AD.reauth();
         return;
     }
