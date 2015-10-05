@@ -235,7 +235,7 @@ if (typeof window.AD == 'undefined') {
         
         if (AD.ui.loading._el == null) {
 
-            console.error('Calling AD.ui.loading.resources() before AD.ui.loading.attach()!  No can do!');
+            console.warn('Calling AD.ui.loading.resources() before AD.ui.loading.attach()!  Why?');
         } else {
 
             AD.ui.loading._total += amount;
@@ -251,7 +251,7 @@ if (typeof window.AD == 'undefined') {
         // 
         
         if (AD.ui.loading._el == null) {
-            console.error('Calling AD.ui.loading.complete() before AD.ui.loading.attach()!  No can do!');
+            console.warn('Calling AD.ui.loading.complete() before AD.ui.loading.attach()! Why?');
         } else {
             AD.ui.loading._current += amount;
             AD.ui.loading._recalc();
@@ -264,7 +264,7 @@ if (typeof window.AD == 'undefined') {
         
         if (AD.ui.loading._el == null) {
 
-            console.error('Calling AD.ui.loading._recalc() before AD.ui.loading.attach()!  No can do!');
+            console.warn('Calling AD.ui.loading._recalc() before AD.ui.loading.attach()! Why?');
         } else {
 
             if (AD.ui.loading._total > 0) {
