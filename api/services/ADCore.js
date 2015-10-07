@@ -41,6 +41,12 @@ passport.deserializeUser(function(guid, done) {
 var passportInitialize = passport.initialize();
 var passportSession = passport.session();
 
+
+// import local files
+var path = require('path');
+var Queue = require(path.join(__dirname, 'adcore', 'queue.js'));
+
+
 module.exports = {
     
     auth: {
@@ -562,6 +568,30 @@ module.exports = {
             ];
         }
     },
+
+
+
+    /**
+     *  ADCore.queue
+     *
+     *  A common message Queue implementation for our applications.
+     *
+     */
+    queue: {
+        publish: function (event, message) {
+            Queue.publish(event, message);
+        },
+        sandbox: function (options) {
+            return Queue.sandbox(options);
+        },
+        subscribe: function(event, callback) {
+            return Queue.subscribe(event, callback);
+        },
+        unsubscribe: function(subKey) {
+            Queue.unsubscribe(subKey);
+        }
+    },
+
 
 
     session: {
