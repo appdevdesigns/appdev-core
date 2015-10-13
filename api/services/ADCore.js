@@ -18,7 +18,7 @@ var AD = require('ad-utils');
 var _ = require('lodash');
 
 var passport = require('passport');
-var CasStrategy = require('passport-cas2').Strategy;
+var CasStrategy = function(){ return {};  };  // require('passport-cas2').Strategy;  //// removing due to Windows compilation issues.
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var LocalStrategy = require('passport-local').Strategy;
 
