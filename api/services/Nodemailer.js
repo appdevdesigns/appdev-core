@@ -48,7 +48,7 @@ var dryRun = function(transportKey, email) {
                 var counter = 1;
                 var nameCheck = outputFileName;
                 while (files.indexOf(nameCheck) >= 0) {
-                    nameCheck = nameCheck.replace(/.html$/, '-' + counter + '.html');
+                    nameCheck = nameCheck.replace(/(\-\d+)?\.html$/, '-' + counter + '.html');
                     counter += 1;
                 }
                 outputFileName = nameCheck;
