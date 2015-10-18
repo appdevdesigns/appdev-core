@@ -30,7 +30,9 @@ module.exports = function(req, res, next) {
             case 'cas':
                 // This will redirect to the CAS site. If successful the user
                 // will return here and proceed to ...
-                var auth = ADCore.auth.passport.authenticate('cas');
+                var auth = ADCore.auth.passport.authenticate('cas', {
+                    failureRedirect: '/auth/fail'
+                });
                 auth(req, res, function() {
                     // ... here. Authenticated!
                     // Instead of going directly to next(), we can redirect
