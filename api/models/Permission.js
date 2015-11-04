@@ -29,18 +29,32 @@ module.exports = {
         }
     },
 
+
+
     afterCreate: function(permission, cb) {
 
         // a new permission listing was created for a USER.
         // so mark that user as needing a session refresh.
-        SiteUser.findOne({ id: permission.user }) 
-        .then(function(user) {
-            ADCore.user.refreshSession(user.guid);
+        if (permission.user) {
+
+            SiteUser.findOne({ id: permission.user }) 
+            .then(function(user) {
+
+                if (user) {
+                    ADCore.user.refreshSession(user.guid);
+                } else {
+                    ADCore.user.refreshSession("*"); // update all!
+                }
+                
+                cb();
+            })
+            .catch(function(err){
+                cb(err);
+            })
+
+        } else {
             cb();
-        })
-        .catch(function(err){
-            cb(err);
-        })
+        }
 
     },
 
@@ -50,13 +64,12 @@ module.exports = {
 //     cb();
 // },
 
-    afterUpdate: function(updatedPerm, cb) {
 
-// console.log('... afterUpdate() updatedPerm:', updatedPerm);
+    afterUpdate: function(updatedPerm, cb) {
 
         SiteUser.findOne({ id: updatedPerm.user }) 
         .then(function(user) {
-// console.log('   -> user:', user);
+
             if (user) {
                 ADCore.user.refreshSession(user.guid);
             } else {
@@ -68,6 +81,8 @@ module.exports = {
             cb(err);
         })
     },
+
+
 
     afterDestroy: function(destroyedRecords, cb) {
 

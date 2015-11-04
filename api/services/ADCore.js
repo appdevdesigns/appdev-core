@@ -551,6 +551,7 @@ module.exports = {
                 'initSession',
                 'noTimestamp', 
                 'hasPermission',
+                'validID'
             ];
 
             for (var i = policies.length - 1; i >= 0; i--) {
