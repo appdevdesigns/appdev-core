@@ -83,7 +83,7 @@ module.exports = {
 
                     // if user has all these permissions then continue!
                     if (hasAll(perm)) {
-                        AD.log('<green>.... reqPath['+reqPath+']  -> user had permission: </green><yellow><bold>'+ perm.join(', ') + '</bold></yellow>');
+                        AD.log('<green>.... reqPath['+reqPath+']  -> user['+user.GUID()+'] had permission: </green><yellow><bold>'+ perm.join(', ') + '</bold></yellow>');
                         next();
                         return;
                     }
@@ -91,7 +91,7 @@ module.exports = {
 
 
                 // if we got here, then we did not pass any permission checks
-                AD.log('<red>.... reqPath['+reqPath+']  -> user did not have any of the required permissions '+ permissions.join(', ') + '</red>');
+                AD.log('<red>.... reqPath['+reqPath+']  -> user[</red><yellow>'+user.GUID()+'</yellow><red>] did not have any of the required permissions '+ permissions.join(', ') + '</red>');
                 res.forbidden();
                 return;
             }
@@ -104,6 +104,175 @@ module.exports = {
         next();
     },
 
+
+
+    limitRouteToScope:function(req, res, next, options) {
+
+
+        // make sure options isn't undefined:
+        options = options || {};
+
+        // make sure options have some default settings:
+        options = _.merge({
+            actionKey:'no.action.key.specified',
+            field:'userID',
+            userField:'id',
+            error:{ code: 403, message:'Not Permitted.' }
+        }, options);
+
+// console.log('... options:', options);
+
+        Permissions.scopeUsersForAction(req, options.actionKey)
+        .fail(function(err){
+
+            // if the error was the user doesn't have this permission:
+            if (err.code == 'ENO_PERMISSION') {
+// console.log('... ERROR: ENO_PERMISSION');
+                var ourError = new Error( options.error.message );
+                ourError.actionKey = options.actionKey;
+                ADCore.comm.error(res, ourError, options.error.code);
+                // res.forbidden();
+            } else {
+// console.log('... ERROR: not sure what went wrong:', err);
+                // not sure what went wrong here:
+                next(err);
+            }
+        })
+        .then(function(validUsers){
+
+            var validIDs = _.pluck(validUsers, options.userField);
+
+            // was the request already specifying the specified .field?
+            var allParams = req.params.all();
+// console.log('... allParams:', allParams);
+// console.log('... options.where:', req.options.where);
+// console.log('... validIDs:', validIDs);
+
+//// TODO: check if we need to account for a possible incoming where:{ userID:xx }  clause
+
+            if( allParams[options.field]) {
+
+                var parsedField  = _.parseInt(allParams[options.field]);
+
+                // if it looks like we should be comparing numbers:
+                if (!_.isNaN(parsedField)) {
+
+                    // make sure we treat it as a number
+                    allParams[options.field] = parsedField;
+                }
+
+                // if they asked for one that is already allowed
+                if (validIDs.indexOf(allParams[options.field]) != -1) {
+// console.log('... looks good!');
+                    // let things go on:
+                    next();
+                } else {
+// console.log('... didnt match up!');
+                    // can't ask for that one!
+                    var ourError = new Error( options.error.message );
+                    ADCore.comm.error(res, ourError, options.error.code);
+                    // res.forbidden();
+                }
+
+            } else {
+
+                // some routes operate on a given primaryKey: findOne, update, destroy 
+                // other routes operate on a condition: find
+
+                // look for a primaryKey value:
+                var pk = req.param('id');
+
+                // if a route with a primaryKey value
+                if ((req.options.action == 'findOne')
+                    || (pk)) {
+// console.log('... findOne()');
+                    // These blueprints only looks at the specified :id value.
+                    // so we need to preempt and do a find, and check if result
+                    // has an validID value
+
+                    var model = req.options.model || req.options.controller;
+                    if (!model) throw new Error(util.format('No "model" specified in route options.'));
+
+                    var Model = req._sails.models[model];
+                    if ( !Model ) throw new Error(util.format('Invalid route option, "model".\nI don\'t know about any models named: `%s`',model));
+
+                    Model.findOne(pk)
+                    .then(function(model){
+// console.log('... model:', model);
+// console.log('... validIDs:', validIDs);
+// console.log('... comparing model.'+options.field+':'+ model[options.field]);
+
+                        if (validIDs.indexOf(model[options.field]) != -1) {
+
+// console.log('... validID found!');
+                            // ok, this one is permitted, so continue:
+                            next();
+
+                        } else {
+// console.log('... no validID found.');
+
+                            // can't ask for this one!
+                            var ourError = new Error( options.error.message );
+                            ADCore.comm.error(res, ourError, options.error.code);
+                            // res.forbidden();
+                        }
+                    })
+                    .catch(function(err){
+
+                        next(err);
+                    })
+
+                } else {
+
+// console.log('... updating condition.');
+                    // add to the query a condition for userID to be in our validIDs:
+                    req.options.where = req.options.where || {};
+                    req.options.where[options.field] =  validIDs;
+// console.log('... options:', req.options);
+                    next();
+
+                }
+
+            }
+
+        });
+
+    },
+
+
+
+    /**
+     * @function Permissions.scopeUsersForAction()
+     *
+     * Use this to request the valid SiteUsers that the authenticated user 
+     * can access for the given actionKey.
+     *
+     * @param {obj}    req        The request object for the current route.
+     * @param {string} actionKey  which actionKey permission to compile scope
+     *                            information for.
+     * @return {array} returns an array of SiteUser 
+     */
+    scopeUsersForAction: function(req, actionKey) {
+        var dfd = AD.sal.Deferred();
+
+
+        var user = ADCore.user.current(req);
+
+        
+        if (user.hasPermission( actionKey )) {
+
+// TODO: actually lookup the Scope data and resolve it to a list of SiteUser accounts.
+dfd.resolve([{ id:'1', guid:'user.1' }, { id:'1', guid:'user.2' }]);
+
+        } else {
+            var err = new Error('No Permission');
+            err.code = 'ENO_PERMISSION';
+            err.actionKey = actionKey;
+            dfd.reject(err);
+        }
+
+        return dfd;
+    },
 
 
 
