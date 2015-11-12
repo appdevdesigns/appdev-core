@@ -246,6 +246,21 @@ module.exports = {
 
 
 
+    error: {
+
+        log: function( message, data ) {
+
+            AD.log.error(message, data);
+
+            // store in a DB log table
+
+            // post it across the message bus:
+            ADCore.queue.publish('site.error', { message: message, data:data });
+        }
+    },
+
+
+
     labelsForContext: function(context, code, cb) {
         var dfd = AD.sal.Deferred();
 

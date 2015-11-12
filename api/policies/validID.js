@@ -21,7 +21,7 @@ module.exports = function(req, res, next) {
 
 		} else {
 
-			console.log('... isValid():  invalid id:'+id);
+			console.log('... policy/isValid():  invalid id:'+id);
 			ADCore.comm.error(res, new Error('unknown id: '+id), 404);
 		}
 

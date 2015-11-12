@@ -106,6 +106,172 @@ module.exports = {
 
 
 
+    /**
+     * limitRouteToUserActionScope()
+     *
+     * Use this method to limit the current blueprint route to only return values
+     * that match a user's  set of Action+Scope combinations.
+     *
+     * This is usually useful in a generic administrative tool where the resource
+     * specifies both the actionKey and a user.guid/id this entry it tied to.
+     *
+     * This method will scan all entries of a resource to verify which resources
+     * the current authenticated user is allowed to work with.
+     *
+     * @param {obj} req     The Sails request object
+     * @param {obj} res     The Sails response object
+     * @param {fn}  next    The Sails/express callback fn
+     * @param {obj} options The options for this specific route definitions.
+     *          options.field     {string}   the field in the resource that connects to the 
+     *                                       scoped User info.
+     *          options.userField {string}   the field in the User info that this 
+     *                                       resource ties to. 
+     *                                       (usually 'guid', but you might instead 
+     *                                       link to 'id', or 'username')
+     *          options.resourcePKField {string} the name of the resource's pk field
+     *                                       (usually 'id', but if not, specify it here.)
+     *          options.error     {obj}      An object representing the error information 
+     *                                       to return if the user is not permitted.
+     */
+    limitRouteToUserActionScope:function(req, res, next, options) {
+
+        // make sure options isn't undefined:
+        options = options || {};
+
+        // make sure options have some default settings:
+        options = _.merge({
+            field:'userID',
+            userField:'guid',
+            resourcePKField:'id',
+            error:{ code: 403, message:'Not Permitted.' }
+        }, options);
+
+
+        var allActionKeys = null;
+        var conditions = [];
+        var validRequestIDs = null;
+
+        async.series([
+
+
+            // step 1: get all action keys this user has permission for
+            function(done) {
+
+                Permissions.actionsForUser(req)
+                .fail(function(err){
+                    done(err);
+                })
+                .then(function(keys){
+                    allActionKeys = keys;
+                    done();
+                })
+            },
+
+
+
+            // step 2: compile action keys into a condition: actionKey: [ user.guids ]
+            function(done) {
+
+                var numDone = 0;
+                allActionKeys.forEach(function(key){
+
+                    Permissions.scopeUsersForAction(req, key)
+                    .fail(function(err){
+                        done(err);
+                    })
+                    .then(function(userList){
+
+                        // push a new condition: { actionKey:key,  userID:[ guid1, guid2, ... guidN ]}
+                        // conditions.push({ actionKey:key, userID:_.pluck(userList, 'guid') })
+                        var cond = { actionKey: key };
+                        cond[options.field] = _.pluck(userList, options.userField);
+                        conditions.push(cond);
+
+                        numDone++;
+                        if (numDone >= allActionKeys.length) {
+// console.log('... conditions:', conditions);
+                            done();
+                        }
+
+                    })
+
+                })
+            },
+
+
+            // step 3: lookup a list of Approval entries that match these combinations:
+            function(done){
+
+                PARequest.find({ 'or': conditions })
+                .then(function(list) {
+                    validRequestIDs = _.pluck(list, options.resourcePKField);
+// console.log('... validRequestIDs:', validRequestIDs);
+                    done();
+                })
+                .catch(function(err){
+                    done(err);
+                })
+            }
+
+        ], function(err, results){
+
+            // stop on error:
+            if (err) {
+                next(err);
+                return;
+            }
+
+
+
+            // some routes operate on a given primaryKey: findOne, update, destroy 
+            // other routes operate on a condition: find
+
+            // look for a primaryKey value:
+            var pk = req.param('id');
+
+            // if operation has a pk, ( findOne, update, destroy )
+            if (pk) {
+
+                // convert from string(pk) to int(pk)
+                var parsedPK = _.parseInt(pk);
+                if (!_.isNaN(parsedPK)) {
+                    pk = parsedPK;
+                }
+
+                // if pk is in list of valid ID's allow
+                if (validRequestIDs.indexOf(pk) != -1) {
+
+                    // they are requesting to work with an approved entry:
+// console.log('... requested pk['+pk+'] is APPROVED!');
+                    next();
+                } else {
+
+                    // they asked for a non approved entry:
+                    var ourError = new Error( options.error.message );
+                    ADCore.comm.error(res, ourError, options.error.code);
+                }
+
+
+            } else {
+
+
+                // they are trying to do a find operation, so let's add a condition
+                // to narrow the find to only entries with our validIDs:
+
+
+                req.options.where = req.options.where || {};
+                req.options.where['or'] =  conditions;
+// console.log('... options:', req.options);
+                next();
+            }
+
+        })
+
+
+    },
+
+
+
     limitRouteToScope:function(req, res, next, options) {
 
 
@@ -241,6 +407,28 @@ module.exports = {
 
 
 
+    actionsForUser: function(req) {
+        var dfd = AD.sal.Deferred();
+
+        var user = ADCore.user.current(req);
+
+        // make sure the user is ready before processing:
+        user.ready()
+        .fail(function(err){
+            dfd.reject(err);
+        })
+        .then(function(){
+
+            dfd.resolve(_.keys(user.data.permissions));
+
+        })
+
+
+        return dfd;
+    },
+
+
+
     /**
      * @function Permissions.scopeUsersForAction()
      *
@@ -255,21 +443,28 @@ module.exports = {
     scopeUsersForAction: function(req, actionKey) {
         var dfd = AD.sal.Deferred();
 
-
+        // get user and make sure it is ready() before using it.
         var user = ADCore.user.current(req);
+        user.ready()
+        .fail(function(err) { 
+            dfd.reject(err);
+        })
+        .then(function(){
 
-        
-        if (user.hasPermission( actionKey )) {
+
+            if (user.hasPermission( actionKey )) {
 
 // TODO: actually lookup the Scope data and resolve it to a list of SiteUser accounts.
 dfd.resolve([{ id:'1', guid:'user.1' }, { id:'1', guid:'user.2' }]);
 
-        } else {
-            var err = new Error('No Permission');
-            err.code = 'ENO_PERMISSION';
-            err.actionKey = actionKey;
-            dfd.reject(err);
-        }
+            } else {
+                var err = new Error('No Permission');
+                err.code = 'ENO_PERMISSION';
+                err.actionKey = actionKey;
+                dfd.reject(err);
+            }
+
+       })
 
         return dfd;
     },
