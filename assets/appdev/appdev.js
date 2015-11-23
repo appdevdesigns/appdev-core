@@ -29,6 +29,7 @@ steal(
 ).then(
 
         'appdev/comm/hub.js',
+        'appdev/error/log.js',
         'appdev/util/uuid.js',
         'appdev/util/async.js',
         'appdev/util/string.js',
