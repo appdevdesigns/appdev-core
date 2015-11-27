@@ -92,7 +92,7 @@ module.exports = {
                         pgtURL: sails.config.cas.pgtURL || sails.config.cas.proxyURL,
                         sslCert: sails.config.cas.sslCert || null,
                         sslKey: sails.config.cas.sslKey || null,
-                        sslCA: sails.config.cas.sslCA || []
+                        sslCA: sails.config.cas.sslCA || null
                     }, 
                     // The `verify` callback
                     function(username, profile, done) {
