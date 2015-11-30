@@ -198,21 +198,24 @@ module.exports = {
                 })
             },
 
-
+//// REFACTOR
+// will this work if we simply add { 'or': conditions } on to all queries?
+// in case when  { id:X,  { or: conditions }  } ?
+/*
             // step 3: lookup a list of Approval entries that match these combinations:
             function(done){
 
                 PARequest.find({ 'or': conditions })
                 .then(function(list) {
                     validRequestIDs = _.pluck(list, options.resourcePKField);
-// console.log('... validRequestIDs:', validRequestIDs);
+console.log('... validRequestIDs:', validRequestIDs);
                     done();
                 })
                 .catch(function(err){
                     done(err);
                 })
             }
-
+*/
         ], function(err, results){
 
             // stop on error:
@@ -223,13 +226,21 @@ module.exports = {
 
 
 
+            req.options.where = req.options.where || {};
+            req.options.where['or'] =  conditions;
+console.log('... options:', req.options);
+            next();
+
+//// Refactoring.  Old stuff down here:
+/*
+
             // some routes operate on a given primaryKey: findOne, update, destroy 
             // other routes operate on a condition: find
 
             // look for a primaryKey value:
             var pk = req.param('id');
 
-            // if operation has a pk, ( findOne, update, destroy )
+            // if operation has a pk condition
             if (pk) {
 
                 // convert from string(pk) to int(pk)
@@ -238,18 +249,32 @@ module.exports = {
                     pk = parsedPK;
                 }
 
-                // if pk is in list of valid ID's allow
-                if (validRequestIDs.indexOf(pk) != -1) {
 
-                    // they are requesting to work with an approved entry:
-// console.log('... requested pk['+pk+'] is APPROVED!');
-                    next();
-                } else {
+                /// Case 1:  pk is an int  ( findOne, update, destroy )
 
-                    // they asked for a non approved entry:
-                    var ourError = new Error( options.error.message );
-                    ADCore.comm.error(res, ourError, options.error.code);
-                }
+
+                    // if pk is in list of valid ID's allow
+                    if (validRequestIDs.indexOf(pk) != -1) {
+
+                        // they are requesting to work with an approved entry:
+console.log('... requested pk['+pk+'] is APPROVED!');
+                        next();
+                    } else {
+
+console.log('... non approved entry:', pk);
+
+                        // they asked for a non approved entry:
+                        var ourError = new Error( options.error.message );
+                        ADCore.comm.error(res, ourError, options.error.code);
+                    }
+
+
+                /// else : pk is complex
+
+                    // simply leave it and add on additional conditions:
+                    // 
+
+                
 
 
             } else {
@@ -261,9 +286,11 @@ module.exports = {
 
                 req.options.where = req.options.where || {};
                 req.options.where['or'] =  conditions;
-// console.log('... options:', req.options);
+console.log('... options:', req.options);
                 next();
             }
+*/
+
 
         })
 

@@ -19,6 +19,7 @@ steal(
 
         'appdev/ad.js',
         'appdev/sal/web-jquery.js',
+        'appdev/comm/error.js',
         'js/dependencies/sails.io.js'
 
 ).then(function() {
@@ -174,6 +175,9 @@ steal(
         var processMessage = function(message, data) {
 
             
+console.log('...AD.comm.socket: process message:')
+console.log('... message:'+message);
+console.log('... data:', data);
 
             // if we have any subscriptions for message:
             if (subscriptions[message]) {
@@ -277,6 +281,22 @@ steal(
 
 
 */
+
+
+
+
+        /**
+         * context()
+         *
+         * simple options builder for building the context of the current request
+         */
+        var context = function( options, cb, dfd) {
+            return { request:request, opts:options, cb:cb, dfd:dfd };
+        }
+
+
+
+
         /**
          * @function request()
          * @private
@@ -307,12 +327,7 @@ steal(
         var request = function(options, cb) {
             var dfd = AD.sal.Deferred();
 
-            // Default is async, but you can specify 'sync: true' in the options
-            // to change to sync mode instead.
-//            var asyncMode = true;
-//            if (options.sync) {
-//                asyncMode = false;
-//            }
+
             if (!options.method) {
                 options.method = 'post';
             }
@@ -320,75 +335,11 @@ steal(
 
             // if we are currently in process of authenticating, then
             // queue request
-/*            if ((typeof AD.winLogin.isVisible != 'undefined')
-                && (AppDev.winLogin.isVisible())) {
+            if (AD.ui.reauth.inProgress()) {
 
-                var dfd = $.Deferred();
-                pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
-
+                AD.comm.pending.add(context(options, cb, dfd ));
                 return dfd;
             }
-*/
-
-            // responds to a { status = error;  .... } responses.
-            var _handleAppdevError = function( data ) {
-
-                var errorID = data.id;
-                // Authentication failure (i.e. session timeout)
-                if (errorID == 5) {
-
-                    // store current request
-                    pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
-
-                    // Reauthenticate
-                    AD.comm.hub.publish('ad.auth.reauthenticate', {});
-
-                    return;
-                }
-                // Some other error
-                else {
-
-/*
-                    var showErrors = options['showErrors'];
-
-                    // Execute the optional failure callback
-                    if ($.isFunction(options['failure'])) {
-                        options.failure(data);
-                        // Turn off showErrors if it wasn't enabled
-                        // explicitly.
-                        if (!showErrors || showErrors == 'AUTO') {
-                            showErrors = 'OFF';
-                        }
-                    }
-                    // No failure callback given
-                    else if (!showErrors || showErrors == 'AUTO') {
-                      // Turn on showErrors if it wasn't disabled
-                      // explicitly.
-                      showErrors = 'ON';
-                    }
-
-                    // Display error message if needed
-                    if (showErrors == 'ON') {
-                        var errorMSG = data.error
-                            || data.errorMSG
-                            || data.errorMessage
-                            || data.message;
-                        if (!errorMSG) { errorMSG = "Error"; }
-                        AppDev.displayMessage(
-                            errorMSG,
-                            options['messageBox']
-                        );
-                    }
-*/
-
-                    AD.comm.hub.publish('ad.err.notification', data);
-                    if (cb) {
-                        cb(data);
-                    }
-                    dfd.reject(data);
-                    return;
-                }
-            };
 
 
             // this prevents our build process from crashing on undefined 'io'
@@ -400,120 +351,49 @@ console.log(data);
 console.log('jwres:');
 console.log(jwres);
 
+                if (typeof data == 'string') {
+                    data = JSON.parse(data);
+                }
+
 
                 // if this is an  error
                 if (jwres.statusCode >= 400) {
 
-//// TODO: handle any reauth errors here:
+                    AD.comm.error(data, context(options, cb, dfd ));
 
-                    var err = new Error(jwres.toString());
-                    dfd.reject(err);
+                    //     // some non framework related error ... 
+                    //     var err = new Error(jwres.toString());
+                    //     dfd.reject(err);  
+
 
                 } else {
+                    
+                    // Got a JSON response but was the service response an error?
+                    if (data.status && (data.status == 'error')) {
 
-                    data = JSON.parse(data);
+                        AD.comm.error(data, context(options, cb, dfd ));
+                    }
+                    // Success!
+                    else {
 
-                    if (data.status) {
-
-                        // if we got an error
-                        if (data.status == 'error') {
-
-//// TODO: handle any reauth errors here:
-dfd.reject(data.data);
-
-                        } else {
-
-                            // there should only be 2 statuses so this is 
-                            // a success:
-                            dfd.resolve(data.data);
+                        // if this was an appdev packet, only return the data:
+                        if (data.status && data.status == 'success') {
+                            data = data.data;
                         }
 
+                        if (cb) cb(null, data);
+                        dfd.resolve(data);
                     }
 
 
                 }
 
-/*
-                // Got a JSON response but was the service response an error?
-                if (data.status && (data.status == 'error')) {
-
-                    _handleAppdevError(data);
-                    return;
-                }
-                // Success!
-                else {
-
-                    // if this was an appdev packet, only return the data:
-                    if (data.status && data.status == 'success') {
-                        data = data.data;
-                    }
-
-
-                    if (cb) cb(null, data);
-                    dfd.resolve(data);
-                }
-*/
 
             });
 
             } // end if(io)
-/*
-//            $.ajax({
-            AD.sal.http({
-                async: asyncMode,
-                url: options['url'],
-                type: options['method'],
-                contentType: options['contentType'],
-                dataType: 'json',
-                data: options['params'],
-                cache: false
-            })
-            .fail(function(req, status, statusText) {
-
-                    // check to see if responseText is our json response
-                    var data = AD.sal.parseJSON(req.responseText);
-                    if (('object' == typeof data) && (data != null)) {
-
-                        if ('undefined' != typeof data.status) {
-
-                            // this could very well be one of our messages:
-                            _handleAppdevError( data );
-                            return;
-                        };
-                    }
-
-                    // Serious error where we did not even get a JSON response
-                    AD.comm.hub.publish('ad.err.notification', data);
-                    if (cb) {
-                        cb(data);
-                    }
-                    dfd.reject(data);
-                })
-            .done(function(data, textStatus, req) {
-
-                // Got a JSON response but was the service response an error?
-                if (data.status && (data.status == 'error')) {
-
-                    _handleAppdevError(data);
-                    return;
-                }
-                // Success!
-                else {
-
-                    // if this was an appdev packet, only return the data:
-                    if (data.status && data.status == 'success') {
-                        data = data.data;
-                    }
 
 
-                    if (cb) cb(null, data);
-                    dfd.resolve(data);
-                }
-
-
-            }); // ajax()
-
-*/
             return dfd;
 
         }; // request

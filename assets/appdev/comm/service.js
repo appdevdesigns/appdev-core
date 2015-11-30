@@ -20,7 +20,8 @@ steal(
 
         'appdev/ad.js',
         'appdev/sal/web-jquery.js',
-        'appdev/comm/hub.js',
+        'appdev/comm/pending.js',
+        // 'appdev/comm/hub.js',
         'appdev/auth/reauth.js'
 
 ).then(function() {
@@ -124,28 +125,36 @@ steal(
          * { opts:options,  cb:callback,  dfd:deferred }
          *
          */
-        var pendingRequests = [];
+        // var pendingRequests = [];
 
 
-        var processRequest = function (entry) {
+        // var processRequest = function (entry) {
 
-            request( entry.opts, function(err, data) {
+        //     request( entry.opts, function(err, data) {
 
-                // call the callback if provided.
-                if (entry.cb) {
-                    entry.cb( err, data);
-                }
+        //         // call the callback if provided.
+        //         if (entry.cb) {
+        //             entry.cb( err, data);
+        //         }
 
-                // now finish off the deferred for this operation
-                if (err) {
-                    entry.dfd.reject(err);
-                } else {
-                    entry.dfd.resolve(data);
-                }
-            });
+        //         // now finish off the deferred for this operation
+        //         if (err) {
+        //             entry.dfd.reject(err);
+        //         } else {
+        //             entry.dfd.resolve(data);
+        //         }
+        //     });
 
-        };
+        // };
 
+        /**
+         * context()
+         *
+         * simple options builder for building the context of the current request
+         */
+        var context = function( options, cb, dfd) {
+            return { request:request, opts:options, cb:cb, dfd:dfd };
+        }
 
 
         /**
@@ -204,42 +213,44 @@ steal(
             // if we are currently in process of authenticating, then
             // queue request
             if (AD.ui.reauth.inProgress()) {
-                pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
+
+                AD.comm.pending.add(context(options, cb, dfd ));
+// pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
                 return dfd;
             }
             
             // responds to a { status = false;  .... } responses.
-            var _handleAppdevError = function( data ) {
+            // var _handleAppdevError = function( data ) {
                 
-                var errorID = data.id;
-                // Authentication failure (i.e. session timeout)
-                if (errorID == 5) {
+            //     var errorID = data.id;
+            //     // Authentication failure (i.e. session timeout)
+            //     if (errorID == 5) {
                     
-                    // store current request
-                    pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
+            //         // store current request
+            //         pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
                     
-                    // Reauthenticate
-                    AD.ui.reauth.start()
-                    .done(function(){
-                        var currReq;
-                        while (currReq = pendingRequests.shift()) {
-                            processRequest(currReq);
-                        }
-                    });
+            //         // Reauthenticate
+            //         AD.ui.reauth.start()
+            //         .done(function(){
+            //             var currReq;
+            //             while (currReq = pendingRequests.shift()) {
+            //                 processRequest(currReq);
+            //             }
+            //         });
                     
-                    return;
-                }
-                // Some other error
-                else {
+            //         return;
+            //     }
+            //     // Some other error
+            //     else {
 
-                    AD.comm.hub.publish('ad.err.notification', data);
-                    if (cb) {
-                        cb(data);
-                    }
-                    dfd.reject(data);
-                    return;
-                }
-            };
+            //         AD.comm.hub.publish('ad.err.notification', data);
+            //         if (cb) {
+            //             cb(data);
+            //         }
+            //         dfd.reject(data);
+            //         return;
+            //     }
+            // };
 
 
             AD.sal.http({
@@ -278,7 +289,8 @@ steal(
                         if ('undefined' != typeof data.status) {
 
                             // this could very well be one of our messages:
-                            _handleAppdevError( data );
+// _handleAppdevError( data );
+                            AD.comm.error(data, context(options, cb, dfd ));
                             return;
                         };
                     }
@@ -295,7 +307,8 @@ steal(
                 // Got a JSON response but was the service response an error?
                 if (data.status && (data.status == 'error')) {
 
-                    _handleAppdevError(data);
+// _handleAppdevError( data );
+                    AD.comm.error(data, context(options, cb, dfd ));
                     return;
                 }
                 // Success!
@@ -317,7 +330,7 @@ steal(
 
             return dfd;
 
-        }; // post
+        }; // request()
 
     })();
 });

@@ -244,10 +244,10 @@ console.warn('**** Using AD.Model.clone() on a model without a .model() method! 
 //// keep in mind the modelName is what will be used by sails to return data.
 //// we have to resolve this back to the given namespacing ... 
 
-// console.log('modelName:'+modelName);
-// console.log('socket: message['+message+'] ');
-// console.log(data);
-// console.log('............................');
+console.log('modelName:'+modelName);
+console.log('socket: message['+message+'] ');
+console.log(data);
+console.log('............................');
 
                     modelUpdate(name, data);
                 });
@@ -302,7 +302,14 @@ console.warn('**** Using AD.Model.clone() on a model without a .model() method! 
                 return function( cond, cbSuccess, cbErr ) {
                     var dfd = AD.sal.Deferred();
 
-                    AD.comm.service[verb]({ url:uri, params:cond })
+console.log('... convertFindAll:fn(): this.useSockets:', this.useSockets);
+                    var comm = 'service';
+                    if (this.useSockets) {
+                        comm = 'socket';
+                    }
+
+
+                    AD.comm[comm][verb]({ url:uri, params:cond })
                     .fail(function(err){
                         if (cbErr) cbErr(err);
                         dfd.reject(err);
@@ -977,7 +984,7 @@ if (curr == null) {
             if (Model.store[data.id]) {
 
 
-                if (data.verb == 'updated') {
+                if ("updated" == data.verb) {
 
                     var currValues = Model.store[data.id].attr();
 
@@ -988,26 +995,36 @@ if (curr == null) {
 
                     // if we have new data then update the Model.store
                     if (isNew) {
-//console.log(' comet:: updating Model.store:');
 
                         Model.store[data.id].attr(data.data);
+                        can.event.dispatch.call(Model, 'updated', [Model.store[data.id]]);
+
                     }
 
-                } else if (data.verb = "destroyed") {
+                } else if ("destroyed" == data.verb) {
 
                     // model needs to be removed:
                     Model.store[data.id].destroyed();
+                    can.event.dispatch.call(Model, 'destroyed', [Model.store[data.id]]);
 
+                } else {
+
+                    can.event.dispatch.call(Model, data.verb, [data])
                 }
 
             } else {
 
-                if (data.verb == 'created') {
+                if ("created" == data.verb) {
 
 
                     // this is about a Model we currently don't know about:
                     // Let's just add it:
                     new Model(data.data);
+
+//// QUESTION: do we also tack in 'created' events?  How does Sails handle socket updates on 'created' 
+//// events? Is our normal use case conditioned by Roles + Scope, and a client UI might not have permission to
+//// receive all 'created' updates.  If sails just broadcasts that info across the channels, then we might not 
+//// want to implement this in our default case.
 
                     if (Model.store[data.id]) {
                         console.log('model added and stored!');
@@ -1015,7 +1032,7 @@ if (curr == null) {
                         console.log('model added but NOT stored!');
                     }
 
-                } else if (data.verb == 'updated') {
+                } else if ("updated" == data.verb) {
 
                     //// we received an 'updated' notification about a model we are 
                     //// are not tracking ...  do nothing?
@@ -1023,6 +1040,9 @@ if (curr == null) {
                     console.log('... ModelUpdate():  received an update about a Model we are not tracking.  IGNORE.');
 
 
+                } else {
+                    
+                    can.event.dispatch.call(Model, data.verb, [data])
                 }
             }
 
