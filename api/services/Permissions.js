@@ -113,7 +113,7 @@ module.exports = {
      * that match a user's  set of Action+Scope combinations.
      *
      * This is usually useful in a generic administrative tool where the resource
-     * specifies both the actionKey and a user.guid/id this entry it tied to.
+     * specifies both the actionKey and a user.guid/id this entry is tied to.
      *
      * This method will scan all entries of a resource to verify which resources
      * the current authenticated user is allowed to work with.
@@ -228,7 +228,7 @@ console.log('... validRequestIDs:', validRequestIDs);
 
             req.options.where = req.options.where || {};
             req.options.where['or'] =  conditions;
-console.log('... options:', req.options);
+AD.log('... options:', req.options.where);
             next();
 
 //// Refactoring.  Old stuff down here:
@@ -482,7 +482,20 @@ console.log('... options:', req.options);
             if (user.hasPermission( actionKey )) {
 
 // TODO: actually lookup the Scope data and resolve it to a list of SiteUser accounts.
-dfd.resolve([{ id:'1', guid:'user.1' }, { id:'1', guid:'user.2' }]);
+
+// for now: return all our site users, and any entreis that look like our users in our tutorial
+var tempResults = [{ id:'1', guid:'user.1' }, { id:'1', guid:'user.2' }];
+tempResults.push({id:'1', guid:'nate'});  // local test case for FCFActivities.
+SiteUser.find()
+.exec(function(err, users){
+    users.forEach(function(user){
+        tempResults.push(user);
+    })
+
+    dfd.resolve(tempResults);
+})
+
+
 
             } else {
                 var err = new Error('No Permission');
