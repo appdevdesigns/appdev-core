@@ -15,6 +15,13 @@ var path = require('path');
 var sessionStack = ADCore.policy.serviceStack();
 var passportStack = ADCore.policy.passportStack();
 
+function noLimit(req, res, next) {
+    req.options.limit = 1000000;
+    next();
+}
+
+var noLimitStack = ADCore.policy.serviceStack([noLimit]);
+
 module.exports = {
     // This means any route that does not have its own policy will go through
     // the session stack.
@@ -28,5 +35,9 @@ module.exports = {
         loginPost: passportStack,
         loginForm: passportStack,
         authFail: true
+    },
+
+    'appdev-core/PermissionController' : {
+        find: noLimitStack
     }
 };
