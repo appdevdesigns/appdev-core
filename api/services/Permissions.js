@@ -92,7 +92,8 @@ module.exports = {
 
                 // if we got here, then we did not pass any permission checks
                 AD.log('<red>.... reqPath['+reqPath+']  -> user[</red><yellow>'+user.GUID()+'</yellow><red>] did not have any of the required permissions '+ permissions.join(', ') + '</red>');
-                res.forbidden();
+                // res.forbidden();
+                res.AD.error({ message:'no permission' }, 403);
                 return;
             }
         }
