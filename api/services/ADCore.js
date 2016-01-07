@@ -64,6 +64,12 @@ module.exports = {
          * ADCore's bootstrap.js.
          */
         init: function() {
+
+            // attempting to install more secure ssl-root-ca
+            var sslRootCAs = require('ssl-root-cas/latest');
+            sslRootCAs.inject();
+
+
             // Local auth
             // @see /site/login
             this.local = new LocalStrategy(

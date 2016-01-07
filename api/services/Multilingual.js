@@ -313,13 +313,19 @@ module.exports = {
             cond[fk] = listIDs;
 
 
-            TransModel.destroy(cond)
-            .then(function(data){
-                dfd.resolve(data);
+            // Fix: there is a bug in Waterline v0.10.30 that incorrectly trys
+            // to call the cb() if the cond wouldn't return any values. So we
+            // default to the cb method here rather than the promise method.
+            // 
+            // FYI: Waterline v0.11.x has fixed this.
+            TransModel.destroy(cond, function(err, data) {
+                if (err) {
+                    dfd.reject(err);
+                } else {
+                    dfd.resolve(data);
+                }
             })
-            .catch(function(err){
-                dfd.reject(err);
-            })
+
 
             return dfd;
 

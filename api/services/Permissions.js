@@ -440,16 +440,32 @@ console.log('... options:', req.options);
 
         var user = ADCore.user.current(req);
 
-        // make sure the user is ready before processing:
-        user.ready()
-        .fail(function(err){
-            dfd.reject(err);
-        })
-        .then(function(){
+        if (user) {
 
-            dfd.resolve(_.keys(user.data.permissions));
+            // make sure the user is ready before processing:
+            user.ready()
+            .fail(function(err){
+                dfd.reject(err);
+            })
+            .then(function(){
+                dfd.resolve(_.keys(user.data.permissions));
+            })
 
-        })
+        } else {
+
+            // no valid user was returned, which is a problem!
+            // most likely the policy controlling this specific 
+            // route somehow didn't include our standard serviceStack.
+            ADCore.error.log("Permissions.actionsForUser() did not find a user.", {
+                url:req.url,
+                toTry:' check policy for route and make sure they are following our ServiceStack()'
+            });
+
+            // we are not going to break in this case, but we will
+            // return NO ACTIONS for the user, so they will not
+            // get very far in this process.
+            dfd.resolve([]);
+        }
 
 
         return dfd;
