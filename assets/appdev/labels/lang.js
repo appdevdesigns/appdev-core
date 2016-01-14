@@ -26,7 +26,8 @@
      * @codeend
      * @return {deferred} 
      */
-    var __siteListLanguage = null;
+    var __siteListLanguage = null;  // the list of languages in our site:
+    var __siteLanguages = null;     // hash of language.id : { language obj } 
     AD.lang.list = function () {
         var dfd = AD.sal.Deferred();
 
@@ -34,7 +35,18 @@
             dfd.resolve(__siteListLanguage);
         } else {
 
-            AD.comm.service.get({
+            var rebuildLanguageList = function() {
+                __siteListLanguage = {};
+
+                for(var id in __siteLanguages) {
+                    var item = __siteLanguages[id];
+                    __siteListLanguage[item.language_code] = item.language_label;
+                }
+            }
+
+
+
+            AD.comm.socket.get({
                 url:'/appdev-core/sitemultilinguallanguage'
             })
             .fail(function(err){
@@ -43,13 +55,37 @@
             })
             .then(function(list){
 
-                __siteListLanguage = {};
+                __siteLanguages = {};
 
                 list.forEach(function(item){
-                    __siteListLanguage[item.language_code] = item.language_label;
+                    __siteLanguages[item.id] = item;
                 });
 
+                rebuildLanguageList();
+
                 dfd.resolve(__siteListLanguage);
+            })
+
+
+
+            // subscribe to changes in our language's and update our list.
+            AD.comm.socket.subscribe('sitemultilinguallanguage', function(message, data){
+
+                switch(data.verb) {
+                    case 'created':
+                    case 'updated':
+                        __siteLanguages[data.id] = data.data;
+                        break;
+
+                    case 'destroyed':
+                        delete __siteLanguages[data.id];
+                        break;
+
+                }
+
+                rebuildLanguageList();
+
+// console.log('AD.comm.socket.subscribe() : sitemultilinguallanguage:', message, data);
             })
 
         }
