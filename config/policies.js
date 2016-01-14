@@ -12,7 +12,7 @@
  */
 
 var path = require('path');
-var sessionStack = ADCore.policy.serviceStack();
+var sessionStack = ADCore.policy.serviceStack();    // better to use this one with Sails Blueprints
 var passportStack = ADCore.policy.passportStack();
 
 function noLimit(req, res, next) {
@@ -39,5 +39,14 @@ module.exports = {
 
     'appdev-core/PermissionController' : {
         find: noLimitStack
+    },
+
+    'appdev-core/SiteMultilingualLanguage':{
+        find:sessionStack,
+        create: false,
+        add: false,
+        populate: false,
+        remove: false,
+        destroy: false
     }
 };

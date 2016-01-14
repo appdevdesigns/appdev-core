@@ -12,6 +12,53 @@
     AD.lang.currentLanguage = 'en';
 
 
+
+    /**
+     * @function list
+     * Returns a hash of the current languages in the framework.
+     * 
+     * This is an async function since it has to request the info from the server.
+     * @codestart
+     * AD.lang.list()
+     * .then(function(list){
+     *     console.log(list);  // { 'en' : "English", "ko": "Korean", "zh-hans":"Chinese" }
+     * })
+     * @codeend
+     * @return {deferred} 
+     */
+    var __siteListLanguage = null;
+    AD.lang.list = function () {
+        var dfd = AD.sal.Deferred();
+
+        if (__siteListLanguage) {
+            dfd.resolve(__siteListLanguage);
+        } else {
+
+            AD.comm.service.get({
+                url:'/appdev-core/sitemultilinguallanguage'
+            })
+            .fail(function(err){
+                AD.error.log('Unable to request SiteMultilingualLanguage information.', err);
+                dfd.reject(err);
+            })
+            .then(function(list){
+
+                __siteListLanguage = {};
+
+                list.forEach(function(item){
+                    __siteListLanguage[item.language_code] = item.language_label;
+                });
+
+                dfd.resolve(__siteListLanguage);
+            })
+
+        }
+
+        return dfd;
+    };
+
+
+
     /**
      * @function setCurrentLanguage
      * Sets the default language code to be used for all operations that don't
