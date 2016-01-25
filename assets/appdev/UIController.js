@@ -48,9 +48,10 @@ if ($el.length == 0) {
 
                     var expectedTags = [ 
                         { from:'<!--', to:'<%'},
-                        { from:'-->', to:'%>'},
-                        { from:'[[=', to:'<%='},
-                        { from:']]', to:'%>'}
+                        { from:'-->',  to:'%>'},
+                        { from:'[[=',  to:'<%='},
+                        { from:'[[-',  to:'<%=='},
+                        { from:']]',   to:'%>'}
                     ];
                     expectedTags.forEach(function(tag) {
                         tmpl = AD.util.string.replaceAll(tmpl, tag.from, tag.to);
@@ -123,16 +124,7 @@ if ($el.length == 0) {
             },
             
             init: function ($element) {
-                this.labels = [];
 
-                var keyAttr = AD.controllers.Label.constants.keyAttribute;
-                var $labels = $element.find('[' + keyAttr + ']');
-                var self = this;
-                
-                $labels.each(function(){
-                    self.labels.push( new AD.controllers.Label($(this)) );
-                });
-                
             },
             
             /**

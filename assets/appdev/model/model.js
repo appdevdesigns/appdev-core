@@ -96,6 +96,7 @@ steal(
 
                     // now let's create our base Model:
                     curr[modelName] = can.Model.extend(staticDef, instanceDef);
+                    // can.extend(curr[modelName].prototype, can.event); 
                 },
 
                 get:function(name) {
@@ -227,7 +228,7 @@ console.warn('**** Using AD.Model.clone() on a model without a .model() method! 
 
                 // now let's create our Model from the Model.Base of the same name:
                 curr[modelName] = AD.Model.Base.get(name).extend(staticDef, instanceDef);
-
+                // can.extend(curr[modelName].prototype, can.event); 
 
                 // in order for socket updates to work:
                 // 1) we must register the model name with io.socket.on('modelname.in.lower.case', cb);
@@ -998,6 +999,7 @@ if (curr == null) {
 
                         Model.store[data.id].attr(data.data);
                         can.event.dispatch.call(Model, 'updated', [Model.store[data.id]]);
+                        // Model.dispatch('updated', [Model.store[data.id]]);
 
                     }
 
@@ -1006,10 +1008,12 @@ if (curr == null) {
                     // model needs to be removed:
                     Model.store[data.id].destroyed();
                     can.event.dispatch.call(Model, 'destroyed', [Model.store[data.id]]);
+                    // Model.dispatch('destroyed', [Model.store[data.id]]);
 
                 } else {
 
-                    can.event.dispatch.call(Model, data.verb, [data])
+                    can.event.dispatch.call(Model, data.verb, [data]);
+                    // Model.dispatch(data.verb, [data]);
                 }
 
             } else {
@@ -1043,6 +1047,7 @@ if (curr == null) {
                 } else {
                     
                     can.event.dispatch.call(Model, data.verb, [data])
+                    
                 }
             }
 

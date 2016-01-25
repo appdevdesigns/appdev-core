@@ -118,6 +118,10 @@
      */
     var store = {
     /*
+        "language_code": {
+            "label_key1": "label_label1",
+            "label_key2": "label_label2"
+        },
         "en": {
             "OK": "Okay",
             "Cancel": "Cancel"
@@ -199,6 +203,13 @@
      *      False is returned if there was no match for the langCode or key.
      */
     AD.lang.label.getLabel = function (key, subs, langCode) {
+
+        // if key is : { key:'key', context:'context' }
+        if (typeof key == 'object') {
+            key = key.key;
+        }
+
+
         // When subs not given
         if (Object.prototype.toString.call(subs) != '[object Array]') {
             langCode = subs;
@@ -254,17 +265,44 @@
      */
     AD.lang.label.getLabelSpan = function (key, subs, langCode) {
 
+        var context = '';
+
+        // if key is : { key:'key', context:'context' }
+        if (typeof key == 'object') {
+            key = key.key;
+            context = key.context;
+        }
+
         var label = AD.lang.label.getLabel(key, subs, langCode);
 
         var span = '';
 
+        var contextAttr = '';
+        if (context != '') {
+            contextAttr = AD.controllers.Label.constants.keyAttribute+'="'+context+'"';
+        }
+
         if (label) {
-            span = '<span '+AD.controllers.Label.constants.keyAttribute+'="'+key+'" >'+label+'</span>';
+            span = '<span '+AD.controllers.Label.constants.keyAttribute+'="'+key+'" '+contextAttr+' >'+label+'</span>';
         } else {
-            span = '<span '+AD.controllers.Label.constants.keyAttribute+'="'+key+'" >'+key+'</span>';
+            span = '<span '+AD.controllers.Label.constants.keyAttribute+'="'+key+'" '+contextAttr+'>'+key+'</span>';
         }
 
         return span;
     };
+
+
+    AD.lang.label.translate = function($el) {
+        var keyAttr = AD.controllers.Label.constants.keyAttribute;
+        var labels = $el.find('[' + keyAttr + ']');
+
+        var ADlabels = []; // array of Label instances
+        
+        labels.each(function(){
+             ADlabels.push(new AD.controllers.Label($(this)));
+        });
+
+        return ADlabels;
+    }
 
 })();

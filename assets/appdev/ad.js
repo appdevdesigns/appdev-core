@@ -212,7 +212,7 @@ if (typeof window.AD == 'undefined') {
         
         if (AD.ui.loading._el == null) {
 
-            console.error('Calling AD.ui.loading.text() before AD.ui.loading.attach()!  No can do!');
+            console.log('Calling AD.ui.loading.text() before AD.ui.loading.attach().');
         } else {
 
             // BUILD FIX: typeof check prevents minification engine error.
