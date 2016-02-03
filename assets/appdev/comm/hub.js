@@ -21,8 +21,8 @@
 
 steal(
         'appdev/ad.js',
-        'js/OpenAjax.js'
-).then(function() {
+        'js/OpenAjax.js',
+function() {
 
 
 

@@ -24,9 +24,8 @@ steal(
         'appdev/ad.js',
         'appdev/comm/hub.js',
         'appdev/comm/pending.js',
-        'appdev/auth/reauth.js'
-
-).then(function() {
+        'appdev/auth/reauth.js',
+function() {
 
 
 

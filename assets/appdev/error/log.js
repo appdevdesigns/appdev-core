@@ -18,9 +18,9 @@ steal(
 
         'appdev/ad.js',
         'appdev/sal/web-jquery.js',
-        'appdev/comm/service.js'
+        'appdev/comm/service.js',
 
-).then(function() {
+function() {
 
 
     /**

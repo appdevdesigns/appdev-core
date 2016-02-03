@@ -22,8 +22,8 @@
 
 steal(
         'appdev/comm/hub.js',
-        'appdev/comm/socket.js'
-).then(function() {
+        'appdev/comm/socket.js',
+function() {
 
 
     /**

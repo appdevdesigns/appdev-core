@@ -1,9 +1,8 @@
 steal(
         // 'appdev',
-        'appdev/widgets/ad_ui_reauth'
+        'appdev/widgets/ad_ui_reauth',
         //'appdev/comm/hub.js'
-
-).then(function() {
+        function() {
     
 /**
 * @class AD.ui

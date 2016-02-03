@@ -4,8 +4,8 @@ steal(
         'can',
         'appdev/widgets/ad_ui_reauth/ad_ui_reauth.css',
         'appdev/widgets/ad_icon_busy',
-        '//appdev/widgets/ad_ui_reauth/reauth_local.ejs',
-        '//appdev/widgets/ad_ui_reauth/reauth_cas.ejs',
+        'appdev/widgets/ad_ui_reauth/reauth_local.ejs',
+        'appdev/widgets/ad_ui_reauth/reauth_cas.ejs',
 function(){
 
     AD.widgets.ad_ui_reauth = can.Control.extend({
