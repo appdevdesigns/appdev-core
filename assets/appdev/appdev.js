@@ -32,7 +32,10 @@ function resolveConflictJquery() {
         $.noConflict();  // return things as they were.
     }
     
-    loadAppdevJsFiles();
+                AD.ui.loading.completed(18);
+            console.log('AD setup done ...');
+
+    // loadAppdevJsFiles();
 }
 
 function loadAppdevJsFiles() {
@@ -44,8 +47,7 @@ function loadAppdevJsFiles() {
         'appdev/util/string.js',
         'appdev/config/config.js',
         'appdev/util/uiScrollbarSize.js',
-// )
-// .then(
+
         'appdev/config/data.js',
         'appdev/model/model.js',
         'appdev/labels/lang.js',
@@ -53,8 +55,7 @@ function loadAppdevJsFiles() {
         'appdev/comm/service.js',
         'appdev/comm/socket.js',
         'appdev/auth/reauth.js',
-// )
-// .then(
+
         'appdev/UIController.js',
         'appdev/control/control.js',
         'appdev/widgets/ad_icon_busy',

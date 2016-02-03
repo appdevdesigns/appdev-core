@@ -3,21 +3,19 @@ module.exports={
         "jquery/jquery" : "jquery"
     },
     "paths": {
-        "jquery" : "js/jquery.min.js"                  // 'http://code.jquery.com/jquery-1.11.1.min.js'
+        "jquery" : "js/jquery.min.js",                  // 'http://code.jquery.com/jquery-1.11.1.min.js'
     },
-    "shim" : {
-        "jquery": { 
-            "exports":"jQuery",
-            "packaged":false,
-            "ignore":true 
+    "meta" : {
+        "js/dependencies/sails.io" : { 
+            "format": "global"
         },
-        "js/dependencies/sails.io.js" : { 
-            "packaged":false, 
-            "ignore":true 
-        },
-        "site/labels/appdev.js" :  { 
-            "packaged":false, 
-            "ignore":true 
+    },
+    "ext": {
+        "ejs": "can/view/ejs/system"
+    },
+    "buildConfig": {
+        "map": {
+            "can/util/util": "can/util/domless/domless"
         }
     }
 };
