@@ -22,9 +22,9 @@ steal(
         'appdev/sal/web-jquery.js',
         'appdev/comm/pending.js',
         // 'appdev/comm/hub.js',
-        'appdev/auth/reauth.js'
+        'appdev/auth/reauth.js',
 
-).then(function() {
+function() {
 
 
 

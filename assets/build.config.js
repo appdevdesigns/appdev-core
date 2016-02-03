@@ -1,11 +1,9 @@
 steal.config({
     "map": {
-        "jquery/jquery" : "jquery",
-        "appdev/loading.css" : "../loading.css",
-        'appdev/ad.js' : "../ad.js"
+        "jquery/jquery" : "jquery"
     },
     "paths": {
-        "jquery" : "../js/jquery.min.js"                  // 'http://code.jquery.com/jquery-1.11.1.min.js'
+        "jquery" : "js/jquery.min.js"                  // 'http://code.jquery.com/jquery-1.11.1.min.js'
     },
     "shim" : {
         "jquery": { 
