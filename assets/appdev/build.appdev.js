@@ -47,7 +47,7 @@ module.exports = {
                 transform(
                     {
                         main: path.join('appdev', 'appdev'),
-                        config: 'build.config.js'
+                        config: 'stealconfig.js'
                     },
                     {
                         minify: true,
@@ -84,7 +84,7 @@ module.exports = {
                 transform(
                     {
                         main: path.join('appdev', 'appdev'),
-                        config: 'build.config.js'
+                        config: 'stealconfig.js'
                     },
                     {
                         minify: true,
