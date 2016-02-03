@@ -35,7 +35,7 @@ function resolveConflictJquery() {
                 AD.ui.loading.completed(18);
             console.log('AD setup done ...');
 
-    // loadAppdevJsFiles();
+    loadAppdevJsFiles();
 }
 
 function loadAppdevJsFiles() {
