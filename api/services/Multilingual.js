@@ -256,7 +256,7 @@ module.exports = {
         /**
          * @function Multilingual.model.removeTranslations()
          *
-         * This tool adds will remove any associated translations from a 
+         * This tool will remove any associated translations from a 
          * multilingual model.
          *
          * @param {obj}  opts.model The base Model used for Model.create()
@@ -329,6 +329,235 @@ module.exports = {
 
             return dfd;
 
+        },
+
+
+
+        /**
+         * @function Multilingual.model.sync()
+         *
+         * This tool will synchronize a model instance with a given set of data.
+         *
+         * This is like the ADCore.model.sync() method but it also includes the
+         * multilingual translations as well.
+         *
+         * It is useful when trying to synchronize the instance of a model with a 
+         * given set of data, when that data represents the exact representation
+         * of the current state of the model.  For example, if a model (person) 
+         * hasMany (dogs), and the current state of person.1 :
+         *  {
+         *      name: 'Charlie',
+         *      dogs:[1]
+         *  }
+         * then you have an updated value:
+         *  {
+         *      name: 'Charlie Brown',
+         *      dogs:[2,3] 
+         *  }
+         *
+         * then person.dogs.1 is removed, and person.dogs.[2,3] is added, in 
+         * addition to person.name being updated to 'Charlie Brown'.
+         *
+         * The current value of data represents the exact state you want the 
+         * instance to match.
+         *
+         *
+         * @param {obj}  opts.model the model instance you want to update.
+         * @param {obj}  opts.data  a json obj that contains the current state of model
+         * @return {deferred}
+         */
+        sync:function(options) {
+            var dfd = AD.sal.Deferred();
+
+            var activity = options.model;
+            var updatedValues = options.data;
+
+            async.series([
+
+                // update all the activity values
+                function(done) {
+
+                    // update base fields
+                    var fields = modelAttributes({model:activity}); // get the base fields for model
+                    var dates = modelAttributes({model:activity, type:'date'}); 
+
+// console.log('... fields1:', fields);
+                    fields = _.difference(fields, ['id', 'createdAt', 'updatedAt']); // remove these fields:
+                    fields = _.difference(fields, dates);
+// console.log('... fields:', fields);
+                    fields.forEach(function(f){
+                        if (typeof updatedValues[f] != 'undefined') {
+// console.log('    .... f:activity.'+f+':', updatedValues[f]);
+                            activity[f] = updatedValues[f];
+                        }
+                        
+                    })
+
+                    
+                    // update the dates
+                    dates.forEach(function(date){
+                        activity[date] = AD.util.moment(new Date(updatedValues[date])).format('YYYY-MM-DD')+'';
+                    })
+
+
+                    // find each of our collections:  hasMany relationships
+                    var collections = modelCollections({model:activity});
+                    collections.forEach(function(field){
+// console.log('... collection:', field);
+
+                        // if we've been given updatedValues
+                        if (updatedValues[field]) {
+// console.log('... updatedValues['+field+']:', updatedValues[field]);
+
+
+                            //// figure out Collection's primary key field:
+                            var collectionPK = pkForCollection({model:activity, field:field });
+
+                            //// convert current values into an array of IDs
+                            var currentValues = activity[field];
+                            var currentIDs = [];
+                            currentValues.forEach(function(cv){
+// console.log('... cv:', cv);
+                                if (typeof cv == 'string') {
+                                    currentIDs.push( parseInt(cv) );
+                                } else {
+                                    if (cv[collectionPK]) {
+                                        currentIDs.push( cv[collectionPK] );
+                                    }
+                                }
+                            })
+
+
+                            //// convert the updatedValues to an array of IDs:
+                            var newIDs = [];
+                            if ( !_.isArray( updatedValues[field] ) ){
+                                updatedValues[field] = [ updatedValues[field] ];
+                            }
+                            updatedValues[field].forEach(function(nv){
+                                if (typeof nv == 'string') {
+                                    newIDs.push( parseInt(nv) );
+                                } else if(typeof nv == 'object') {
+                                    if (cv[collectionPK]) {
+                                        newIDs.push( cv[collectionPK] );
+                                    }
+                                } else {
+                                    // must just be integers:
+                                    newIDs.push(cv);
+                                }
+                            });
+
+                            var idsToAdd = _.difference(newIDs, currentIDs);
+                            var idsToRemove = _.difference(currentIDs, newIDs);
+// console.log('... currentIDs:', currentIDs);
+// console.log('... newIDs:', newIDs);
+// console.log('... idsToAdd:', idsToAdd);
+// console.log('... idsToRemove:', idsToRemove);
+
+                            idsToAdd.forEach(function(id){
+                                activity[field].add(id);
+                            })
+
+                            idsToRemove.forEach(function(id){
+                                activity[field].remove(id);
+                            })
+
+                        }
+                    });
+
+                // final save and then call to Trans
+// console.log('     B4 .save():', activity);
+
+                    activity.save()
+                    .then(function(updatedActivity){
+// console.log('         .... updatedActivity:', updatedActivity);
+                        activity = updatedActivity;
+                        done();
+                    })
+                    .catch(function(err){
+console.log('   !!! Doh:', err);                        
+                    });
+
+                },
+
+
+                // update the multilingual entry
+                function(done) {
+
+                    var multilingualFields = modelMultilingualFields({model:activity});
+// console.log('... multilingual:', multilingualFields);
+                    if (updatedValues.language_code) {
+// console.log('... multilingual label to update:');
+// console.log('    .... all translations:', activity.translations);
+                        var trans = null;
+                        activity.translations.forEach(function(t){
+                            if (t.language_code == updatedValues.language_code) {
+                                trans = t;
+                            }
+                        })
+                        if (trans) {
+// console.log('   ... found translation:', trans);
+
+                            var transModel = getTransModel(activity);
+                            transModel.findOne(trans.id)
+                            .then(function(transEntry){
+
+                                multilingualFields.forEach(function(field){
+                                    if (typeof updatedValues[field] != 'undefined') {
+                                        transEntry[field] = updatedValues[field];
+                                    }
+                                });
+
+                                transEntry.save()
+                                .then(function(updatedTrans){
+
+                                    done();
+                                })
+                                .catch(function(err){
+
+                                    ADCore.error.log('Error updating translation entry:', {
+                                        transEntry:transEntry,
+                                        error:err
+                                    })
+                                    done(err);
+                                })
+
+
+                            })
+
+                        } else {
+
+                            // no matching translation for given language_code
+                            ADCore.error.log('No matching translation for given language_code', {
+                                updatedValue:updatedValues,
+                                activity:activity
+                            });
+                            done();
+                            
+                        }
+
+                    } else {
+
+                        // nothing to translate
+                        done();
+                    }
+
+                }
+
+
+            ], function(err, results) {
+
+
+                if (err) {
+                    dfd.reject(err);
+                } else {
+                    dfd.resolve(activity);
+                }
+           
+
+            })
+
+
+            return dfd;
         }
     }
 
@@ -343,6 +572,88 @@ module.exports = {
 ///// 
 ///// HELPER FUNCTIONS
 /////
+
+
+
+/*
+ * @function modelAttributes
+ *
+ * return an array of field names of this model's data that are not the 
+ * multilingual fields.
+ *
+ * @param {json} options
+ *                  .model {instance} of the model Class we are working on
+ *                  .type  {string}  filter for a type of field to return.
+ * @return {array} 
+ */
+function modelAttributes (options) {
+    var model = options.model;
+    var Model = options.Model || model._Klass();
+    options.type = options.type || 'all';
+
+    var attributes = Model.attributes;
+
+    var fields = [];
+    _.forOwn(attributes, function(value, key){
+        if (value.type) {
+
+            if ((options.type == 'all') || (value.type == options.type)) {
+// console.log('   :modelAttributes(): value.type:'+value.type+" options.type:"+options.type);
+                fields.push(key);
+            }
+        }
+    })
+
+    return fields;
+
+}
+
+
+
+
+
+/*
+ * @function modelCollections
+ *
+ * return an array of field names of this model's data that are 
+ * collections (associated with other models).
+ *
+ * @param {json} options
+ *                  .model {instance} of the model Class we are working on
+ *                  .type  {string}  filter for a type of field to return.
+ * @return {array} 
+ */
+function modelCollections (options) {
+    var model = options.model;
+    var Model = options.Model || model._Klass();
+
+    var attributes = Model.attributes;
+
+    var fields = [];
+    _.forOwn(attributes, function(value, key){
+        if (value.collection) {
+            fields.push(key);
+        }
+    })
+
+    return fields;
+
+}
+
+
+function pkForCollection(options) {
+    var model = options.model;
+    var Model = options.Model || model._Klass();
+    var field = options.field;
+
+    var key = Model.attributes[field].collection.toLowerCase();
+    if (key) {
+        return getModelPK(sails.models[key]);
+    } else {
+        return null;
+    }
+
+}
 
 
 /*
@@ -405,6 +716,39 @@ var getTransFields = function(Model) {
         return null;
     }
 
+}
+
+
+
+
+//// TODO: refactor to remove getTransFields() and 
+//// replace with modelMultilingualFields()
+function modelMultilingualFields (options) {
+    var fields = [];
+
+    var model = options.model;
+    var Model = options.Model || model._Klass();
+
+    var ModelTrans = getTransModel(Model);
+
+    if (ModelTrans) {
+
+
+        var attributes = ModelTrans.attributes;
+
+        var ignoreFields = ['id', 'createdAt', 'updatedAt' ];
+        ignoreFields.push(Model.attributes.translations.via);
+
+        
+        _.forOwn(attributes, function(value, key){
+
+            if (ignoreFields.indexOf(key) == -1) {
+                fields.push(key);
+            }
+        })
+    }
+
+    return fields;
 }
 
 
