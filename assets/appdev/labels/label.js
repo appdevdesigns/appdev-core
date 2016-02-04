@@ -1,6 +1,6 @@
 steal(
-    'can'
-).then(function() {
+    'can',
+function() {
 
 
 

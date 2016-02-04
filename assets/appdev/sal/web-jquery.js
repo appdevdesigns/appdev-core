@@ -20,9 +20,9 @@
 
 steal(
 
-        'appdev/comm/hub.js'
+        'appdev/comm/hub.js',
 
-).then(function() {
+function() {
 
 
         /**

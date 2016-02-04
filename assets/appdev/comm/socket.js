@@ -20,9 +20,9 @@ steal(
         'appdev/ad.js',
         'appdev/sal/web-jquery.js',
         'appdev/comm/error.js',
-        'js/dependencies/sails.io.js'
+        'js/dependencies/sails.io.js',
 
-).then(function() {
+function() {
 
 
 
