@@ -9,7 +9,7 @@ steal(
 
         'js/async.js',
 
-function() {
+function(async) {
 
 
 
