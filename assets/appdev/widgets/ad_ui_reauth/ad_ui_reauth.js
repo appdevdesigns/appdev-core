@@ -14,9 +14,9 @@ function(){
 			this.authType = AD.config.getValue( 'authType' );
 			var domFrag;
 			if (this.authType == 'local') {
-				domFrag = can.view('appdev/widgets/ad_ui_reauth/reauth_local.ejs', {} );
+				domFrag = can.view('/appdev/widgets/ad_ui_reauth/reauth_local.ejs', {} );
 			} else {
-				domFrag = can.view('appdev/widgets/ad_ui_reauth/reauth_cas.ejs', {} );
+				domFrag = can.view('/appdev/widgets/ad_ui_reauth/reauth_cas.ejs', {} );
             }
 
 			// Bootstrap Modal does not play well with documentFragment,
