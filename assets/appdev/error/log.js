@@ -14,13 +14,13 @@
 *
 */
 
-steal(
+steal.import(
 
-        'appdev/ad.js',
-        'appdev/sal/web-jquery.js',
-        'appdev/comm/service.js',
+        'appdev/ad',
+        'appdev/sal/web-jquery',
+        'appdev/comm/service')
 
-function() {
+.then(function() {
 
 
     /**

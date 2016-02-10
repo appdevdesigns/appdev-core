@@ -15,19 +15,13 @@
 *
 */
 
-steal(
+steal.import(
+    'appdev/ad',
+    'appdev/sal/web-jquery',
+    'appdev/comm/error',
+    'js/dependencies/sails.io').then(function () {
 
-        'appdev/ad.js',
-        'appdev/sal/web-jquery.js',
-        'appdev/comm/error.js',
-        'js/dependencies/sails.io.js',
-
-function() {
-
-
-
-
-    // (function() {
+        // (function() {
 
 
 
@@ -43,22 +37,22 @@ function() {
         AD.comm.socket = {};
 
 
-        AD.comm.socket.get = function(options, cb) {
+        AD.comm.socket.get = function (options, cb) {
             options['method'] = 'get';
             return request(options, cb);
         };
 
-        AD.comm.socket.post = function(options, cb) {
+        AD.comm.socket.post = function (options, cb) {
             options['method'] = 'post';
             return request(options, cb);
         };
 
-        AD.comm.socket.put = function(options, cb) {
+        AD.comm.socket.put = function (options, cb) {
             options['method'] = 'put';
             return request(options, cb);
         };
 
-        AD.comm.socket['delete'] = function(options, cb) {
+        AD.comm.socket['delete'] = function (options, cb) {
             options['method'] = 'delete';
             return request(options, cb);
         };
@@ -77,7 +71,7 @@ function() {
          *      });
          *  @codeend
          */
-        AD.comm.socket.subscribe = function(key, cb) {
+        AD.comm.socket.subscribe = function (key, cb) {
 
             // we want to be able to provide a [message].[value] combo here to allow 
             // subscriptions to models like:  model.verb,  user.created,  user.deleted, etc...
@@ -97,7 +91,7 @@ function() {
             // create the message container:
             if (!subscriptions[message]) {
                 subscriptions[message] = {
-                    '_all':[]
+                    '_all': []
                 }
             }
 
@@ -110,23 +104,23 @@ function() {
             } else {// else 
 
                 // create cb array for message.verb
-                subscriptions[message][verb] = [ cb ];
+                subscriptions[message][verb] = [cb];
             }
 
 
             // now if we have not already registered message with io.socket
             if (!notified[message]) {
-// console.log('AD.comm.socket.subscribe(): registering message['+message+'] with io.socket.on()');
+                // console.log('AD.comm.socket.subscribe(): registering message['+message+'] with io.socket.on()');
 
 
                 // BUILD FIX: steal build will die because the io library wont properly compile
                 if (typeof io != 'undefined') {
-                io.socket.on(message, function(data) {
-// console.log('io.socket.on(): message['+message+']');
-                    processMessage(message,data);
-                });
+                    io.socket.on(message, function (data) {
+                        // console.log('io.socket.on(): message['+message+']');
+                        processMessage(message, data);
+                    });
                 }
-                
+
                 notified[message] = true;
 
             }
@@ -135,9 +129,9 @@ function() {
             // now register this request with a subscriptionID
             subscriptionCount++;
             subscriptionIDs[subscriptionCount] = {
-                message:subscriptions[message],         // links to the {} at [message]
-                verb:verb,
-                cb:cb
+                message: subscriptions[message],         // links to the {} at [message]
+                verb: verb,
+                cb: cb
             }
 
             return subscriptionCount;
@@ -148,11 +142,11 @@ function() {
         // track our socket.subscriptions here:
         // format:
         // [message]: {
-            // _all:[ cb, cb, cb],   // these cb's get called on all messages by message
-            // 'value': [cb, cb, cb] .. these cb's get called when there are values in the message that match 'value'
-            // examples:
-            // 'created': [cb],     // call when a verb: 'created'   is sent
-            // '16' : [cb]          // call when an id:16  is sent
+        // _all:[ cb, cb, cb],   // these cb's get called on all messages by message
+        // 'value': [cb, cb, cb] .. these cb's get called when there are values in the message that match 'value'
+        // examples:
+        // 'created': [cb],     // call when a verb: 'created'   is sent
+        // '16' : [cb]          // call when an id:16  is sent
         //  }
         var subscriptions = {};
         var notified = {};
@@ -172,12 +166,12 @@ function() {
          * This fn() will attempt to narrow the messages down to message+verb
          * or message+value subscriptions.
          */
-        var processMessage = function(message, data) {
+        var processMessage = function (message, data) {
 
-            
-console.log('...AD.comm.socket: process message:')
-console.log('... message:'+message);
-console.log('... data:', data);
+
+            console.log('...AD.comm.socket: process message:')
+            console.log('... message:' + message);
+            console.log('... data:', data);
 
             // if we have any subscriptions for message:
             if (subscriptions[message]) {
@@ -187,16 +181,16 @@ console.log('... data:', data);
                 var sub = subscriptions[message];
 
                 // process any '_all' subscriptions:
-                sub['_all'].forEach(function(cb){
+                sub['_all'].forEach(function (cb) {
                     cb(keyVerb, data);
                 });
 
 
                 // convert the values in data to an array:
-//// Question:  did I mean to do data  or data.data ?  
-////            if all I wanted to do was capture { id: # } then why not simply 
-////            pull data.id out and see if there is a subscription for that?
-////
+                //// Question:  did I mean to do data  or data.data ?  
+                ////            if all I wanted to do was capture { id: # } then why not simply 
+                ////            pull data.id out and see if there is a subscription for that?
+                ////
                 var arryData = [];
                 for (var d in data) {
                     arryData.push(data[d]);
@@ -205,26 +199,26 @@ console.log('... data:', data);
                 // now check each 'key' of subscription and see if it is in arryData
                 for (var k in sub) {
 
-                    var keyKey =  message + '.' + k;
+                    var keyKey = message + '.' + k;
                     if (arryData.indexOf(k) != -1) {
                         // found a match, so call those cb's:
-                        sub[k].forEach(function(cb){
+                        sub[k].forEach(function (cb) {
                             cb(keyKey, data);
                         })
                     }
 
                     // special case:  if k is a number then search for that:
-                    if(AD.ui.jQuery.isNumeric(k)){
+                    if (AD.ui.jQuery.isNumeric(k)) {
                         var kFloat = parseFloat(k);
 
                         if (arryData.indexOf(kFloat) != -1) {
                             // found a match, so call those cb's:
-                            sub[k].forEach(function(cb){
+                            sub[k].forEach(function (cb) {
                                 cb(keyKey, data);
                             })
                         }
                     }
-                    
+
                 }
 
             }
@@ -244,43 +238,43 @@ console.log('... data:', data);
          * { opts:options,  cb:callback,  dfd:deferred }
          *
          */
-/*
-        var pendingRequests = [];
-
-
-        var processRequest = function (entry) {
-
-            request( entry.opts, function(err, data) {
-
-                // call the callback if provided.
-                if (entry.cb) {
-                    entry.cb( err, data);
-                }
-
-                // now finish off the deferred for this operation
-                if (err) {
-                    entry.dfd.reject(err);
-                } else {
-                    entry.dfd.resolve(data);
-                }
-            });
-
-        };
-
-
-
-        var onAuthSuccessful = function(handle, data) {
-
-            var currReq;
-            while( currReq = pendingRequests.shift() ) {
-                processRequest(currReq);
-            }
-
-        };
-        AD.comm.hub.subscribe('ad.auth.reauthentication.successful', onAuthSuccessful);
-
-
-*/
+        /*
+                var pendingRequests = [];
+        
+        
+                var processRequest = function (entry) {
+        
+                    request( entry.opts, function(err, data) {
+        
+                        // call the callback if provided.
+                        if (entry.cb) {
+                            entry.cb( err, data);
+                        }
+        
+                        // now finish off the deferred for this operation
+                        if (err) {
+                            entry.dfd.reject(err);
+                        } else {
+                            entry.dfd.resolve(data);
+                        }
+                    });
+        
+                };
+        
+        
+        
+                var onAuthSuccessful = function(handle, data) {
+        
+                    var currReq;
+                    while( currReq = pendingRequests.shift() ) {
+                        processRequest(currReq);
+                    }
+        
+                };
+                AD.comm.hub.subscribe('ad.auth.reauthentication.successful', onAuthSuccessful);
+        
+        
+        */
 
 
 
@@ -290,8 +284,8 @@ console.log('... data:', data);
          *
          * simple options builder for building the context of the current request
          */
-        var context = function( options, cb, dfd) {
-            return { request:request, opts:options, cb:cb, dfd:dfd };
+        var context = function (options, cb, dfd) {
+            return { request: request, opts: options, cb: cb, dfd: dfd };
         }
 
 
@@ -324,7 +318,7 @@ console.log('... data:', data);
          *    Auto means errors will be shown unless a failure callback is
          *    provided.
          */
-        var request = function(options, cb) {
+        var request = function (options, cb) {
             var dfd = AD.sal.Deferred();
 
 
@@ -337,59 +331,59 @@ console.log('... data:', data);
             // queue request
             if (AD.ui.reauth.inProgress()) {
 
-                AD.comm.pending.add(context(options, cb, dfd ));
+                AD.comm.pending.add(context(options, cb, dfd));
                 return dfd;
             }
 
 
             // this prevents our build process from crashing on undefined 'io'
             if (typeof io != "undefined") {
-            io.socket[options.method](options.url, options.params, function(data, jwres){
+                io.socket[options.method](options.url, options.params, function (data, jwres) {
 
-console.log('AD.comm.socket.'+options.method+'() response:');
-console.log(data);
-console.log('jwres:');
-console.log(jwres);
+                    console.log('AD.comm.socket.' + options.method + '() response:');
+                    console.log(data);
+                    console.log('jwres:');
+                    console.log(jwres);
 
-                if (typeof data == 'string') {
-                    data = JSON.parse(data);
-                }
-
-
-                // if this is an  error
-                if (jwres.statusCode >= 400) {
-
-                    AD.comm.error(data, context(options, cb, dfd ));
-
-                    //     // some non framework related error ... 
-                    //     var err = new Error(jwres.toString());
-                    //     dfd.reject(err);  
-
-
-                } else {
-                    
-                    // Got a JSON response but was the service response an error?
-                    if (data.status && (data.status == 'error')) {
-
-                        AD.comm.error(data, context(options, cb, dfd ));
+                    if (typeof data == 'string') {
+                        data = JSON.parse(data);
                     }
-                    // Success!
-                    else {
 
-                        // if this was an appdev packet, only return the data:
-                        if (data.status && data.status == 'success') {
-                            data = data.data;
+
+                    // if this is an  error
+                    if (jwres.statusCode >= 400) {
+
+                        AD.comm.error(data, context(options, cb, dfd));
+
+                        //     // some non framework related error ... 
+                        //     var err = new Error(jwres.toString());
+                        //     dfd.reject(err);  
+
+
+                    } else {
+                    
+                        // Got a JSON response but was the service response an error?
+                        if (data.status && (data.status == 'error')) {
+
+                            AD.comm.error(data, context(options, cb, dfd));
+                        }
+                        // Success!
+                        else {
+
+                            // if this was an appdev packet, only return the data:
+                            if (data.status && data.status == 'success') {
+                                data = data.data;
+                            }
+
+                            if (cb) cb(null, data);
+                            dfd.resolve(data);
                         }
 
-                        if (cb) cb(null, data);
-                        dfd.resolve(data);
+
                     }
 
 
-                }
-
-
-            });
+                });
 
             } // end if(io)
 
@@ -398,6 +392,5 @@ console.log(jwres);
 
         }; // request
 
-    // })();
-});
-
+        // })();
+    });

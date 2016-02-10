@@ -18,11 +18,11 @@
 *
 */
 
-steal(
+steal.import(
 
-        'appdev/comm/hub.js',
+        'appdev/comm/hub')
 
-function() {
+.then(function() {
 
 
         /**

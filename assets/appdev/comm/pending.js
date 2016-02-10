@@ -14,9 +14,8 @@
 */
 
 steal(
-
-        'appdev/ad.js',
-function() {
+    'appdev/ad.js',
+    function() {
 
 
 
