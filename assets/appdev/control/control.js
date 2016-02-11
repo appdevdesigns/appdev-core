@@ -1,4 +1,4 @@
-System.import('appdev/UIController').then(function () {
+steal('appdev/UIController.js', function () {
     /**
      * @class AD.Control
      * @parent AD_Client

@@ -19,10 +19,8 @@
 *
 */
 
-steal.import(
-    'appdev/ad',
-    'js/OpenAjax')
-    .then(function () {
+steal('appdev/ad.js', function () {
+    System.import('js/OpenAjax').then(function () {
 
         if (typeof AD.comm == "undefined") {
             AD.comm = {};
@@ -94,3 +92,4 @@ steal.import(
 
 
     });
+});

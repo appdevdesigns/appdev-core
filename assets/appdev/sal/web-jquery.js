@@ -18,12 +18,8 @@
 *
 */
 
-steal.import(
-
-        'appdev/comm/hub')
-
-.then(function() {
-
+steal('appdev/comm/hub.js',
+    function () {
 
         /**
          * @class AD.sal
@@ -37,7 +33,7 @@ steal.import(
         /*
          * return a deferred or a promise.
          */
-        AD.sal.Deferred = function() {
+        AD.sal.Deferred = function () {
             return AD.ui.jQuery.Deferred();
         };
 
@@ -47,8 +43,8 @@ steal.import(
         /*
          * use this for making http requests
          */
-        AD.sal.http = function(options) {
-           // return $.ajax(options);
+        AD.sal.http = function (options) {
+            // return $.ajax(options);
             return AD.ui.jQuery.ajax(options);
         };
 
@@ -58,7 +54,7 @@ steal.import(
         /*
          * parse your json string into an object
          */
-        AD.sal.parseJSON = function(text) {
+        AD.sal.parseJSON = function (text) {
             return AD.ui.jQuery.parseJSON(text);
         };
 
@@ -69,9 +65,9 @@ steal.import(
          * queue the given fn to be run immediately after all other events in Event
          * loop complete.
          */
-        AD.sal.setImmediate = function(fn) {
-            setTimeout(fn,0);
+        AD.sal.setImmediate = function (fn) {
+            setTimeout(fn, 0);
         };
 
-});
+    });
 

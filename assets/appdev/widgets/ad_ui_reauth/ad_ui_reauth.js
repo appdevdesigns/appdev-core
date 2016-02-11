@@ -6,8 +6,8 @@ steal(
     'appdev/widgets/ad_ui_reauth/reauth_local.ejs',
     'appdev/widgets/ad_ui_reauth/reauth_cas.ejs',
     function () {
-        steal.import('can')
-            .then(function () {
+        System.import('can').then(function () {
+            steal.import('can/control/control').then(function () {
 
                 AD.widgets.ad_ui_reauth = can.Control.extend({
 
@@ -107,5 +107,6 @@ steal(
 
 
             });
-    }
-    );
+
+        });
+    });

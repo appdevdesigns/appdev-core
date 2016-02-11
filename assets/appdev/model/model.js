@@ -20,13 +20,12 @@
 *
 */
 
-steal.import(
-    'appdev/ad',
-    'appdev/comm/hub',
-    'appdev/comm/socket',
-    'appdev/labels/lang')
-    .then(function () {
-
+steal(
+    'appdev/ad.js',
+    'appdev/comm/hub.js',
+    'appdev/comm/socket.js',
+    'appdev/labels/lang.js',
+    function () {
 
         /**
          * @class AD.Model
