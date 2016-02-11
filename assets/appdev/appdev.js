@@ -33,7 +33,7 @@ function resolveConflictJquery() {
     }
 
     AD.ui.loading.completed(18);
-    console.log('AD setup done ...');
+    console.log('AD resolved conflict jquery ...');
 
     loadAppdevJsFiles();
 }
@@ -59,7 +59,7 @@ function loadAppdevJsFiles() {
         'appdev/auth/reauth',
 
         'appdev/UIController',
-        // 'appdev/control/control',
+        'appdev/control/control',
 
         'site/labels/appdev').then(
             function () {

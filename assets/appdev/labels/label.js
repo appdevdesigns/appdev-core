@@ -1,5 +1,5 @@
 System.import('can').then(function () {
-    steal.import('appdev').then(function () {
+    steal.import('can/control/control', 'appdev/ad').then(function () {
 
 
             /**
