@@ -42,11 +42,9 @@
     <script>
     // Dependencies
     steal(
-        "appdev/appdev.js"
-    )
-    
+        "appdev/appdev.js",    
     // Create a controller from UIController
-    .then(function(){
+    function(){
         AD.controllers.myWidget = AD.classes.UIController.extend({}, {
             init: function ($el) {
                 // Call parent init
