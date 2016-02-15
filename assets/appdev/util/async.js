@@ -7,9 +7,9 @@
 
 steal(
 
-        'js/async.js'
+        'js/async.js',
 
-).then(function() {
+function(async) {
 
 
 

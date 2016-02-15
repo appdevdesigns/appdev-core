@@ -1,10 +1,9 @@
     // Dependencies
     steal(
-        "../../appdev/appdev.js"
-    )
+        "../../appdev/appdev.js",
 
     // Initialization
-    .then(function(){
+    function(){
 
         mocha.setup({
             ui: 'bdd',
