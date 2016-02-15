@@ -22,9 +22,10 @@
   },
   "homepage": "https://github.com/appdevdesigns/appdev-core",
   "dependencies": {
-    "ad-utils": "git://github.com/appdevdesigns/ad-utils",
+    "ad-utils": "git://github.com/appdevdesigns/ad-utils#develop", // Use develop branch for test
     "async": "^1.0.0",
     "eventemitter2": "^0.4.14",
+    "fs": "0.0.2",
     "jquery-deferred": "^0.3.0",
     "lodash": "^2.4.1",
     "nodemailer": "^0.6.3",
@@ -32,7 +33,8 @@
     "passport-cas2": "*",
     "passport-google-oauth": "0.2.x",
     "passport-local": "1.0.x",
-    "ssl-root-cas": "^1.1.10"
+    "ssl-root-cas": "^1.1.10",
+    "steal-tools": "~0.13.3"
   },
   "devDependencies": {
     "mocha": "^1.18.2",
