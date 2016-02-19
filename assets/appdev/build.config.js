@@ -17,7 +17,6 @@ module.exports = {
         "bootstrap-table.css": "js/bootstraptable/bootstrap-table.css",
         "bootstrapValidator": "js/bootstrapValidator.min",
         "bootstrapValidator.css": "styles/bootstrapValidator.min.css",
-        "bootbox": "js/bootbox.min",
         "typeahead": "js/typeahead.jquery.min",
         "moment": "js/moment.min",
     },
