@@ -1,5 +1,6 @@
 module.exports = {
     "map": {
+		"async": "js/async",
         "jquery": "js/jquery.min",
         "jquery/jquery": "js/jquery.min",
         "jquery-ui": "js/jquery-ui.min",
@@ -70,6 +71,7 @@ module.exports = {
             "sideBundle": true
         },
         "js/async": {
+            "format": 'global',
             "sideBundle": true
         },
         "js/OpenAjax": {
