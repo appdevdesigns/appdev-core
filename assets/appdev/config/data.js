@@ -1,15 +1,14 @@
 steal(
-	'appdev/config/config.js',
+    'appdev/config/config.js',
+    function () {
 
-function() {
-
-	var configValues = {
-		authType:'CAS'
-	}
+        var configValues = {
+            authType: 'CAS'
+        }
 
 
-	for (var v in configValues) {
-		AD.config.setValue(v, configValues[v]);
-	}
+        for (var v in configValues) {
+            AD.config.setValue(v, configValues[v]);
+        }
 
-});
+    });

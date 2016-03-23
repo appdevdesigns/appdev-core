@@ -1,8 +1,8 @@
 steal(
 
-    'appdev/widgets/ad_ui_reauth/ad_ui_reauth.js'
+    'appdev/widgets/ad_ui_reauth/ad_ui_reauth.js',
 
-).then(function() {
+function() {
 
 
     //Define the unit tests
