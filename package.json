@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/appdevdesigns/appdev-core",
   "dependencies": {
-    "ad-utils": "git://github.com/appdevdesigns/ad-utils#develop",
+    "ad-utils": "git://github.com/appdevdesigns/ad-utils",
     "async": "^1.0.0",
     "eventemitter2": "^0.4.14",
     "fs": "0.0.2",
