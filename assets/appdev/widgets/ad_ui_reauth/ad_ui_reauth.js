@@ -13,19 +13,26 @@ steal(
 
                     init: function (element, options) {
                         this.authType = AD.config.getValue('authType');
-                        var domFrag;
-                        if (this.authType == 'local') {
-                            domFrag = can.view('/appdev/widgets/ad_ui_reauth/reauth_local.ejs', {});
-                        } else {
-                            domFrag = can.view('/appdev/widgets/ad_ui_reauth/reauth_cas.ejs', {});
+                        var _this = this;
+
+
+                        function processFrag (frag) {
+
+                            // Bootstrap Modal does not play well with documentFragment,
+                            // and the template must be good for adding into the DOM multiple
+                            // times. So convert to plain HTML string instead.
+                            // Would it be wrong to simply use $.get() to fetch the template
+                            // rather than can.view() ?
+                            // this.html = domFrag.firstChild.innerHTML;
+                            _this.html = frag.firstChild.innerHTML;
                         }
 
-                        // Bootstrap Modal does not play well with documentFragment,
-                        // and the template must be good for adding into the DOM multiple
-                        // times. So convert to plain HTML string instead.
-                        // Would it be wrong to simply use $.get() to fetch the template
-                        // rather than can.view() ?
-                        this.html = domFrag.firstChild.innerHTML;
+                        if (this.authType == 'local') {
+                            can.view('/appdev/widgets/ad_ui_reauth/reauth_local.ejs', {}, processFrag);
+                        } else {
+                            domFrag = can.view('/appdev/widgets/ad_ui_reauth/reauth_cas.ejs', {}, processFrag);
+                        }
+
                     },
 
 

@@ -1,28 +1,28 @@
 module.exports = {
     "map": {
 		"async": "js/async",
-        "jquery": "js/jquery.min",
-        "jquery/jquery": "js/jquery.min",
-        "jquery-ui": "js/jquery-ui.min",
-        "selectivity": "js/selectivity/selectivity-full.min",
-        "selectivity.css": "js/selectivity/selectivity-full.min.css",
-        "bootstrap": "js/bootstrap/js/bootstrap.min",
-        "bootstrap.css": "js/bootstrap/css/bootstrap.min.css",
-        "bootstrap-datetimepicker": "js/bootstrap/js/bootstrap-datetimepicker.min",
-        "bootstrap-datetimepicker.css": "styles/bootstrap-datetimepicker.min.css",
-        "font-awesome.css": "styles/font-awesome.css",
-        "GenericList": "js/GenericList",
-        "dropzone": "js/dropzone/dropzone.min",
-        "dropzone.css": "js/dropzone/dropzone.min.css",
-        "bootstrap-table": "js/bootstraptable/bootstrap-table",
-        "bootstrap-table.css": "js/bootstraptable/bootstrap-table.css",
-        "bootstrapValidator": "js/bootstrapValidator.min",
-        "bootstrapValidator.css": "styles/bootstrapValidator.min.css",
-        "typeahead": "js/typeahead.jquery.min",
-        "moment": "js/moment.min",
+        // "jquery": "js/jquery.min",
+        // "jquery/jquery": "js/jquery.min",
+        // "jquery-ui": "js/jquery-ui.min",
+        // "selectivity": "js/selectivity/selectivity-full.min",
+        // "selectivity.css": "js/selectivity/selectivity-full.min.css",
+        // "bootstrap": "js/bootstrap/js/bootstrap.min",
+        // "bootstrap.css": "js/bootstrap/css/bootstrap.min.css",
+        // "bootstrap-datetimepicker": "js/bootstrap/js/bootstrap-datetimepicker.min",
+        // "bootstrap-datetimepicker.css": "styles/bootstrap-datetimepicker.min.css",
+        // "font-awesome.css": "styles/font-awesome.css",
+        // "GenericList": "js/GenericList",
+        // "dropzone": "js/dropzone/dropzone.min",
+        // "dropzone.css": "js/dropzone/dropzone.min.css",
+        // "bootstrap-table": "js/bootstraptable/bootstrap-table",
+        // "bootstrap-table.css": "js/bootstraptable/bootstrap-table.css",
+        // "bootstrapValidator": "js/bootstrapValidator.min",
+        // "bootstrapValidator.css": "styles/bootstrapValidator.min.css",
+        // "typeahead": "js/typeahead.jquery.min",
+        // "moment": "js/moment.min",
     },
     "paths": {
-        "jquery": "js/jquery.min.js",
+        "async": "js/async",
         "can": "can/can.js",
         "appdev": "appdev/appdev.js",
     },
@@ -62,14 +62,14 @@ module.exports = {
                 'can/map/define/define'
             ]
         },
-        "js/jquery.min": {
-            "exports": "jQuery",
-            "format": 'global',
-            "sideBundle": true
-        },
-        "js/jquery-ui.min.js": {
-            "sideBundle": true
-        },
+        // "js/jquery.min": {
+        //     "exports": "jQuery",
+        //     "format": 'global',
+        //     "sideBundle": true
+        // },
+        // "js/jquery-ui.min.js": {
+        //     "sideBundle": true
+        // },
         "js/async": {
             "format": 'global',
             "sideBundle": true
