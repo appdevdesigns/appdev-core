@@ -567,7 +567,7 @@ steal(
 
                             var key = '{' + this.fieldId + '}';
                             var nURI = AD.util.string.replaceAll(uri, key, id);
-                            console.log('... provided attributes:', attr);
+                            // console.log('... provided attributes:', attr);
 
 
                             attr = multilingualTransform(attr, this);

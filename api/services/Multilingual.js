@@ -469,12 +469,30 @@ module.exports = {
 
                     activity.save()
                     .then(function(updatedActivity){
-// console.log('         .... updatedActivity:', updatedActivity);
-                        activity = updatedActivity;
-                        done();
+
+                        // #hack: Sails v0.12 introduced some changes in .save()
+                        // current populations are not kept.  We need to lookup and 
+                        // repopulate again:
+                        var Model = activity._Klass();
+                        var pk = getModelPK(Model);
+                        var criteria = {};
+                        criteria[pk] = activity[pk];
+                        Model.findOne(criteria)
+                        .populateAll()
+                        .then(function(newActivity){
+                            if (newActivity) activity = newActivity;
+                            done();
+                            return null;
+                        })
+                        .catch(function(err){
+                            ADCore.error.log(' !!! Doh, error retrieving updated model: ', { error: err, model:activity });
+                        });
+
+                        return null;
                     })
                     .catch(function(err){
-console.log('   !!! Doh:', err);                        
+                        ADCore.error.log(' !!! Doh, error saving updated model: ', { error: err, model:activity });
+
                     });
 
                 },

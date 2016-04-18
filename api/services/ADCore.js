@@ -13,7 +13,6 @@ if (typeof ADCore == 'object') {
     return;
 }
 
-var $ = require('jquery-deferred');
 var AD = require('ad-utils');
 var _ = require('lodash');
 
@@ -82,14 +81,14 @@ module.exports = {
                     .fail(function(err){
                         done(err);
                     })
-                    .done(function(user){
+                    .then(function(user){
                         // Passport will insert the user object into `req`
                         done(null, user);
                     });
                 }
             );
             passport.use(this.local);
-            
+           
             // CAS
             if (sails.config.cas) {
                 this.cas = new CasStrategy(
@@ -101,7 +100,7 @@ module.exports = {
                         sslCA: sails.config.cas.sslCA || null
                     }, 
                     // The `verify` callback
-                    function(username, profile, done) {
+                    function ADCoreCASVerify(username, profile, done) {
                         var guidKey = sails.config.cas.guidKey || 'id';
                         var guid = profile[guidKey] || username;
                         if (Array.isArray(guid)) {
@@ -115,7 +114,7 @@ module.exports = {
                         .fail(function(err){
                             done(err);
                         })
-                        .done(function(){
+                        .then(function(){
                             // Passport will insert the user object into `req`
                             done(null, user);
                         });
@@ -136,7 +135,7 @@ module.exports = {
                                         + '/auth/google'
                     },
                     // The `verify` callback
-                    function(accessToken, refreshToken, profile, done) {
+                    function ADCoreGoogleVerify(accessToken, refreshToken, profile, done) {
                         var profileName = profile.name.givenName + ' ' 
                                             + profile.name.familyName;
                         var user = new User({ guid: profile.id }, {
@@ -157,6 +156,7 @@ module.exports = {
                 );
                 passport.use(this.google);
             }
+
         },
         
         isAuthenticated: function(req) {
@@ -257,6 +257,16 @@ module.exports = {
         log: function( message, data ) {
 
             AD.log.error(message, data);
+
+            // print out any provided error's stack trace:
+            for (var d in data) {
+                if (data[d] instanceof Error) {
+                    if (data[d].stack) {
+                        console.log(data[d].stack.split('\n'));
+                    }
+                }
+            }
+
 
             // store in a DB log table
 
@@ -364,6 +374,7 @@ module.exports = {
                         }
                     });
                     dfd.resolve(list);
+                    return null;
                 })
             }
 
@@ -510,7 +521,7 @@ module.exports = {
 
                     // now perform the actual lookup:
                     transModel.find(cond)
-                    .fail(function(err){
+                    .catch(function(err){
                         dfd.reject(err);
                     })
                     .then(function(translations){
@@ -527,9 +538,9 @@ module.exports = {
                         } else {
                             dfd.reject(new Error(nameTransModel+': translation for language code ['+code+'] not found.'));  // error: no language code found.
                         }
-                    })
-                    .done();  // remember to use .done() to release the errors.
 
+                        return null;
+                    });
                 }
             }
 
@@ -674,7 +685,7 @@ module.exports = {
             // make sure this is a socket request
             if (req.isSocket) {
 
-                var id = sails.sockets.id(req.socket);
+                var id = sails.sockets.getId(req.socket);
                 if (req.session.appdev.socket.id != id) {
                     AD.log('... <yellow> socket id updated:</yellow> '+req.session.appdev.socket.id +' -> '+id);
                 }
@@ -811,11 +822,13 @@ var User = function (opts, info) {
                 self._computePermissions()
                 .fail(function(err){
                     self.dfdReady.reject(err);
+                    return true;
                 })
                 .then(function(permissions){
                     self.data.permissions = permissions;
                     userSessionStatusRefresh[self.data.guid] = false;
                     self.dfdReady.resolve(self);
+                    return true;
                 });
 
                 // Update username / language, and freshen timestamp.
@@ -827,10 +840,10 @@ var User = function (opts, info) {
                         languageCode: info.languageCode || opts.languageCode || list[0].languageCode
                     }
                 )
-                .fail(function(err){
+                .catch(function(err){
                     console.log('SiteUser update error', err);
                 })
-                .then(function(){});
+                .then(function(){ return null; });
             }
             
             // User not found in local auth. Stop.
@@ -860,20 +873,24 @@ var User = function (opts, info) {
                     self.data.permissions = null;
                     userSessionStatusRefresh[self.data.guid] = false;
                     self.dfdReady.resolve(self);
+                    return null;
                 })
-                .fail(function(err){
+                .catch(function(err){
                     console.log('User create failed:', createOpts, err);
                     self.dfdReady.reject(err);
-                })
-                .done();
+                });
             }
+
+            return null;
+
         })
-        .fail(function(err){
+        .catch(function(err){
             // DB failure?
             console.log('User init failed:', findOpts, err);
             self.dfdReady.reject(err);
-        })
-        .done();
+
+            return null;
+        });
     }
     else {
         AD.log(opts);
@@ -980,10 +997,12 @@ if (_this.userModel == null) {
             .then(function(list){
                 listPermissions = list;
                 next();
+                return true;
             })
             .catch(function(err){
                 AD.log.error('*** error looking up permissions:', err);
                 next(err);
+                return true;
             })
 
         },
@@ -1009,11 +1028,12 @@ if (_this.userModel == null) {
                 })
 
                 next();
-
+                return null;
             })
             .catch(function(err){
                 AD.log.error('*** error looking up roles for user\'s permissions:', err);
                 next(err);
+                return true;
             })
         },
 
