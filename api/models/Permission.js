@@ -47,6 +47,7 @@ module.exports = {
                 }
                 
                 cb();
+                return null;
             })
             .catch(function(err){
                 cb(err);
@@ -76,6 +77,7 @@ module.exports = {
                 ADCore.user.refreshSession("*"); // update all!
             }
             cb();
+            return null;
         })
         .catch(function(err){
             cb(err);
@@ -93,6 +95,7 @@ module.exports = {
                 ADCore.user.refreshSession(user.guid);
             });
             cb();
+            return null;
         })
         .catch(function(err){
             cb(err);

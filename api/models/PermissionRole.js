@@ -95,6 +95,7 @@ migrate:'alter',  // modify the tables
             Permission.destroy({ or: [{ role: roleIDs }, {role:null}] })
             .then(function(){
                 cb();
+                return null;
             })
             .catch(function(err){
                 cb(err);

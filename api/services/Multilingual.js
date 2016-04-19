@@ -169,8 +169,9 @@ module.exports = {
                     Model.create(modelData)
                     .then(function(model){
 
-                        instanceDataModel = model;
+                        if (model) instanceDataModel = model;
                         next();
+                        return null;
 
                     })
                     .catch(function(err){
@@ -231,6 +232,7 @@ module.exports = {
                     instanceDataModel.save()
                     .then(function(d){
                         next();
+                        return null;
                     })
                     .catch(function(err){
                         AD.log.error('error saving translation data:', err);
@@ -529,6 +531,7 @@ module.exports = {
                                 .then(function(updatedTrans){
 
                                     done();
+                                    return null;
                                 })
                                 .catch(function(err){
 
@@ -539,7 +542,7 @@ module.exports = {
                                     done(err);
                                 })
 
-
+                                return null;
                             })
 
                         } else {

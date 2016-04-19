@@ -211,6 +211,7 @@ module.exports = {
                     validRequestIDs = _.pluck(list, options.resourcePKField);
 console.log('... validRequestIDs:', validRequestIDs);
                     done();
+                    return null;
                 })
                 .catch(function(err){
                     done(err);
@@ -410,6 +411,7 @@ console.log('... options:', req.options);
                             ADCore.comm.error(res, ourError, options.error.code);
                             // res.forbidden();
                         }
+                        return null;
                     })
                     .catch(function(err){
 
