@@ -39,16 +39,33 @@ module.exports = {
             type: 'text'
         },
         
-        // md5 hashed password
+        // hashed password
         password: {
             type: 'text',
             defaultsTo: ''
+        },
+        
+        salt: {
+            type: 'string',
+            size: 64
         },
         
         isActive: {
             type: 'integer',
             size: 1,
             defaultsTo: 1
+        },
+        
+        lastLogin: {
+            type: 'datetime',
+            defaultsTo: function() {
+                return new Date();
+            }
+        },
+        
+        failedLogins: {
+            type: 'integer',
+            defaultsTo: 0
         },
         
         languageCode : {
@@ -69,10 +86,40 @@ module.exports = {
         toJSON:function() {
             var obj = this.toObject();
             delete obj.password;
+            delete obj.salt;
             return obj;
-        }
+        },
+        
+        
+        //// Instance model methods
+        
+        /**
+         * To be called whenever a user login is attempted. Updates the
+         * failedLogins counter and lastLogin timestamp.
+         *
+         * @param bool success
+         *      Was the login successful?
+         * @return Waterline promise
+         */
+        loginUpdate: function(success) {
+            if (success) {
+                this.lastLogin = new Date();
+                this.failedLogins = 0;
+            } else {
+                this.failedLogins += 1;
+            }
+            return this.save();
+        },
+        
 
     },
+    
+    
+    ////////////////////////////
+    // Model class properties
+    ////////////////////////////
+    
+    maxFailedLogins: 5,
     
     
     ////////////////////////////
