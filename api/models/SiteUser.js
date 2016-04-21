@@ -163,7 +163,7 @@ module.exports = {
     
     /**
      * Authentication without password.
-     * (For use with OAuth, CAS, etc.)
+     * (For use with OAuth, CAS, etc., or just deserializing from session data)
      * You should probably use `guid` or `username`.
      * 
      * This is mainly to provide a consistent interface with
@@ -189,9 +189,10 @@ module.exports = {
                 dfd.reject(new Error('Too many matches'));
             }
             else {
-                var user = list[0];
-                dfd.resolve(user);
-                user.loginUpdate(true);
+                dfd.resolve(list[0]);
+                // Don't update lastLogin timestamp here because
+                // this may have just been a deserialization from
+                // session data.
             }
         })
         .catch(dfd.reject);
@@ -247,10 +248,13 @@ module.exports = {
                 .done(function(hashResult) {
                     if (user && hashResult == hashedPassword) {
                         dfd.resolve(user);
-                        user.loginUpdate(true);
+                        // Don't update lastLogin timestamp here because
+                        // this may have just been a deserialization from
+                        // session data.
                     } else {
                         dfd.resolve(false);
                         if (user) {
+                            // Increment failed login count
                             user.loginUpdate(false);
                         }
                     }

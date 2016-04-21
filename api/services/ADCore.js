@@ -798,9 +798,11 @@ var User = function (opts, info) {
     if (shouldFind) {
         var authType = sails.config.appdev.authType.toLowerCase();
         var find;
-        if ('local' == authType) {
+        if (typeof findOpts.password != 'undefined') {
+            // Local auth initial login
             find = SiteUser.findByUsernamePassword;
         } else {
+            // CAS, OAuth, or deserializing from session data
             find = SiteUser.findWithoutPassword;
         }
         
@@ -830,17 +832,13 @@ var User = function (opts, info) {
                     self.dfdReady.resolve(self);
                 });
 
-                // Update username / language.
+                // Update username, language, lastLogin timestamp.
                 // Don't really care when it finishes.
                 self.userModel.username = info.username || opts.username || 
                     self.userModel.username;
                 self.userModel.languageCode = info.languageCode || 
                     opts.languageCode || self.userModel.languageCode;
-                self.userModel.save(function(err) {
-                    if (err) {
-                        console.log('SiteUser update error', err);
-                    }
-                });
+                self.userModel.loginUpdate(true);
             }
             
             // User not found in local auth. Stop.
