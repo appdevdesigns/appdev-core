@@ -807,12 +807,26 @@ var User = function (opts, info) {
         }
     });
     if (shouldFind) {
-        SiteUser.hashedFind(findOpts)
-        .populate('permission')
-        .then(function(list){
+        var authType = sails.config.appdev.authType.toLowerCase();
+        var find;
+        if (typeof findOpts.password != 'undefined') {
+            // Local auth initial login
+            find = SiteUser.findByUsernamePassword;
+        } else {
+            // CAS, OAuth, or deserializing from session data
+            find = SiteUser.findWithoutPassword;
+        }
+        
+        find(findOpts)  // Note that this returns a jQuery Deferred
+        .fail(function(err){
+            // DB failure?
+            console.log('User init failed:', findOpts, err);
+            self.dfdReady.reject(err);
+        })
+        .done(function(result){
             // User found in the DB
-            if (list[0]) {
-                self.userModel = list[0];
+            if (result) {
+                self.userModel = result;
                 self.data.guid = self.userModel.guid;
                 self.data.languageCode = self.userModel.languageCode;
                 self.data.isLoaded = true;
@@ -831,23 +845,17 @@ var User = function (opts, info) {
                     return true;
                 });
 
-                // Update username / language, and freshen timestamp.
+                // Update username, language, lastLogin timestamp.
                 // Don't really care when it finishes.
-                SiteUser.update(
-                    { id: list[0].id }, 
-                    { 
-                        username: info.username || opts.username || list[0].username,
-                        languageCode: info.languageCode || opts.languageCode || list[0].languageCode
-                    }
-                )
-                .catch(function(err){
-                    console.log('SiteUser update error', err);
-                })
-                .then(function(){ return null; });
+                self.userModel.username = info.username || opts.username || 
+                    self.userModel.username;
+                self.userModel.languageCode = info.languageCode || 
+                    opts.languageCode || self.userModel.languageCode;
+                self.userModel.loginUpdate(true);
             }
             
             // User not found in local auth. Stop.
-            else if ('local' == sails.config.appdev.authType.toLowerCase()) {
+            else if ('local' == authType) {
                 var err = new Error('Username and/or password not found');
                 self.dfdReady.reject(err);
             }
@@ -880,16 +888,6 @@ var User = function (opts, info) {
                     self.dfdReady.reject(err);
                 });
             }
-
-            return null;
-
-        })
-        .catch(function(err){
-            // DB failure?
-            console.log('User init failed:', findOpts, err);
-            self.dfdReady.reject(err);
-
-            return null;
         });
     }
     else {
