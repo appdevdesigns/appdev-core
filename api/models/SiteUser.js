@@ -50,6 +50,10 @@ module.exports = {
             size: 64
         },
         
+        email: {
+            type: 'text'
+        },
+        
         isActive: {
             type: 'integer',
             size: 1,
