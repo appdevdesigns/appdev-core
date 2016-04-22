@@ -75,12 +75,12 @@ describe('SiteUser model', function(){
                 'languageCode was not created as expected'
             );
             ok();
+            return null;
         })
         .catch(function(err){
             assert.ok(false, ' --> error creating user: '+err);
             // ok(err);
-        })
-        .done();
+        });
     
     });
 
@@ -113,6 +113,7 @@ describe('SiteUser model', function(){
                 'isActive was not set by default'
             );
             ok();
+            return null;
         })
         .catch(function(err){
             assert.ok(false, ' --> error creating user: '+err);
@@ -131,6 +132,7 @@ describe('SiteUser model', function(){
         .then(function(user){
             assert.ok(user, 'Could not find user');
             ok();
+            return null;
         })
         .fail(function(err){
             assert.ok(false, ' --> error using findByUsernamePassword(): '+err);
@@ -148,12 +150,12 @@ describe('SiteUser model', function(){
         .then(function(list){
             assert.equal(list[0].password.length, 1024, 'Password was not hashed as expected');
             ok();
+            return null;
         })
         .fail(function(err){
             assert.ok(false, ' --> error using update(): '+err);
             // ok(err);
-        })
-        .done();
+        });
     });
     
     

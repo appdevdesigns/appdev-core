@@ -198,6 +198,7 @@ module.exports = {
                 // this may have just been a deserialization from
                 // session data.
             }
+            return null;
         })
         .catch(dfd.reject);
         
@@ -265,6 +266,7 @@ module.exports = {
                 })
                 .fail(dfd.reject);
             }
+            return null;
         })
         .catch(dfd.reject); // SiteUser.find() error
         
