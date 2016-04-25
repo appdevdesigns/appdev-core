@@ -81,13 +81,20 @@ steal(
                      *      Returns the SPAN element that will hold the actual label text.
                      */
                     transform: function ($element) {
-                        var $span = $('<span>');
-
-                        // Discard the original text
-                        $element.empty();
-
-                        $element.append($span);
-                        $element.addClass(this.constants.cssClass);
+                        var $span;
+                        if ($element.is('input')) {
+                            // textbox
+                            $span = $element;
+                        }
+                        else {
+                            $span = $('<span>');
+    
+                            // Discard the original text
+                            $element.empty();
+    
+                            $element.append($span);
+                            $element.addClass(this.constants.cssClass);
+                        }
 
                         // TODO??: provide pop-up translator selection icon
 
@@ -117,17 +124,20 @@ steal(
 
                         init: function ($element) {
                             this.labelKey = $element.attr(this.constructor.constants.keyAttribute);
+                            if ($element.is('input')) {
+                                this.originalText = $element.prop('placeholder');
+                            } else {
+                                this.originalText = $element.text();
+                            }
                             
                             // Skip if no label key, or if this element was already initialized
                             if (this.labelKey && !$element.hasClass(this.constructor.constants.cssClass)) {
                                 // Init the HTML
-                                this.originalText = $element.text();
                                 this.$span = this.constructor.transform($element);
-
-                
+                                
                                 // Update static collection
                                 this.constructor.collection.push(this);
-                
+                                
                                 // Provide a reference to this Label object on the HTML element
                                 $element.data(this.constructor.constants.jQueryData, this);
 
@@ -154,8 +164,13 @@ steal(
                         translate: function (langCode) {
                             langCode = langCode || AD.lang.currentLanguage;
                             var self = this;
-                            
                             var label = AD.lang.label.getLabel(this.labelKey, langCode);
+                            
+                            // Textbox placeholder translation
+                            if (this.$span.is('input')) {
+                                this.$span.prop('placeholder', label || '['+langCode+']' + this.originalText);
+                                return;
+                            }
                             
                             // Remove any previous event bindings on the label
                             this.$span.off('.label');
