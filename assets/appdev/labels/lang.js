@@ -299,7 +299,7 @@
         var ADlabels = []; // array of Label instances
         
         labels.each(function(){
-             ADlabels.push(new AD.controllers.Label($(this)));
+            ADlabels.push(new AD.controllers.Label($(this)));
         });
 
         return ADlabels;

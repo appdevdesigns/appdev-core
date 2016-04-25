@@ -117,9 +117,11 @@ steal(
 
                         init: function ($element) {
                             this.labelKey = $element.attr(this.constructor.constants.keyAttribute);
+                            
                             // Skip if no label key, or if this element was already initialized
                             if (this.labelKey && !$element.hasClass(this.constructor.constants.cssClass)) {
                                 // Init the HTML
+                                this.originalText = $element.text();
                                 this.$span = this.constructor.transform($element);
 
                 
@@ -151,11 +153,25 @@ steal(
                          */
                         translate: function (langCode) {
                             langCode = langCode || AD.lang.currentLanguage;
-
+                            var self = this;
+                            
                             var label = AD.lang.label.getLabel(this.labelKey, langCode);
-                            // fall back on displaying just the key if no label was found
+                            
+                            // Remove any previous event bindings on the label
+                            this.$span.off('.label');
+                            
+                            // Fall back on displaying original text if no translation was found
                             if (label === false) {
-                                label = '[' + this.labelKey + ']';
+                                label = '['+langCode+']' + this.originalText;
+                                
+                                // Show label key on mouseover so admins know
+                                // which ones they need to add.
+                                this.$span.on('mouseenter.label', function(ev) {
+                                    self.$span.text('[' + self.labelKey + ']');
+                                });
+                                this.$span.on('mouseleave.label', function(ev) {
+                                    self.$span.text(label);
+                                });
                             }
 
                             this.$span.html(label);
