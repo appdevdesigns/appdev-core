@@ -32,12 +32,14 @@ module.exports = {
         
         // GUID from external authentication service such as CAS
         guid: {
-            type: 'text',
+            type: 'string',
+            maxLength: 36,
             unique: true
         },
         
         username: {
-            type: 'text',
+            type: 'string',
+            maxLength: 36,
             unique: true,
             required: true
         },
