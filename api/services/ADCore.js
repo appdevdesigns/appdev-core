@@ -826,6 +826,12 @@ var User = function (opts, info) {
         .done(function(result){
             // User found in the DB
             if (result) {
+                
+                if (!result.isActive) {
+                    self.dfdReady.reject(new Error('Account is not active'));
+                    return;
+                }
+                
                 self.userModel = result;
                 self.data.guid = self.userModel.guid;
                 self.data.languageCode = self.userModel.languageCode;
