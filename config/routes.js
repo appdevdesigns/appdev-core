@@ -21,7 +21,14 @@ module.exports = {
     'get /auth/google'              : 'appdev-core/ADCoreController.authGoogle',
     'get /auth/fail'                : 'appdev-core/ADCoreController.authFail',
 
-
+    
+    //// User Operations
+    'post /site/user/data'          : 'appdev-core/SiteUserController.selfSave',
+    'get /site/user/data'           : 'appdev-core/SiteUserController.selfInfo',
+    'post /site/user/changePassword': 'appdev-core/SiteUserController.changePW',
+    'post /site/user/register'      : 'appdev-core/SiteUserController.register',
+    
+    
     //// Permissions
 
     'get /site/permission/role'	: 'appdev-core/PermissionsController.getRoles',

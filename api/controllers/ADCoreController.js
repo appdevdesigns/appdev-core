@@ -98,12 +98,18 @@ module.exports = {
      * username and password back to the site.
      */
     loginForm: function (req, res) {
+        var authType = sails.config.appdev.authType.toLowerCase();
+        var canRegister = sails.config.appdev.localAuth && 
+                            sails.config.appdev.localAuth.canRegister;
         // Check for error message from authentication failure
         var authErrMessage = req.session.authErrMessage;
         delete req.session.authErrMessage;
         
         if ('local' == sails.config.appdev.authType.toLowerCase()) {
-            res.view({ authErrMessage: authErrMessage });
+            res.view({ 
+                authErrMessage: authErrMessage,
+                canRegister: canRegister
+            });
         }
         else {
             // Users should not even be coming here if the site isn't using

@@ -37,6 +37,10 @@ module.exports = {
         authFail: true
     },
 
+    'appdev-core/SiteUserController' : {
+        register: ['util']
+    },
+    
     'appdev-core/PermissionController' : {
         find: noLimitStack
     },

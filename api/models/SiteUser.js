@@ -32,11 +32,14 @@ module.exports = {
         
         // GUID from external authentication service such as CAS
         guid: {
-            type: 'text'
+            type: 'text',
+            unique: true
         },
         
         username: {
-            type: 'text'
+            type: 'text',
+            unique: true,
+            required: true
         },
         
         // hashed password
@@ -51,7 +54,8 @@ module.exports = {
         },
         
         email: {
-            type: 'text'
+            type: 'text',
+            email: true
         },
         
         isActive: {
@@ -124,6 +128,7 @@ module.exports = {
     ////////////////////////////
     
     maxFailedLogins: 5,
+    minPasswordLength: 8,
     
     
     ////////////////////////////

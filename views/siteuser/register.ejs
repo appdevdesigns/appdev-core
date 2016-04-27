@@ -23,9 +23,15 @@
 
 		<div class="row padtop10 border">
             <div class="col-lg-12">
-                <div style="padding: 2.5em; text-align: center;">
-                    You have logged out
+            
+                <div style="padding: 2.5em;">
+                <% if (isActive) { %>
+                    Your account has been created and is now active. You may proceed to <a href="/site/login">log in here</a> with your username and password.
+                <% } else { %>
+                    Your account has been created and is pending approval. You will be able to <a href="/site/login">log in</a> once an administrator has reviewed your account.
+                <% } %>
                 </div>
+                
             </div>
         </div>
     </div>

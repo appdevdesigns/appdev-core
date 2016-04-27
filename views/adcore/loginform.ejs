@@ -29,7 +29,9 @@
 		<div class="row">
 				<ul class="op-list">
 					<li><a form-show="login" href="#login" translate=1>Login</a></li>
+				    <% if (canRegister) { %>
 					<li><a form-show="signup" href="#singup" translate=1>Sign up</a></li>
+					<% } %>
 				</ul>			
 		</div>
 		<div class="row padtop10 border">
@@ -75,7 +77,7 @@
                         <p translate=1>Enter your username and password <strong>to create account</strong></p>
                     </div>
 					<div class="logmod_form mrg-top20">
-					  <form accept-charset="utf-8" method="post" action="/site/register" class="simform">
+					  <form accept-charset="utf-8" method="post" action="/site/user/register" class="simform">
 					    <input type="hidden" name="_csrf" value="<%= _csrf %>">
 						<div class="sminputs">
 						  <div class="input full">
@@ -90,7 +92,7 @@
 						  </div>
 						  <div class="input string optional">
 							<label class="string optional" for="user-pw-repeat" translate=1>Repeat password *</label>
-							<input class="string optional" maxlength="255" id="user-pw-repeat" placeholder="Repeat password" type="password" size="255" name="passwordRepeat" />
+							<input class="string optional" maxlength="255" id="user-pw-repeat" placeholder="Repeat password" type="password" size="255" name="password2" />
 						  </div>
 						</div>
 						<div class="simform_actions">
