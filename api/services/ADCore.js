@@ -892,6 +892,7 @@ var User = function (opts, info) {
                 .catch(function(err){
                     console.log('User create failed:', createOpts, err);
                     self.dfdReady.reject(err);
+                    return null;
                 });
             }
         });

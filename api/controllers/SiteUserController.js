@@ -171,7 +171,7 @@ module.exports = {
         
         var data = {};
         if (languageCode) {
-            data.language_code = languageCode;
+            data.languageCode = languageCode;
         }
         if (email) {
             data.email = email;
@@ -203,6 +203,7 @@ module.exports = {
                 }, data)
                 .then(function() {
                     next();
+                    return null;
                 })
                 .catch(next);
             }
