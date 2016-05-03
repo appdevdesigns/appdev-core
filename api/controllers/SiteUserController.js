@@ -236,9 +236,11 @@ module.exports = {
             })
             .then(function() {
                 res.AD.success({});
+                return null;
             })
             .catch(function(err) {
                 res.AD.error(err);
+                return null;
             });
         }
     }

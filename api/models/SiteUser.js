@@ -161,13 +161,22 @@ module.exports = {
      */
     hash: function(password, salt) {
         var dfd = AD.sal.Deferred();
-        crypto.pbkdf2(password, salt, 100000, 512, function(err, key) {
-            if (err) {
-                dfd.reject(err);
-            } else {
-                dfd.resolve(key.toString('hex'));
-            }
-        });    
+
+        // verify salt is not null.
+        // #fix: migration issue with old accounts not having a salt value.
+        if (salt == null) {
+            var err = new Error('user can not have a null salt. Perhaps this is an old account needing updating?');
+            dfd.reject(err);
+        } else {
+
+            crypto.pbkdf2(password, salt, 100000, 512, function(err, key) {
+                if (err) {
+                    dfd.reject(err);
+                } else {
+                    dfd.resolve(key.toString('hex'));
+                }
+            });    
+        }
         return dfd;
     },
     
@@ -238,6 +247,7 @@ module.exports = {
         SiteUser.find({ username: username })
         .populate('permission')
         .then(function(list) {
+
             if (!list || !list[0]) {
                 // No username match. But keep going so attackers can't
                 // tell the difference by watching the response time.
