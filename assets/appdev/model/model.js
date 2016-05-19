@@ -431,6 +431,10 @@ steal(
              * Return a function to implement the create routine that reuses our AD.comm.service()
              * method.
              *
+             * NOTE: on Multilingual Models, Sails does not include the populated() translation info,
+             * so we perform a .findOne() on the returned data and then return that as the updated info.
+             *
+             *
              * @param {string} def    The expected url definition for the create method
              *                        eg.  'POST /opstool-emailNotifications/enrecipient'
              *
@@ -451,6 +455,8 @@ steal(
 
                         // return our function()
                         return function (attr, cbSuccess, cbErr) {
+                            var _this = this; // the MODEL class
+
                             var dfd = AD.sal.Deferred();
 
                             // make sure any multilingual data ends up in a translations[]
@@ -466,8 +472,51 @@ steal(
                                 .done(function (data) {
                                     data = data.data || data;
 
-                                    if (cbSuccess) cbSuccess(data);
-                                    dfd.resolve(data);
+                                    // if this is a Multilingual Model, then perform an additional findOne() on 
+                                    // the returned data, so we have a complete model reference returned:
+                                    if (_this.multilingualFields) {
+
+                                        if (data[_this.fieldId]) {
+                                            var opts = {};
+                                            opts[_this.fieldId] = data[_this.fieldId];
+
+                                            // perform the .findOne() 
+                                            _this.findOne(opts)
+                                            .fail(function(err){
+                                                dfd.reject(err);
+                                            })
+                                            .then(function(fullData){
+                                                fullData = fullData.data || fullData;
+                                                if (cbSuccess) cbSuccess(fullData);
+                                                dfd.resolve(fullData);
+                                            })
+
+
+                                        } else {
+
+                                            // no id field was returned!  
+                                            // This doesn't seem correct:  let's log this but not fail
+                                            var msg = 'Model.create() returned data that didn\'t have the Models fieldId ('+_this.fieldId+')';
+                                            var err = new Error(msg); // should get a stack trace
+
+                                            AD.error.log(msg, {
+                                                error: err,
+                                                fieldID:_this.fieldId,
+                                                returnedData:data
+                                            });  
+
+                                            // continue on
+                                            if (cbSuccess) cbSuccess(data);
+                                            dfd.resolve(data);
+                                        }
+
+                                    } else {
+
+                                        if (cbSuccess) cbSuccess(data);
+                                        dfd.resolve(data);
+                                    }
+
+                                    
                                 })
 
                             return dfd;
