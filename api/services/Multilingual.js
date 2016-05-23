@@ -49,9 +49,11 @@ module.exports = {
                         list.push({language_code:'en', language_label:'No Languages defined ... so English'});
                     }
                     dfd.resolve(list);
+                    return null;
                 })
                 .catch(function(err){
                     dfd.reject(err);
+                    return null;
                 })
 
             } else {
@@ -176,6 +178,7 @@ module.exports = {
                     })
                     .catch(function(err){
                         next(err);
+                        return null;
                     })
 
 
@@ -237,6 +240,7 @@ module.exports = {
                     .catch(function(err){
                         AD.log.error('error saving translation data:', err);
                         next(err);
+                        return null;
                     })
 
                 }
@@ -494,7 +498,7 @@ module.exports = {
                     })
                     .catch(function(err){
                         ADCore.error.log(' !!! Doh, error saving updated model: ', { error: err, model:activity });
-
+                        return null;
                     });
 
                 },
@@ -540,6 +544,7 @@ module.exports = {
                                         error:err
                                     })
                                     done(err);
+                                    return null;
                                 })
 
                                 return null;
