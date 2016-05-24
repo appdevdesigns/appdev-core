@@ -25,7 +25,7 @@ module.exports = function (cb) {
         //    this is configurable in [sails]/config/appdev.js
         //    or [sails]/config/local.js
         function(next){
-            var defaultView = 'appdev-core/adcore/loginForm.ejs';
+            var defaultView = 'appdev-core/adcore/loginform.ejs';
             var cwd = process.cwd();
 
             var view = sails.config.appdev.localLoginView;
