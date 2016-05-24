@@ -1,6 +1,6 @@
 {
   "name": "appdev-core",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "A set of core capabilities for our appdev projects in a sails environment.",
   "main": "module.js",
   "directories": {
@@ -23,14 +23,24 @@
   "homepage": "https://github.com/appdevdesigns/appdev-core",
   "dependencies": {
     "ad-utils": "git://github.com/appdevdesigns/ad-utils",
+    "async": "^1.0.0",
+    "eventemitter2": "^0.4.14",
+    "express-mysql-session": "^1.0.0",
+    "fs": "0.0.2",
     "jquery-deferred": "^0.3.0",
     "lodash": "^2.4.1",
-    "nodemailer": "^0.6.3"
+    "nodemailer": "^0.6.3",
+    "passport": "0.3.x",
+    "passport-cas2": "*",
+    "passport-google-oauth": "0.2.x",
+    "passport-local": "1.0.x",
+    "ssl-root-cas": "^1.1.10",
+    "steal-tools": "~0.13.3"
   },
   "devDependencies": {
     "mocha": "^1.18.2",
     "chai": "^1.9.1",
-    "phantomjs": "^1.9.7-5",
+    "phantomjs": "1.9.7-15",
     "mocha-phantomjs": "^3.4.0"
   }
 }

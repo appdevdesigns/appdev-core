@@ -173,6 +173,115 @@ if (typeof window.AD == 'undefined') {
     // is it possible we have a jQuery version conflict?
     AD.ui._resolveConflict = false;
 
+
+
+    AD.ui.loading = {};
+    AD.ui.loading.attach = function( sel ) {
+        //  
+        // Attach our loading progress bar to the provided selector:
+        // 
+        
+        AD.ui.loading._el = null;
+        AD.ui.loading.reset();
+
+
+        // BUILD FIX: typeof check prevents minification engine error.
+        if (typeof document.querySelector != 'undefined'){
+        var el = document.querySelector(sel);
+        if (el) {
+
+            // insert our HTML progress bar html:
+            el.innerHTML = '<span class="app-progressbar-text"></span><div class="app-progressbar"><div class="app-progressbar-inner" ></div></div>';
+
+            AD.ui.loading._el = el;
+
+            var div = el.querySelector('.app-progressbar-inner');
+            if (div) {
+                div.style.width = "0%";
+            }
+
+        }
+        }
+
+    }
+
+    AD.ui.loading.text = function( text ) {
+        //  
+        // Update the text displayed for our loading progress bar.
+        // 
+        
+        if (AD.ui.loading._el == null) {
+
+            console.log('Calling AD.ui.loading.text() before AD.ui.loading.attach().');
+        } else {
+
+            // BUILD FIX: typeof check prevents minification engine error.
+            if (typeof AD.ui.loading._el.querySelector != 'undefined'){
+            AD.ui.loading._el.querySelector('.app-progressbar-text').innerHTML = text;
+            }
+
+        }
+
+    }
+    AD.ui.loading.reset = function () {
+        AD.ui.loading._total = 0;
+        AD.ui.loading._current = 0;
+
+    }
+    AD.ui.loading.resources = function( amount ) {
+        //  
+        // Update the required count for our loading progress bar.
+        // 
+        
+        if (AD.ui.loading._el == null) {
+
+            console.warn('Calling AD.ui.loading.resources() before AD.ui.loading.attach()!  Why?');
+        } else {
+
+            AD.ui.loading._total += amount;
+
+            AD.ui.loading._recalc();
+        }
+
+    }
+
+    AD.ui.loading.completed = function( amount ) {
+        //  
+        // Update the completed count for our loading progress bar.
+        // 
+        
+        if (AD.ui.loading._el == null) {
+            console.warn('Calling AD.ui.loading.complete() before AD.ui.loading.attach()! Why?');
+        } else {
+            AD.ui.loading._current += amount;
+            AD.ui.loading._recalc();
+        }
+    }
+    AD.ui.loading._recalc = function() {
+        //  
+        // Update the count for our loading progress bar.
+        // 
+        
+        if (AD.ui.loading._el == null) {
+
+            console.warn('Calling AD.ui.loading._recalc() before AD.ui.loading.attach()! Why?');
+        } else {
+
+            if (AD.ui.loading._total > 0) {
+                var percent = (AD.ui.loading._current / AD.ui.loading._total) * 100;
+                
+                // BUILD FIX: prevents minification engine error.
+                if (typeof AD.ui.loading._el.querySelector != 'undefined'){
+                    var div = AD.ui.loading._el.querySelector('.app-progressbar-inner');
+                    if (div) {
+                        div.style.width = percent+"%";
+                    }
+                }
+            }
+
+        }
+
+    }
 }
   
 

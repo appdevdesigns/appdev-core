@@ -1,0 +1,38 @@
+<link href="/styles/font-awesome.css" rel="stylesheet" />   
+<link href="/js/bootstrap/css/bootstrap.min.css" rel="stylesheet" />   
+<link href="/styles/bootstrap-theme.min.css" rel="stylesheet" />
+<link href="/OpsPortal/opsportal.css" rel="stylesheet" />   
+<link href="/OpsPortal/opsportal-theme.css" rel="stylesheet" />
+<link href="/appdev/login.css" rel="stylesheet" />
+
+<!--
+<script type="text/javascript" src="/js/jquery.min.js"></script>
+<script type="text/javascript" src="/js/bootstrap/js/bootstrap.min.js" ></script>
+-->
+
+<div id="login">
+
+	<div class="container">
+		<div class="row" id="head">
+			<div class="col-lg-12">
+				<p class="icon-title">
+				    <img src="/images/appdev.png" class="img"/>
+				</p>
+			</div>	
+		</div>
+
+		<div class="row padtop10 border">
+            <div class="col-lg-12">
+            
+                <div style="padding: 2.5em;">
+                <% if (isActive) { %>
+                    Your account has been created and is now active. You may proceed to <a href="/site/login">log in here</a> with your username and password.
+                <% } else { %>
+                    Your account has been created and is pending approval. You will be able to <a href="/site/login">log in</a> once an administrator has reviewed your account.
+                <% } %>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>

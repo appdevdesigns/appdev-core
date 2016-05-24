@@ -18,7 +18,7 @@ module.exports = function(req, res, next) {
     }
 
 
-    // ok, user data is now an object:
+    // ok, our session is properly setup.
     next();
 
 };

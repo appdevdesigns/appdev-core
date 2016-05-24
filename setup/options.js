@@ -4,6 +4,12 @@
  *
  */
 module.exports = {
+
+    ignore:{
+        dirLinks:{
+            'api/services/adcore':1
+        }
+    }
 /*
 
      // list any directories that need to be created in the base sails path

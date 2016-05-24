@@ -1,47 +1,71 @@
 steal(
-    'jquery'
-).then(
+    'jquery',
+    'appdev/ad.js',
+    'appdev/loading.css',
+    function () {
+        loadCanJsFiles();
+    });
+
+function loadCanJsFiles() {
     // 'canjs/can.jquery.js',
-    'can',
-    'can/view/ejs',
-    'can/construct/super',
-    'appdev/ad.js'
-).then (
-    function() {
+    AD.ui.loading.attach(); // just append to DOM
+    AD.ui.loading.text('initializing appdev library');
+    AD.ui.loading.resources(21);
 
-       AD.ui.jQuery = window.jQuery; //$;
+    steal.import('can',
+        'can/view/ejs/ejs',
+        'can/view/ejs/system',
+        'can/construct/super/super').then(
+            function () {
+                resolveConflictJquery();
+            }
+            );
+}
 
-        if (AD.ui._resolveConflict) {
-            console.log(' .... trying to not conflict with existing jQuery');
-            $.noConflict();  // return things as they were.
-        }
+function resolveConflictJquery() {
+    AD.ui.loading.completed(3);
+
+    AD.ui.jQuery = window.jQuery; //$;
+
+    if (AD.ui._resolveConflict) {
+        console.log(' .... trying to not conflict with existing jQuery');
+        $.noConflict();  // return things as they were.
     }
-).then(
 
-        'appdev/comm/hub.js',
-        'appdev/util/uuid.js',
-        'appdev/util/async.js',
-        'appdev/util/string.js',
-        'appdev/config/config.js'
-)
-.then(
-        'appdev/config/data.js',
-        'appdev/model/model.js',
-        'appdev/labels/lang.js',
-        'appdev/labels/label.js',
-        'appdev/comm/service.js',
-        'appdev/comm/socket.js',
-        'appdev/auth/reauth.js'
-)
-.then(
-        'appdev/UIController.js',
-        'appdev/control/control.js',
-        'appdev/widgets/ad_icon_busy',
-        'appdev/widgets/ad_ui_reauth',
-        'site/labels/appdev.js',
-        function($) {
+    AD.ui.loading.completed(18);
+    console.log('AD resolved conflict jquery ...');
 
-console.log('AD setup done ...');
+    loadAppdevJsFiles();
+}
 
-        }
-);
+function loadAppdevJsFiles() {
+    steal.import(
+        'appdev/comm/hub',
+        'appdev/error/log',
+        'appdev/util/uuid',
+        'appdev/util/async',
+        'appdev/util/string',
+        'appdev/config/config',
+        'appdev/util/uiScrollbarSize',
+
+        'appdev/config/data',
+        'appdev/model/model',
+        'appdev/labels/lang',
+        'appdev/labels/label',
+        'appdev/comm/service',
+        'appdev/comm/socket',
+        'appdev/widgets/ad_icon_busy/ad_icon_busy',
+        'appdev/widgets/ad_ui_reauth/ad_ui_reauth',
+        'appdev/auth/reauth',
+
+        'appdev/UIController',
+        'appdev/control/control',
+
+        'site/labels/appdev').then(
+            function () {
+
+                AD.ui.loading.completed(18);
+                console.log('AD setup done ...');
+
+            });
+}

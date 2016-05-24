@@ -17,7 +17,7 @@ var dryRun = function(transportKey, email) {
     
     AD.log('Email dry run: ' + email.subject);
     
-    var outputHTML = email.html.replace(/<body>/, '<body><div><ul>'
+    var outputHTML = email.html.replace(/^(\s*<body>)?/, '$1<div><ul>'
         + '<li><b>From:</b> ' + email.from + '</li>'
         + '<li><b>To:</b> ' + email.to + '</li>'
         + '<li><b>Cc:</b> ' + email.cc + '</li>'
@@ -48,7 +48,7 @@ var dryRun = function(transportKey, email) {
                 var counter = 1;
                 var nameCheck = outputFileName;
                 while (files.indexOf(nameCheck) >= 0) {
-                    nameCheck = nameCheck.replace(/.html$/, '-' + counter + '.html');
+                    nameCheck = nameCheck.replace(/(\-\d+)?\.html$/, '-' + counter + '.html');
                     counter += 1;
                 }
                 outputFileName = nameCheck;

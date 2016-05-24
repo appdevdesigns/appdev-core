@@ -42,7 +42,7 @@ describe('ADCore.model.translate tests', function(){
             // create a permission role object
             function(next) {
 
-                PermissionRoles.create({ })
+                PermissionRole.create({ })
                 .then(function(newRole){
                     role = newRole;
 
@@ -204,14 +204,26 @@ describe('ADCore.model.translate tests', function(){
             // clean up our new role
             function(next){
 
-                // remove our new role:
-                role.destroy()
-                .then(function(role){
-                    next();
+
+                PermissionRoleTrans.destroy({role:role.id})
+                .then(function(){
+                    // AD.log('translations removed.');
+
+                    // remove our new role:
+                    role.destroy()
+                    .then(function(role){
+                        next();
+                    })
+                    .catch(function(err){
+                        next(err);
+                    });
                 })
                 .catch(function(err){
+                    AD.log('error: problem removing translations.', err);
                     next(err);
                 })
+
+                
 
             },
 

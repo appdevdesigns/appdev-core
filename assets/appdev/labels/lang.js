@@ -12,6 +12,89 @@
     AD.lang.currentLanguage = 'en';
 
 
+
+    /**
+     * @function list
+     * Returns a hash of the current languages in the framework.
+     * 
+     * This is an async function since it has to request the info from the server.
+     * @codestart
+     * AD.lang.list()
+     * .then(function(list){
+     *     console.log(list);  // { 'en' : "English", "ko": "Korean", "zh-hans":"Chinese" }
+     * })
+     * @codeend
+     * @return {deferred} 
+     */
+    var __siteListLanguage = null;  // the list of languages in our site:
+    var __siteLanguages = null;     // hash of language.id : { language obj } 
+    AD.lang.list = function () {
+        var dfd = AD.sal.Deferred();
+
+        if (__siteListLanguage) {
+            dfd.resolve(__siteListLanguage);
+        } else {
+
+            var rebuildLanguageList = function() {
+                __siteListLanguage = {};
+
+                for(var id in __siteLanguages) {
+                    var item = __siteLanguages[id];
+                    __siteListLanguage[item.language_code] = item.language_label;
+                }
+            }
+
+
+
+            AD.comm.socket.get({
+                url:'/appdev-core/sitemultilinguallanguage'
+            })
+            .fail(function(err){
+                AD.error.log('Unable to request SiteMultilingualLanguage information.', err);
+                dfd.reject(err);
+            })
+            .then(function(list){
+
+                __siteLanguages = {};
+
+                list.forEach(function(item){
+                    __siteLanguages[item.id] = item;
+                });
+
+                rebuildLanguageList();
+
+                dfd.resolve(__siteListLanguage);
+            })
+
+
+
+            // subscribe to changes in our language's and update our list.
+            AD.comm.socket.subscribe('sitemultilinguallanguage', function(message, data){
+
+                switch(data.verb) {
+                    case 'created':
+                    case 'updated':
+                        __siteLanguages[data.id] = data.data;
+                        break;
+
+                    case 'destroyed':
+                        delete __siteLanguages[data.id];
+                        break;
+
+                }
+
+                rebuildLanguageList();
+
+// console.log('AD.comm.socket.subscribe() : sitemultilinguallanguage:', message, data);
+            })
+
+        }
+
+        return dfd;
+    };
+
+
+
     /**
      * @function setCurrentLanguage
      * Sets the default language code to be used for all operations that don't
@@ -35,6 +118,10 @@
      */
     var store = {
     /*
+        "language_code": {
+            "label_key1": "label_label1",
+            "label_key2": "label_label2"
+        },
         "en": {
             "OK": "Okay",
             "Cancel": "Cancel"
@@ -116,6 +203,13 @@
      *      False is returned if there was no match for the langCode or key.
      */
     AD.lang.label.getLabel = function (key, subs, langCode) {
+
+        // if key is : { key:'key', context:'context' }
+        if (typeof key == 'object') {
+            key = key.key;
+        }
+
+
         // When subs not given
         if (Object.prototype.toString.call(subs) != '[object Array]') {
             langCode = subs;
@@ -171,17 +265,44 @@
      */
     AD.lang.label.getLabelSpan = function (key, subs, langCode) {
 
+        var context = '';
+
+        // if key is : { key:'key', context:'context' }
+        if (typeof key == 'object') {
+            key = key.key;
+            context = key.context;
+        }
+
         var label = AD.lang.label.getLabel(key, subs, langCode);
 
         var span = '';
 
+        var contextAttr = '';
+        if (context != '') {
+            contextAttr = AD.controllers.Label.constants.keyAttribute+'="'+context+'"';
+        }
+
         if (label) {
-            span = '<span '+AD.controllers.Label.constants.keyAttribute+'="'+key+'" >'+label+'</span>';
+            span = '<span '+AD.controllers.Label.constants.keyAttribute+'="'+key+'" '+contextAttr+' >'+label+'</span>';
         } else {
-            span = '<span '+AD.controllers.Label.constants.keyAttribute+'="'+key+'" >'+key+'</span>';
+            span = '<span '+AD.controllers.Label.constants.keyAttribute+'="'+key+'" '+contextAttr+'>'+key+'</span>';
         }
 
         return span;
     };
+
+
+    AD.lang.label.translate = function($el) {
+        var keyAttr = AD.controllers.Label.constants.keyAttribute;
+        var labels = $el.find('[' + keyAttr + ']');
+
+        var ADlabels = []; // array of Label instances
+        
+        labels.each(function(){
+            ADlabels.push(new AD.controllers.Label($(this)));
+        });
+
+        return ADlabels;
+    }
 
 })();
