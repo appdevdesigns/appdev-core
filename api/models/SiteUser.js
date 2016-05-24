@@ -295,7 +295,15 @@ module.exports = {
     // Model lifecycle callbacks
     ////////////////////////////
     
-    
+    afterCreate: function(newlyInsertedRecord, next) {
+
+        var safeData = newlyInsertedRecord;
+        delete safeData.password;
+        delete safeData.salt;
+        ADCore.queue.publish('siteuser.created', { user: safeData });
+        next();
+    },
+
     beforeCreate: function(values, next) {
         // Set username = GUID if not provided
         if (!values.username && values.guid) {
@@ -322,7 +330,17 @@ module.exports = {
         }
     },
     
+
+    afterUpdate: function(updatedRecord, next) {
+
+        var safeData = updatedRecord;
+        delete safeData.password;
+        delete safeData.salt;
+        ADCore.queue.publish('siteuser.updated', { user: safeData });
+        next();
+    },
     
+
     beforeUpdate: function(values, next) {
         // A hashed password is 1024 characters long. If the given password
         // is shorter, treat it as plaintext that needs to be hashed before
@@ -340,6 +358,16 @@ module.exports = {
         else {
             next();
         }
+    },
+
+
+    afterDestroy: function(destroyedRecords, next) {
+
+        var safeData = destroyedRecords;
+        // delete safeData.password;
+        // delete safeData.salt;
+        ADCore.queue.publish('siteuser.destroyed', { user: safeData });
+        next();
     }
 };
 
