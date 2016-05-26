@@ -17,12 +17,12 @@
             var original = can.ajax;
             can.ajax = function(a, b) {
                 if (typeof a == 'string' && a[0] == '/') {
-                    return original(settings.siteBaseURL + a, b);
+                    a = settings.siteBaseURL + a;
                 }
                 else if (typeof a == 'object' && a.url && a.url[0] == '/') {
                     a.url = settings.siteBaseURL + a.url;
-                    return original(a, b);
                 }
+                return original(a, b);
             };
         }
         
