@@ -6,7 +6,12 @@
     }
     
     if (settings.siteBaseURL) {
-    
+        
+        // socket.io base URL
+        window.io = window.io || {};
+        window.io.sails = window.io.sails || {};
+        window.io.sails.url = settings.siteBaseURL;
+        
         // Steal.js base URL
         if (typeof System != 'undefined') {
             System.baseURL = settings.siteBaseURL;

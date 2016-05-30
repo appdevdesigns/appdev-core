@@ -88,6 +88,9 @@ module.exports = {
                 'appdev/ad',
                 'appdev/UIController',
 
+                'appdev/config/config',
+                'appdev/config/data',
+
                 'appdev/auth/reauth',
 
                 'appdev/comm/error',
@@ -95,9 +98,6 @@ module.exports = {
                 'appdev/comm/pending',
                 'appdev/comm/service',
                 'appdev/comm/socket',
-
-                'appdev/config/config',
-                'appdev/config/data',
 
                 'appdev/control/control',
 
@@ -116,7 +116,15 @@ module.exports = {
             ],
         },
         'appdev/comm/socket': {
-            "deps": ['js/dependencies/sails.io']
+            "deps": [
+                'js/dependencies/sails.io',
+                'appdev/config/data',
+            ]
+        },
+        'appdev/config/data': {
+            "deps": [
+                'appdev/config/config',
+            ]
         }
     },
     "ext": {

@@ -278,7 +278,15 @@ steal(
 
 
                         // check to see if responseText is our json response
-                        var data = AD.sal.parseJSON(req.responseText);
+                        var data;
+                        try {
+                            data = AD.sal.parseJSON(req.responseText);
+                        } catch (err) {
+                            console.log('JSON text:', req.responseText);
+                            console.log('Parse error:', err);
+                            data = null;
+                        }
+                        
                         if (('object' == typeof data) && (data != null)) {
 
                             if ('undefined' != typeof data.status) {
