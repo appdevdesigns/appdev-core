@@ -6,7 +6,7 @@
  *
  */
 var AD = require('ad-utils');
-
+var _ = require('lodash');
 
 var registeredRoutes = {
     // routeKey : [ actionKey1, [actionKey2, actionKey3], ... ]
