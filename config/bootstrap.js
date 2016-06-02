@@ -13,6 +13,58 @@ var fs = require('fs');
 
 module.exports = function (cb) {
 
+    // make sure there is an .appdev.localAuth defined:
+    sails.config.appdev = sails.config.appdev || {};
+    sails.config.appdev.localAuth = sails.config.appdev.localAuth || {};
+
+    function checkLoginView (config, param, defaultView, next) {
+
+        var cwd = process.cwd();
+
+        var view = config[param];
+        if ((view) && (view != '')) {
+            var pathToView = path.join(cwd, 'views', view);
+
+            fs.lstat(pathToView, function(err, stat){
+
+                function noGood () {
+                    ADCore.error.log("Error: Provided localLoginView ["+view+"] was not found at "+pathToView,{
+                        localLoginView:view,
+                        pathToView: pathToView
+                    });
+
+                    // fall back to our default value:
+                    config[param] = defaultView;
+                    next(); // no error
+                }
+
+                if (err) {
+
+                    noGood();
+                } else {
+
+                    if (stat.isFile()) {
+
+                        // looks good
+                        next();
+
+                    } else {
+
+                        noGood();
+                    }
+                }
+            })
+
+        } else {
+
+            // localLoginView is not provided, so set to default:
+            config[param] = defaultView;
+            next(); // no error
+
+        }
+
+    }
+
     async.parallel([
 
         // 1) register Permissions
@@ -26,52 +78,22 @@ module.exports = function (cb) {
         //    or [sails]/config/local.js
         function(next){
             var defaultView = 'appdev-core/adcore/loginform.ejs';
-            var cwd = process.cwd();
 
-            var view = sails.config.appdev.localLoginView;
-            if ((view) && (view != '')) {
-                var pathToView = path.join(cwd, 'views', view);
+            checkLoginView (sails.config.appdev.localAuth, 'localLoginView', defaultView, next);
+        
+        },
 
-                fs.lstat(pathToView, function(err, stat){
 
-                    function noGood () {
-                        ADCore.error.log("Error: Provided localLoginView ["+view+"] was not found at "+pathToView,{
-                            localLoginView:view,
-                            pathToView: pathToView
-                        });
+        // 3) ensure valid localLogoutView
+        //    this is configurable in [sails]/config/appdev.js
+        //    or [sails]/config/local.js
+        function(next){
+            var defaultView = 'appdev-core/adcore/logout.ejs';
 
-                        // fall back to our default value:
-                        sails.config.appdev.localLoginView = defaultView;
-                        next(); // no error
-                    }
-
-                    if (err) {
-
-                        noGood();
-                    } else {
-
-                        if (stat.isFile()) {
-
-                            // looks good
-                            next();
-
-                        } else {
-
-                            noGood();
-                        }
-                    }
-                })
-
-            } else {
-
-                // localLoginView is not provided, so set to default:
-                sails.config.appdev.localLoginView = defaultView;
-                next(); // no error
-
-            }
-            
+            checkLoginView (sails.config.appdev.localAuth, 'localLogoutView', defaultView, next);
 
         }
+
     ], function(err, results){
 
         cb(err);

@@ -111,7 +111,7 @@ module.exports = {
 
             // NOTE: sails.config.appdev.localLoginView is verified
             //       in appdev-core/config/bootstrap.js
-            res.view(sails.config.appdev.localLoginView, { 
+            res.view(sails.config.appdev.localAuth.localLoginView, { 
                 authErrMessage: authErrMessage,
                 canRegister: canRegister
             });
@@ -246,7 +246,7 @@ module.exports = {
             }
         }
         
-        res.view();
+        res.view(sails.config.appdev.localAuth.localLogoutView, {});
         
     },
     
