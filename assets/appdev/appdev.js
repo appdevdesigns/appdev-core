@@ -15,11 +15,12 @@ function loadCanJsFiles() {
     steal.import('can',
         'can/view/ejs/ejs',
         'can/view/ejs/system',
-        'can/construct/super/super').then(
+        'can/construct/super/super'
+        ).then(
             function () {
                 resolveConflictJquery();
             }
-            );
+        );
 }
 
 function resolveConflictJquery() {
@@ -62,7 +63,9 @@ function loadAppdevJsFiles() {
         'appdev/UIController',
         'appdev/control/control',
 
-        'site/labels/appdev').then(
+        'site/labels/appdev'
+
+        ).then(
             function () {
 
                 AD.ui.loading.completed(18);
