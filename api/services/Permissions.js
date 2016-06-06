@@ -183,9 +183,9 @@ module.exports = {
                     .then(function(userList){
 
                         // push a new condition: { actionKey:key,  userID:[ guid1, guid2, ... guidN ]}
-                        // conditions.push({ actionKey:key, userID:_.pluck(userList, 'guid') })
+                        // conditions.push({ actionKey:key, userID:_.map(userList, 'guid') })
                         var cond = { actionKey: key };
-                        cond[options.field] = _.pluck(userList, options.userField);
+                        cond[options.field] = _.map(userList, options.userField);
                         conditions.push(cond);
 
                         numDone++;
@@ -208,7 +208,7 @@ module.exports = {
 
                 PARequest.find({ 'or': conditions })
                 .then(function(list) {
-                    validRequestIDs = _.pluck(list, options.resourcePKField);
+                    validRequestIDs = _.map(list, options.resourcePKField);
 console.log('... validRequestIDs:', validRequestIDs);
                     done();
                     return null;
@@ -335,7 +335,7 @@ console.log('... options:', req.options);
         })
         .then(function(validUsers){
 
-            var validIDs = _.pluck(validUsers, options.userField);
+            var validIDs = _.map(validUsers, options.userField);
 
             // was the request already specifying the specified .field?
             var allParams = req.params.all();

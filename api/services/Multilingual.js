@@ -302,7 +302,7 @@ module.exports = {
 
             
             // pluck all the primary keys from our given records
-            var listIDs = _.pluck(data, pk);
+            var listIDs = _.map(data, pk);
 
 
             // find out the remote fk for our reference:

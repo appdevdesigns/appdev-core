@@ -962,7 +962,7 @@ if (_this.userModel == null) {
             //     var perm = listPermissions[i];
             //     listRoleIDs.push(perm.role);
             // };
-            var listRoleIDs = _.pluck(listPermissions, 'role');
+            var listRoleIDs = _.map(listPermissions, 'role');
 
             PermissionRole.find({ id: listRoleIDs })
             .populate('actions')

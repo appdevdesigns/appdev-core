@@ -4,6 +4,7 @@
 * @description :: TODO: You might write a short summary of how this model works and what it represents here.
 * @docs        :: http://sailsjs.org/#!documentation/models
 */
+var _ = require('lodash');
 
 module.exports = {
 
@@ -29,6 +30,41 @@ module.exports = {
         }
     },
 
+
+    beforeValidate: function(values, cb) {
+
+        // make sure each scope value is an integer
+        if (_.isArray(values.scope)) {
+            var newScopes = [];
+            values.scope.forEach(function(scope){
+                newScopes.push(_.toInteger(scope))
+            });
+            values.scope = newScopes;
+        }
+
+
+        // some protocols can't actually send bool values and send either strings
+        // or 1/0 instead:
+        switch( values.enabled ) {
+            case 'true':
+            case '"true"':
+            case "'true'":
+            case 1:
+            case '1':
+                values.enabled = true;
+                break;
+
+            case 'false':
+            case '"false"':
+            case "'false'":
+            case 0:
+            case '0':
+                values.enabled = false;
+                break;
+        }
+
+        cb();
+    },
 
 
     afterCreate: function(permission, cb) {
