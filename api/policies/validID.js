@@ -12,9 +12,10 @@ module.exports = function(req, res, next) {
 	// pull the value of 'id' 
     var id = req.param('id');
     if (id) {
-
+// console.log('... .validID: id:'+ typeof id);
     	// make sure it is a number
-		if (_.isFinite(id)) {
+		if ((_.isFinite(id))
+			|| ( (_.isString(id)) && (_.isFinite(_.toInteger(id))))) {
 
 			// looks good for an ID
 			next();
@@ -40,6 +41,7 @@ console.log('... policy/.validID: id looks like a complex ID query:', id );
 			} else {
 
 				console.log('... policy/.validID():  invalid id:'+id);
+				console.log('    for path:'+req.method + ' ' + req.url);
 				ADCore.comm.error(res, new Error('unknown id: '+id), 404);
 			}
 		}

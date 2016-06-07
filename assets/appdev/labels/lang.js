@@ -21,7 +21,7 @@
      * @codestart
      * AD.lang.list()
      * .then(function(list){
-     *     console.log(list);  // { 'en' : "English", "ko": "Korean", "zh-hans":"Chinese" }
+     *     console.log(list);  // { "en" : "English", "ko": "Korean", "zh-hans":"Chinese" }
      * })
      * @codeend
      * @return {deferred} 
