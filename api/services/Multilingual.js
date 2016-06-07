@@ -191,7 +191,7 @@ module.exports = {
                     var languageCode = data.language_code || Multilingual.languages.default();
                     
                     var transactions = [];
-                    var ignoreFields = [ 'id', 'createdAt', 'updatedAt'];
+                    var ignoreFields =  modelMultilingualIgnoredFields(Model); 
                     var nonTextFields = modelMultilingualNonTextFields(Model);
 
 
@@ -209,22 +209,14 @@ module.exports = {
 
                                 // if this is the same language as the provided language data
                                 if ((lang.language_code == languageCode)
+                                    || (nonTextFields.indexOf(f) != -1)
                                     || (f == 'language_code')) {
                                     givenTransData[f] = data[f];
                                 } else {
 
-                                    // if this is a non text field, 
-                                    if (nonTextFields.indexOf(f) != -1) {
-
-                                        // just save it as is.
-                                        givenTransData[f] = data[f];
-                                        
-                                    } else {
-
-                                        // so this means we are using the language of another language
-                                        // for the current language, so we add on a '[langCode]' tag.
-                                        givenTransData[f] = '['+lang.language_code+']' + data[f];
-                                    }
+                                    // so this means we are using the language of another language
+                                    // for the current language, so we add on a '[langCode]' tag.
+                                    givenTransData[f] = '['+lang.language_code+']' + data[f];
                                     
                                 }
                             }
@@ -757,9 +749,19 @@ var getTransFields = function(Model) {
 
 
 
-
 //// TODO: refactor to remove getTransFields() and 
 //// replace with modelMultilingualFields()
+/*
+ * @function modelMultilingualFields
+ *
+ * Find the all Translation fields for a given Model. 
+ *
+ * Note: we don't return the fields that we shouldn't manage: 
+ *      => id, createdAt, updatedAt, and the foriegnKey
+ *
+ * @param {obj} Model  A Multilingual Model Object (the Data Model)
+ * @return {array}  if the translation Model was found, null otherwise
+ */
 function modelMultilingualFields (options) {
     var fields = [];
 
@@ -773,15 +775,7 @@ function modelMultilingualFields (options) {
 
         var attributes = ModelTrans.attributes;
 
-        var ignoreFields = ['id', 'createdAt', 'updatedAt' ];
-        ignoreFields.push(Model.attributes.translations.via);
-
-        // also ignore any field on the Trans Model that isn't a text fields:
-        var nonTextFields = modelMultilingualNonTextFields(Model);
-        nonTextFields.forEach(function(ntf){
-            ignoreFields.push(ntf);
-        })
-
+        var ignoreFields = modelMultilingualIgnoredFields(Model);
         
         _.forOwn(attributes, function(value, key){
 
@@ -795,9 +789,45 @@ function modelMultilingualFields (options) {
 }
 
 
+
+function modelMultilingualIgnoredFields(Model) {
+
+    var ignoreFields = ['id', 'createdAt', 'updatedAt' ];
+
+    // Error Check
+    // did we receive a model object?
+    if(!Model) {
+        AD.log.error(new Error('Model object not provided!'));
+        return ignoreFields;
+    }
+
+
+    // Error Check 1
+    // if they sent us an instance of a Multilingual Model, then just
+    // get the Data Model class from that.
+    if (Model._Klass) {
+        Model = Model._Klass();
+    }
+
+
+    // Error Check 2
+    // if Model doesn't have an attributes.translations definition 
+    // then this isn't a Multilingual Model =>  error
+    if (!Model.attributes.translations) {
+        AD.error.log(new Error('given model doesn\'t seem to be multilingual.', {model:Model}));
+        return ignoreFields;
+    } 
+
+    
+    ignoreFields.push(Model.attributes.translations.via);
+
+    return ignoreFields;
+}
+
+
+
 function modelMultilingualNonTextFields(Model) {
     // return the fields on the Trans Model that are NOT text fields
-    // we'll eventually need to handle these.
 
     
     var fields = [];
@@ -822,7 +852,7 @@ function modelMultilingualNonTextFields(Model) {
     // if Model doesn't have an attributes.translations definition 
     // then this isn't a Multilingual Model =>  error
     if (!Model.attributes.translations) {
-        AD.error.log(new Error('given model doesn\'t seem to be multilingual.'));
+        AD.error.log(new Error('given model doesn\'t seem to be multilingual.', {model:Model}));
         return fields;
     } 
 
@@ -832,8 +862,7 @@ function modelMultilingualNonTextFields(Model) {
 
         var attributes = ModelTrans.attributes;
 
-        var ignoreFields = ['id', 'createdAt', 'updatedAt' ];
-        ignoreFields.push(Model.attributes.translations.via);
+        var ignoreFields = modelMultilingualIgnoredFields(Model);  
 
         var textTypes = ['string', 'text', 'mediumtext', 'longtext'];
         _.forOwn(attributes, function(value, key){
