@@ -1080,7 +1080,7 @@ var Translate = function(opt) {
 
             var keys = _.keys(trans);
             keys.forEach(function(f) { 
-                if ( !_.contains(ignoreFields, f)) {
+                if ( !_.includes(ignoreFields, f)) {
                     opt.model[f] = trans[f];
                 }
             });

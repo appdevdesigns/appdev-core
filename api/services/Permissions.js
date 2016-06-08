@@ -230,7 +230,7 @@ console.log('... validRequestIDs:', validRequestIDs);
 
             req.options.where = req.options.where || {};
             req.options.where['or'] =  conditions;
-AD.log('... options:', req.options.where);
+// AD.log('... options:', req.options.where);
             next();
 
 //// Refactoring.  Old stuff down here:
