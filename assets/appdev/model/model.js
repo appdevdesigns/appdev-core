@@ -801,6 +801,9 @@ steal(
                         .then(function(languageHash){
                             // languageHash:  { "en" : "English", "ko": "Korean", "zh-hans":"Chinese" }
 
+                            var modelFields = Model.describe();
+                            var textTypes = ['string', 'text'];
+
                             // foreach language 
                             for(var langCode in languageHash) {
                         
@@ -822,7 +825,15 @@ steal(
                                     // copy current entry with language key
                                     fields.forEach(function (field) {
                                         if (currentLanguage[field]) {
-                                            entry[field] = '['+langCode+']'+currentLanguage[field];
+
+                                            // if this field is a text type:
+                                            if (textTypes.indexOf(modelFields[field]) != -1) {
+                                                entry[field] = '['+langCode+']'+currentLanguage[field];
+                                            } else {
+
+                                                // otherwise, just copy the value
+                                                entry[field] = currentLanguage[field];
+                                            }
                                         }
                                     })
 
