@@ -124,7 +124,7 @@ module.exports = {
 
     afterDestroy: function(destroyedRecords, cb) {
 
-        var userIDs = _.pluck(destroyedRecords, 'user');
+        var userIDs = _.map(destroyedRecords, 'user');
         SiteUser.find({id:userIDs})
         .then(function(users){
             users.forEach(function(user){
