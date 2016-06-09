@@ -42,7 +42,7 @@ if (typeof AD.util.uiScrollbarSize == 'undefined') {
 
                 outer.remove();
             }
-console.error('**** returning scrollbar info: ', ____sizeScrollbars);
+// console.error('**** returning scrollbar info: ', ____sizeScrollbars);
            return ____sizeScrollbars;
         }
 
