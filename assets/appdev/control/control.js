@@ -1,6 +1,9 @@
 steal('appdev/UIController.js', function () {
     System.import('can').then(function () {
         steal.import('can/control/control').then(function () {
+
+
+
             /**
              * @class AD.Control
              * @parent AD_Client
@@ -8,6 +11,10 @@ steal('appdev/UIController.js', function () {
              * This is our default 
              */
             if (typeof AD.Control == "undefined") {
+
+                var __controllersReady = {};    // hash of the controllers that have been created
+                                                // format:  { "controllerName": deferred }
+
                 AD.Control = {
 
                     /**
@@ -50,6 +57,9 @@ steal('appdev/UIController.js', function () {
                         // built in translation capabilities.
                         curr[controlName] = AD.classes.UIController.extend(staticDef, instanceDef);
 
+
+                        // mark this controller as ready
+                        AD.Control.ready(name).resolve();
                     },
 
 
@@ -65,6 +75,17 @@ steal('appdev/UIController.js', function () {
                         var Obj = findObject(AD.controllers, name);
 
                         new Obj(el, options);
+                    },
+
+
+                    ready: function(name) {
+
+                        // create the deferred if it doesn't exist
+                        if (!__controllersReady[name]) {
+                            __controllersReady[name] = AD.sal.Deferred();
+                        }
+
+                        return __controllersReady[name];
                     }
                 };
             }

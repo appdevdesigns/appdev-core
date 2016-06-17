@@ -27,6 +27,15 @@ steal(
     'appdev/labels/lang.js',
     function () {
         System.import('can').then(function () {
+
+
+            var __modelsReadyBase = {}; // hash of the Base models that have been created
+                                        // format:  { "modelName": deferred }
+
+            var __modelsReady = {};     // hash of the models that have been created
+                                        // format:  { "modelName": deferred }
+
+
             /**
              * @class AD.Model
              * @parent AD_Client
@@ -98,11 +107,31 @@ steal(
                             // now let's create our base Model:
                             curr[modelName] = can.Model.extend(staticDef, instanceDef);
                             // can.extend(curr[modelName].prototype, can.event); 
+
+
+                            // // register this model as being loaded:
+                            // var dfdReady = AD.Model.Base.ready(name);
+                            // dfdReady.resolve();
+
                         },
+
 
                         get: function (name) {
 
                             return findObject(AD.models_base, name);
+                        },
+
+
+                        ready: function(name) {
+
+                            // create a deferred for this model if it doesn't 
+                            // already exist
+                            if (!__modelsReadyBase[name]) { 
+                                __modelsReadyBase[name] = AD.sal.Deferred();
+                            }
+
+                            // return the deferred
+                            return __modelsReadyBase[name];
                         }
                     },
 
@@ -253,6 +282,10 @@ steal(
 
                             modelUpdate(name, data);
                         });
+
+
+                        var dfdReady = AD.Model.ready(name);
+                        dfdReady.resolve();
                     },
 
 
@@ -270,6 +303,30 @@ steal(
                     get: function (name) {
 
                         return findObject(AD.models, name);
+                    },
+
+
+
+                    /**
+                     * @function ready
+                     * Return a deferred that indicates when the provided Model
+                     * has been created. 
+                     * 
+                     * @param {string} name      The name of the Model.  The
+                     *        name can be namespaced like so: 'application.tool.Resource'.
+                     *
+                     * @return {Deferred}  
+                     */
+                    ready: function(name) {
+
+                        // create a deferred for this model if it doesn't 
+                        // already exist
+                        if (!__modelsReady[name]) { 
+                            __modelsReady[name] = AD.sal.Deferred();
+                        }
+
+                        // return the deferred
+                        return __modelsReady[name];
                     }
                 };
             }
