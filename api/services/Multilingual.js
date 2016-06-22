@@ -376,6 +376,37 @@ module.exports = {
         },
 
 
+        /**
+         * @function Multilingual.model.summary(model)
+         *
+         * return a json representation of the model attributes (including the 
+         * translation data).
+         *
+         * 
+         *
+         * @param {obj}  model  the model you want to decode
+         * @return {json} 
+         */
+        summary:function(model) {
+            var data = {};
+
+            var Model = model;
+            if (Model._Klass) {
+                Model = Model._Klass();
+            }
+
+            data.pk = getModelPK(Model);
+            data.fields = modelAttributes({Model:Model});
+            data.modelKey = Model.attributes.translations.via;
+
+            data.transModelKey = getTransModelKey(Model);
+            data.transFields = modelMultilingualFields({Model:Model});
+
+
+            return data;
+        },
+
+
 
         /**
          * @function Multilingual.model.sync()
@@ -746,6 +777,8 @@ var getModelPK = function(Model) {
 }
 
 
+
+
 /*
  * @function getTransFields
  *
@@ -927,8 +960,7 @@ function modelMultilingualNonTextFields(Model) {
  * @param {obj} Model  A Multilingual Model Object
  * @return {obj}  if the translation Model was found, null otherwise
  */
-var getTransModel = function(Model) {
-
+ var getTransModelKey = function(Model) {
     // Error Check
     // did we receive a model object?
     if(!Model) {
@@ -957,17 +989,56 @@ var getTransModel = function(Model) {
     // now go about the business of getting the Translation Model:
 
     // get the name of our TranslationModel
-    var nameTransModel = Model.attributes.translations.collection.toLowerCase();
+    return Model.attributes.translations.collection.toLowerCase();
+ }
 
-    // get that model from sails.models
-    if (!sails.models[nameTransModel]) {
 
-        AD.log.error(new Error('translation model ['+nameTransModel+'] not found.'));
-        return null;
+var getTransModel = function(Model) {
 
+    // // Error Check
+    // // did we receive a model object?
+    // if(!Model) {
+    //     AD.log.error(new Error('Model object not provided!'));
+    //     return null;
+    // }
+
+
+    // // Error Check 1
+    // // if they sent us an instance of a Multilingual Model, then just
+    // // get the Data Model class from that.
+    // if (Model._Klass) {
+    //     Model = Model._Klass();
+    // }
+
+
+    // // Error Check 2
+    // // if Model doesn't have an attributes.translations definition 
+    // // then this isn't a Multilingual Model =>  error
+    // if (!Model.attributes.translations) {
+    //     AD.log.error(new Error('given model doesn\'t seem to be multilingual.'));
+    //     return null;
+    // } 
+
+
+    // now go about the business of getting the Translation Model:
+
+    // get the name of our TranslationModel
+    var nameTransModel = getTransModelKey(Model);  // Model.attributes.translations.collection.toLowerCase();
+    if (nameTransModel) {
+
+        // get that model from sails.models
+        if (!sails.models[nameTransModel]) {
+
+            AD.log.error(new Error('translation model ['+nameTransModel+'] not found.'));
+            return null;
+
+        } else {
+
+            return sails.models[nameTransModel];
+        }
     } else {
 
-        return sails.models[nameTransModel];
+        return null; 
     }
 
 }
