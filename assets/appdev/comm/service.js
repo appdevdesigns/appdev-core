@@ -25,7 +25,7 @@ steal(
     function () {
 
         (function () {
-        
+            
             /**
              * CSRF object for internal use only.
              */
@@ -64,6 +64,40 @@ steal(
              */
             if (typeof AD.comm == "undefined") {
                 AD.comm = {};
+            }
+            
+            
+            /**
+             * Track the server state when it goes down during reloading
+             * @private
+             */
+            var isServerReady = true;
+            
+            // The JS library load order is not consistent. Work around that
+            // by waiting for socket.io with setTimeout.
+            AD.waitFor('io', function() {
+                io.socket.on('server-reload', function(data) {
+                //AD.comm.socket.subscribe('server-reload', function(data) {
+                    if (data.reloading) {
+                        console.log('Server is now reloading');
+                        isServerReady = false;
+                    } else {
+                        console.log('Server has finished reloading');
+                        isServerReady = true;
+                        if (!AD.ui.reauth.inProgress()) {
+                            AD.comm.pending.process();
+                        }
+                    }
+                });
+            });
+            
+            
+            /**
+             * Check if the server is currently ready to handle requests.
+             * @return boolean
+             */
+            AD.comm.isServerReady = function() {
+                return isServerReady;
             }
 
 
@@ -207,7 +241,7 @@ steal(
             
                 // if we are currently in process of authenticating, then
                 // queue request
-                if (AD.ui.reauth.inProgress()) {
+                if (AD.ui.reauth.inProgress() || !AD.comm.isServerReady()) {
 
                     AD.comm.pending.add(context(options, cb, dfd));
                     // pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
