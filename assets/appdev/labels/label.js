@@ -13,6 +13,11 @@ steal(
         
                     // Technically not really constants, but you get the idea
                     constants: {
+
+                        // (optional) the label's context that will allow us to lookup the 
+                        // translation if no matching label key is currently found
+                        contextAttribute: "app-label-context",
+
                         // The label key will be determined by the value of this attribute on
                         // the raw text element.
                         keyAttribute: "app-label-key",
@@ -123,7 +128,11 @@ steal(
                 }, {
 
                         init: function ($element) {
+                            
                             this.labelKey = $element.attr(this.constructor.constants.keyAttribute);
+                            this.labelContext = $element.attr(this.constructor.constants.contextAttribute);
+                            this.labelContextAttempt =0;
+
                             if ($element.is('input')) {
                                 this.originalText = $element.prop('placeholder');
                             } else {
@@ -175,18 +184,40 @@ steal(
                             // Remove any previous event bindings on the label
                             this.$span.off('.label');
                             
-                            // Fall back on displaying original text if no translation was found
+                            // if no translation found
                             if (label === false) {
-                                label = '['+langCode+']' + this.originalText;
-                                
-                                // Show label key on mouseover so admins know
-                                // which ones they need to add.
-                                this.$span.on('mouseenter.label', function(ev) {
-                                    self.$span.text('[' + self.labelKey + ']');
-                                });
-                                this.$span.on('mouseleave.label', function(ev) {
-                                    self.$span.text(label);
-                                });
+
+                                if ((this.labelContext) && (this.labelContextAttempt < 10)) {
+// console.log('... translate(): attempting context lookup:['+this.labelContext+']');
+                                    // request a multilingual lookup 
+                                    // and update when ready
+                                    AD.lang.label.lookup(this.labelContext)
+                                    .fail(function(err){
+
+                                    })
+                                    .then(function(){
+                                        
+                                        setTimeout(function(){ 
+                                            self.labelContextAttempt++;
+                                            self.translate();
+                                        }, 100);
+                                    })
+
+                                } else {
+
+                                    // Fall back on displaying original text if no translation was found
+
+                                    label = '['+langCode+']' + this.originalText;
+                                    
+                                    // Show label key on mouseover so admins know
+                                    // which ones they need to add.
+                                    this.$span.on('mouseenter.label', function(ev) {
+                                        self.$span.text('[' + self.labelKey + ']');
+                                    });
+                                    this.$span.on('mouseleave.label', function(ev) {
+                                        self.$span.text(label);
+                                    });
+                                }
                             }
 
                             this.$span.html(label);

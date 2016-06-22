@@ -67,6 +67,41 @@ module.exports = {
 
 
 
+        /** 
+         * @function Multilingual.languages.hash()
+         * 
+         * return a hash of { language_code: language_label } of all 
+         * languages in the sytem.
+         * 
+         * @return {deferred}
+         */
+        hash:function() {
+            var dfd = AD.sal.Deferred();
+
+            var hash = {};
+
+            Multilingual.languages.all()
+            .then(function(list){
+
+                if ((list) && (list.length>0)) {
+                    list.forEach(function(lang){
+                        hash[lang.language_code] = lang.language_label;
+                    })
+                    
+                }
+                dfd.resolve(hash); 
+
+            })
+            .fail(function(err){
+                ADCore.error.log('Error looking up Multilingual.languages.all():',{ error: err });
+                dfd.reject(err);
+            })
+
+            return dfd;
+        },
+
+
+
         /**
          * @function Multilingual.languages.default()
          *

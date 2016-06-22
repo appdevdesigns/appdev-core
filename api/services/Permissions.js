@@ -13,7 +13,19 @@ var registeredRoutes = {
 };
 
 
+var path = require('path');
+var Action = require(path.join(__dirname, 'permissions', 'action.js'));
+
 module.exports = {
+
+
+    /**
+     * Permissions.action
+     *
+     * a set of utilities for exposing the PermissionAction to external 
+     * applications.
+     */
+    action:Action,
 
 
     /**
@@ -129,6 +141,11 @@ module.exports = {
      *                                       resource ties to. 
      *                                       (usually 'guid', but you might instead 
      *                                       link to 'id', or 'username')
+     *          options.catchAll {string}    The user value that indicates 'any one can see'
+     *                                       (some entries might not care about scope and 
+     *                                        instead of a guid, they put this value, so
+     *                                        as long as you had the action permission, you
+     *                                        can work with this entry)
      *          options.resourcePKField {string} the name of the resource's pk field
      *                                       (usually 'id', but if not, specify it here.)
      *          options.error     {obj}      An object representing the error information 
@@ -143,6 +160,7 @@ module.exports = {
         options = _.merge({
             field:'userID',
             userField:'guid',
+            catchAll:'*',
             resourcePKField:'id',
             error:{ code: 403, message:'Not Permitted.' }
         }, options);
@@ -186,6 +204,12 @@ module.exports = {
                         // conditions.push({ actionKey:key, userID:_.map(userList, 'guid') })
                         var cond = { actionKey: key };
                         cond[options.field] = _.map(userList, options.userField);
+
+                        // and if we have a catchAll value, then add it here:
+                        if (options.catchAll) {
+                            cond[options.field].push(options.catchAll);
+                        }
+
                         conditions.push(cond);
 
                         numDone++;
