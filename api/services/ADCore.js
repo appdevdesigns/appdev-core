@@ -185,6 +185,14 @@ module.exports = {
                 dfd.reject( new Error('testUser is not allowed in production site.'));
                 return dfd;
             }
+        },
+        
+        
+        // Manually load a user identity.
+        // (This bypasses authentication. For admin use only.)
+        loadUserByGUID: function(guid) {
+            var dfd = User.init({ guid: guid });
+            return dfd;
         }
 
     },
