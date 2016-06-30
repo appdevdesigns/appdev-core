@@ -70,7 +70,11 @@ module.exports = {
      * Deletes all tickets that are past expiration.
      */
     cleanUp: function() {
-        SiteCookieAuth.destroy({ expiration: new Date() }, function(err) {
+        SiteCookieAuth.destroy({ 
+            expiration: {
+                '<=': new Date()
+            }
+        }, function(err) {
             if (err) {
                 sails.log(err);
             }
@@ -90,7 +94,7 @@ module.exports = {
         if (timeout) {
             clearTimeout(timeout);
         }
-        timeout = setTimeout(SiteCookieAuth.cleanup, 120 * 1000);
+        timeout = setTimeout(SiteCookieAuth.cleanUp, 120 * 1000);
         next();
     },
     
