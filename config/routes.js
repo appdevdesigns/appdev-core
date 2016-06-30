@@ -28,6 +28,7 @@ module.exports = {
     'post /site/user/changePassword': 'appdev-core/SiteUserController.changePW',
     'post /site/user/register'      : 'appdev-core/SiteUserController.register',
     
+    'post /appdev-core/authTicket'  : 'appdev-core/SiteUserController.registerAuthTicket',
     
     //// Permissions
 

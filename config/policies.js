@@ -41,7 +41,8 @@ module.exports = {
 
     'appdev-core/SiteUserController' : {
         register: ['util'],
-        '*': authKeyStack
+        create: authKeyStack,
+        registerAuthTicket: authKeyStack
     },
     
     'appdev-core/PermissionController' : {

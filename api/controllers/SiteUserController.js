@@ -243,6 +243,54 @@ module.exports = {
                 return null;
             });
         }
+    },
+    
+    
+    // POST /appdev-core/authTicket
+    registerAuthTicket: function(req, res) {
+        var guid = req.param('guid');
+        var ticket = req.param('ticket');
+        
+        async.series([
+            function(next) {
+                SiteCookieAuth.destroy({ 
+                    or: [
+                        { guid: guid },
+                        { ticket: ticket }
+                    ]
+                })
+                .then(function() {
+                    next();
+                    return null;
+                })
+                .catch(function(err) {
+                    next(err);
+                    return null;
+                });
+            },
+            
+            function(next) {
+                SiteCookieAuth.create({
+                    guid: guid,
+                    ticket: ticket
+                })
+                .then(function() {
+                    next();
+                    return null;
+                })
+                .catch(function(err) {
+                    next(err);
+                    return null;
+                });
+            },
+            
+        ], function(err) {
+            if (err) {
+                res.AD.error(err);
+            } else {
+                res.AD.success({});
+            }
+        });
     }
     
 };
