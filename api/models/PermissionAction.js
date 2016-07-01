@@ -25,6 +25,13 @@ migrate:'alter',  // modify the tables
         roles:{
             collection:'PermissionRole',
             via:'actions'
+        },
+
+        // OPConfigTools can have many actions required
+        // and PermissionActions can be in many Tools.
+        tools:{
+            collection:'OPConfigTool',
+            via:'permissions'
         }
         
         
