@@ -46,7 +46,12 @@ module.exports = {
     },
     
     'appdev-core/PermissionController' : {
-        find: noLimitStack
+        find: noLimitStack,
+        create: authKeyStack
+    },
+    
+    'appdev-core/PermissionRoleController' : {
+        find: authKeyStack
     },
 
     'appdev-core/SiteMultilingualLanguage':{
