@@ -64,6 +64,21 @@ migrate:'alter',  // modify the tables
             return PermissionAction;
         }
 
+    },
+
+    afterCreate: function(record, cb) {
+        if (OPSPortal) ADCore.queue.publish(OPSPortal.Events.PERM_STALE, {action:record, verb:'created' });
+        cb();
+    },
+
+    afterUpdate: function(record, cb) {
+        if (OPSPortal) ADCore.queue.publish(OPSPortal.Events.PERM_STALE, {action:record, verb:'updated'});
+        cb();
+    },
+
+    afterDestroy: function(record, cb) {
+        if (OPSPortal) ADCore.queue.publish(OPSPortal.Events.PERM_STALE, {action:record, verb:'destroyed'});
+        cb();
     }
 };
 

@@ -59,12 +59,18 @@ migrate:'alter',  // modify the tables
 
     },
 
+    afterCreate: function(record, cb) {
+        if (OPSPortal) ADCore.queue.publish(OPSPortal.Events.PERM_STALE, {role:record, verb:'created' });
+        cb();
+    },
 
-    afterUpdate: function(updatedRole, cb) {
+
+    afterUpdate: function(record, cb) {
 
         // after a role is updated, make sure all users' permissions
         // get recalculated:
         ADCore.user.refreshSession("*"); // update all!
+        if (OPSPortal) ADCore.queue.publish(OPSPortal.Events.PERM_STALE, {role:record, verb:'updated' });
         cb();
     },
 
@@ -78,7 +84,8 @@ migrate:'alter',  // modify the tables
         // after a role is deleted, make sure all users' permissions
         // get recalculated:
         ADCore.user.refreshSession("*"); // update all!
-
+        if (OPSPortal) ADCore.queue.publish(OPSPortal.Events.PERM_STALE, {action:destroyedRecords, verb:'destroyed'});
+        
 
         // make sure their translations are removed
         Multilingual.model.removeTranslations({
