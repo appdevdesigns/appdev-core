@@ -57,6 +57,10 @@ steal('appdev/comm/hub.js',
                 }
             }
             
+            // Send cookies with CORS requests
+            opts.xhrFields = opts.xhrFields || {};
+            opts.xhrFields.withCredentials = true;
+            
             return AD.ui.jQuery.ajax(opts);
         };
 

@@ -36,7 +36,9 @@ module.exports = {
         authGoogle: passportStack,
         loginPost: passportStack,
         loginForm: passportStack,
-        authFail: true
+        authFail: true,
+        begin: sessionStack,
+        steal: true
     },
 
     'appdev-core/SiteUserController' : {
@@ -46,7 +48,12 @@ module.exports = {
     },
     
     'appdev-core/PermissionController' : {
-        find: noLimitStack
+        find: noLimitStack,
+        create: authKeyStack
+    },
+    
+    'appdev-core/PermissionRoleController' : {
+        find: authKeyStack
     },
 
     'appdev-core/SiteMultilingualLanguage':{
