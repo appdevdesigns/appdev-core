@@ -29,6 +29,7 @@ module.exports = {
     'post /site/user/register'      : 'appdev-core/SiteUserController.register',
     
     'post /appdev-core/authTicket'  : 'appdev-core/SiteUserController.registerAuthTicket',
+    'get /steal/steal.js'           : 'appdev-core/ADCoreController.steal',
     
     //// Permissions
 

@@ -31,6 +31,17 @@ module.exports = {
 
 
     /**
+     * GET /steal/steal.js
+     *
+     * Deliver a modified version of steal.js that supports cookies over CORS
+     * requests.
+     */
+    steal: function(req, res) {
+        res.sendfile('assets/appdev/steal-cors/steal.js');
+    },
+    
+    
+    /**
      * configData
      * returns the configuration data back to the requester as a javascript
      * code file.

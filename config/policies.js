@@ -36,7 +36,8 @@ module.exports = {
         authGoogle: passportStack,
         loginPost: passportStack,
         loginForm: passportStack,
-        authFail: true
+        authFail: true,
+        steal: true
     },
 
     'appdev-core/SiteUserController' : {
