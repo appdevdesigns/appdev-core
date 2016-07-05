@@ -37,6 +37,7 @@ module.exports = {
         loginPost: passportStack,
         loginForm: passportStack,
         authFail: true,
+        begin: sessionStack,
         steal: true
     },
 

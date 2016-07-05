@@ -29,7 +29,17 @@ module.exports = {
     _config: {},
 
 
-
+    /**
+     * GET /begin
+     *
+     * This route does nothing on its own, but is covered by the normal 
+     * authentication policies. Can be used to begin a user session.
+     */
+    begin: function(req, res) {
+        res.send('"OK"');
+    },
+    
+    
     /**
      * GET /steal/steal.js
      *

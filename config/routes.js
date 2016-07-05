@@ -20,6 +20,7 @@ module.exports = {
     'get /site/logout'              : 'appdev-core/ADCoreController.logout',
     'get /auth/google'              : 'appdev-core/ADCoreController.authGoogle',
     'get /auth/fail'                : 'appdev-core/ADCoreController.authFail',
+    'post /appdev-core/authTicket'  : 'appdev-core/SiteUserController.registerAuthTicket',
 
     
     //// User Operations
@@ -28,7 +29,8 @@ module.exports = {
     'post /site/user/changePassword': 'appdev-core/SiteUserController.changePW',
     'post /site/user/register'      : 'appdev-core/SiteUserController.register',
     
-    'post /appdev-core/authTicket'  : 'appdev-core/SiteUserController.registerAuthTicket',
+    
+    'get /begin'                    : 'appdev-core/ADCoreController.begin',
     'get /steal/steal.js'           : 'appdev-core/ADCoreController.steal',
     
     //// Permissions
