@@ -52,18 +52,29 @@ module.exports = {
     
     
     /**
-     * configData
+     * GET /appdev/config/data.js
+     *
      * returns the configuration data back to the requester as a javascript
      * code file.
      */
     configData: function(req, res) {
      // prepare proper content type headers
         res.setHeader('content-type', 'application/javascript');
-
+        
+        var settings = _.clone(sails.config.appdev);
+        
+        // Some settings should not be sent to the client side
+        var private = ['authKeys'];
+        for (var key in settings) {
+            if (private.indexOf(key) >= 0) {
+                delete settings[key];
+            }
+        }
+        
         // render this view with data
         return res.view({
-            settings:sails.config.appdev,
-            layout:false
+            settings: settings,
+            layout: false
         });
     },
 
