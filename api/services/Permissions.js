@@ -6,14 +6,26 @@
  *
  */
 var AD = require('ad-utils');
-
+var _ = require('lodash');
 
 var registeredRoutes = {
     // routeKey : [ actionKey1, [actionKey2, actionKey3], ... ]
 };
 
 
+var path = require('path');
+var Action = require(path.join(__dirname, 'permissions', 'action.js'));
+
 module.exports = {
+
+
+    /**
+     * Permissions.action
+     *
+     * a set of utilities for exposing the PermissionAction to external 
+     * applications.
+     */
+    action:Action,
 
 
     /**
@@ -129,6 +141,11 @@ module.exports = {
      *                                       resource ties to. 
      *                                       (usually 'guid', but you might instead 
      *                                       link to 'id', or 'username')
+     *          options.catchAll {string}    The user value that indicates 'any one can see'
+     *                                       (some entries might not care about scope and 
+     *                                        instead of a guid, they put this value, so
+     *                                        as long as you had the action permission, you
+     *                                        can work with this entry)
      *          options.resourcePKField {string} the name of the resource's pk field
      *                                       (usually 'id', but if not, specify it here.)
      *          options.error     {obj}      An object representing the error information 
@@ -143,6 +160,7 @@ module.exports = {
         options = _.merge({
             field:'userID',
             userField:'guid',
+            catchAll:'*',
             resourcePKField:'id',
             error:{ code: 403, message:'Not Permitted.' }
         }, options);
@@ -183,9 +201,15 @@ module.exports = {
                     .then(function(userList){
 
                         // push a new condition: { actionKey:key,  userID:[ guid1, guid2, ... guidN ]}
-                        // conditions.push({ actionKey:key, userID:_.pluck(userList, 'guid') })
+                        // conditions.push({ actionKey:key, userID:_.map(userList, 'guid') })
                         var cond = { actionKey: key };
-                        cond[options.field] = _.pluck(userList, options.userField);
+                        cond[options.field] = _.map(userList, options.userField);
+
+                        // and if we have a catchAll value, then add it here:
+                        if (options.catchAll) {
+                            cond[options.field].push(options.catchAll);
+                        }
+
                         conditions.push(cond);
 
                         numDone++;
@@ -208,7 +232,7 @@ module.exports = {
 
                 PARequest.find({ 'or': conditions })
                 .then(function(list) {
-                    validRequestIDs = _.pluck(list, options.resourcePKField);
+                    validRequestIDs = _.map(list, options.resourcePKField);
 console.log('... validRequestIDs:', validRequestIDs);
                     done();
                     return null;
@@ -230,7 +254,7 @@ console.log('... validRequestIDs:', validRequestIDs);
 
             req.options.where = req.options.where || {};
             req.options.where['or'] =  conditions;
-AD.log('... options:', req.options.where);
+// AD.log('... options:', req.options.where);
             next();
 
 //// Refactoring.  Old stuff down here:
@@ -335,7 +359,7 @@ console.log('... options:', req.options);
         })
         .then(function(validUsers){
 
-            var validIDs = _.pluck(validUsers, options.userField);
+            var validIDs = _.map(validUsers, options.userField);
 
             // was the request already specifying the specified .field?
             var allParams = req.params.all();

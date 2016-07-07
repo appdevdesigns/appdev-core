@@ -21,7 +21,7 @@
      * @codestart
      * AD.lang.list()
      * .then(function(list){
-     *     console.log(list);  // { 'en' : "English", "ko": "Korean", "zh-hans":"Chinese" }
+     *     console.log(list);  // { "en" : "English", "ko": "Korean", "zh-hans":"Chinese" }
      * })
      * @codeend
      * @return {deferred} 
@@ -289,6 +289,35 @@
         }
 
         return span;
+    };
+
+
+    var __lookups = {}; // hash of { context : {deferred} }
+    AD.lang.label.lookup = function(context) {
+
+        // make sure deferred exists
+        if (!__lookups[context]) {
+            var dfd = AD.sal.Deferred();
+
+            // tell jQuery to load the context:
+            AD.ui.jQuery.getScript('/site/labels/'+context+'.js')
+            .fail(function(err){
+                AD.error.log('AD.lang.label.lookup(): error loading labels for context ['+context+']', {error:err, context:context });
+                dfd.reject(err);
+            })
+            .done(function(){
+                
+                // .getScript()  isn't guaranteed to have executed the loaded .js
+                // before this is called, so push this back to give it 
+                // a chance to finish executing.
+                AD.sal.setImmediate(function(){  dfd.resolve(); });
+            });
+
+            __lookups[context] = dfd;
+        }
+
+        // return the deferred for this context
+        return __lookups[context];
     };
 
 

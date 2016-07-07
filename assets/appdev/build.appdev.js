@@ -47,15 +47,15 @@ module.exports = {
                 {
                     main: [
                         path.join('appdev', 'appdev'),
+                        'appdev/config/config',
+                        'appdev/config/data',
                         'appdev/comm/hub',
                         'appdev/error/log',
                         'appdev/util/uuid',
                         'appdev/util/async',
                         'appdev/util/string',
-                        'appdev/config/config',
                         'appdev/util/uiScrollbarSize',
 
-                        'appdev/config/data',
                         'appdev/model/model',
                         'appdev/labels/lang',
                         'appdev/labels/label',

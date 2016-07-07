@@ -41,6 +41,44 @@ if (typeof window.AD == 'undefined') {
         }
         return defObj;
     };
+    
+    
+    /**
+     * Wait for one or more global objects to be available before executing
+     * a callback.
+     *
+     * Dependencies will be checked once every 100ms.
+     *
+     * @param array/string dependency
+     *      Name[s] of the dependencies to wait for
+     * @param function callback
+     * @param integer [retries]
+     *      (Optional) How many times to check before giving up. Default is 50.
+     *      Set to -1 for unlimited retries.
+     */
+    AD.waitFor = function(dependency, callback, retries) {
+        if (typeof retries == 'undefined') {
+            retries = 50;
+        } else if (retries == 0) {
+            // No more retries left. Abort.
+            console.log('Too many retries waiting for:', dependency);
+            return;
+        }
+        if (!Array.isArray(dependency)) {
+            dependency = [dependency];
+        }
+        for (var i=0; i<dependency.length; i++) {
+            if (typeof window[dependency[i]] == 'undefined') {
+                //console.log('Retrying:', dependency);
+                retries -= 1;
+                setTimeout(function() {
+                    AD.waitFor(dependency, callback, retries);
+                }, 100);
+                return;
+            }
+        }
+        callback && callback();
+    };
 
 
     AD.ui.bootup = {};
@@ -187,20 +225,48 @@ if (typeof window.AD == 'undefined') {
 
         // BUILD FIX: typeof check prevents minification engine error.
         if (typeof document.querySelector != 'undefined'){
-        var el = document.querySelector(sel);
-        if (el) {
 
-            // insert our HTML progress bar html:
-            el.innerHTML = '<span class="app-progressbar-text"></span><div class="app-progressbar"><div class="app-progressbar-inner" ></div></div>';
+            var el;
 
-            AD.ui.loading._el = el;
+            //// 
+            //// Resolve sel to a DOM element
+            ////
 
-            var div = el.querySelector('.app-progressbar-inner');
-            if (div) {
-                div.style.width = "0%";
+            // if sel is a query selector (eg a string)
+            if( Object.prototype.toString.call(sel) == '[object String]' ) {
+               el = document.querySelector(sel);
+            } else {
+
+                if (sel) {
+
+                    // is sel a DOM object?
+                    if (sel.nodeName) {
+                        // sel must be a DOM object
+                        el = sel;
+                    }
+                }
             }
+            
+            // if el found
+            if (el) {
 
-        }
+                // insert our HTML progress bar html:
+                el.innerHTML = '<span class="app-progressbar-text"></span><div class="app-progressbar"><div class="app-progressbar-inner" ></div></div>';
+
+                AD.ui.loading._el = el;
+
+                var div = el.querySelector('.app-progressbar-inner');
+                if (div) {
+                    div.style.width = "0%";
+                }
+
+            } else {
+
+                // only warn if something was actually sent.  
+                if (sel) {
+                    console.error('!!! improper selector sent to AD.ui.loading', sel);
+                }
+            }
         }
 
     }

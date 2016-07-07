@@ -1,6 +1,37 @@
 (function() {
     var settings = <%- JSON.stringify( settings, null, 8).replace('\n}', '\n    }') %>;
+    
     for (var s in settings) {
         AD.config.setValue(s, settings[s]);
     }
+    
+    if (settings.siteBaseURL) {
+        
+        // socket.io base URL
+        window.io = window.io || {};
+        window.io.sails = window.io.sails || {};
+        window.io.sails.url = settings.siteBaseURL;
+        
+        // Steal.js base URL
+        if (typeof System != 'undefined') {
+            System.baseURL = settings.siteBaseURL;
+        }
+        
+        // CanJS ajax base URL
+        if (typeof can != 'undefined' && can.ajax) {
+            var original = can.ajax;
+            can.ajax = function(a, b) {
+                if (typeof a == 'string' && a[0] == '/') {
+                    a = settings.siteBaseURL + a;
+                }
+                else if (typeof a == 'object' && a.url && a.url[0] == '/') {
+                    a.url = settings.siteBaseURL + a.url;
+                }
+                return original(a, b);
+            };
+        }
+        
+        console.log('Base URL applied to canJS');
+    }
+    
 })();

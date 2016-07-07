@@ -13,6 +13,7 @@ if (typeof ADCore == 'object') {
     return;
 }
 
+var path  = require('path');
 var AD = require('ad-utils');
 var _ = require('lodash');
 
@@ -20,17 +21,17 @@ var passport = require('passport');
 var CasStrategy = require('passport-cas2').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var LocalStrategy = require('passport-local').Strategy;
+var CookieStrategy = require(path.join(__dirname, 'adcore',  'cookieAuth.js')).Strategy;
 
 passport.serializeUser(function(user, done) {
     done(null, user.GUID());
 });
 passport.deserializeUser(function(guid, done) {
-    var user = new User({ guid: guid });
-    user.ready()
+    User.init({ guid: guid })
     .fail(function(err){
         done(err);
     })
-    .done(function(){
+    .done(function(user){
         // Passport will insert the user object into `req`
         done(null, user);
     });
@@ -42,7 +43,6 @@ var passportSession = passport.session();
 
 
 // import local files
-var path  = require('path');
 var Comm  = require(path.join(__dirname, 'adcore', 'comm.js'));
 var Queue = require(path.join(__dirname, 'adcore', 'queue.js'));
 
@@ -56,6 +56,7 @@ module.exports = {
         local: {},  // assigned during ADCore.auth.init()
         cas: {},    // assigned during ADCore.auth.init()
         google: {}, // assigned during ADCore.auth.init()
+        cookieAuth: {}, // assigned during ADCore.auth.init()
 
         /**
          * @function ADCore.auth.init()
@@ -89,6 +90,22 @@ module.exports = {
                 }
             );
             passport.use(this.local);
+            
+            // Cookie auth
+            this.cookieAuth = new CookieStrategy(
+                // The `verify` callback
+                function(guid, done) {
+                    User.init({ guid: guid })
+                    .fail(function(err){
+                        done(err);
+                    })
+                    .then(function(user){
+                        // Passport will insert the user object into `req`
+                        done(null, user);
+                    });
+                }
+            );
+            passport.use(this.cookieAuth);
            
             // CAS
             if (sails.config.cas) {
@@ -185,6 +202,14 @@ module.exports = {
                 dfd.reject( new Error('testUser is not allowed in production site.'));
                 return dfd;
             }
+        },
+        
+        
+        // Manually load a user identity.
+        // (This bypasses authentication. For admin use only.)
+        loadUserByGUID: function(guid) {
+            var dfd = User.init({ guid: guid });
+            return dfd;
         }
 
     },
@@ -520,6 +545,7 @@ module.exports = {
                 'util',
                 passportInitialize, // defined at the top
                 passportSession,    // defined at the top
+                'cookieAuth', 
                 'sessionAuth', 
                 'initSession',
                 'noTimestamp', 
@@ -962,7 +988,7 @@ if (_this.userModel == null) {
             //     var perm = listPermissions[i];
             //     listRoleIDs.push(perm.role);
             // };
-            var listRoleIDs = _.pluck(listPermissions, 'role');
+            var listRoleIDs = _.map(listPermissions, 'role');
 
             PermissionRole.find({ id: listRoleIDs })
             .populate('actions')
@@ -1080,7 +1106,7 @@ var Translate = function(opt) {
 
             var keys = _.keys(trans);
             keys.forEach(function(f) { 
-                if ( !_.contains(ignoreFields, f)) {
+                if ( !_.includes(ignoreFields, f)) {
                     opt.model[f] = trans[f];
                 }
             });

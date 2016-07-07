@@ -1,0 +1,25 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=utf-8"
+"Content-Transfer-Encoding: 8bit"
+
+#. #########################################
+#. Labels for context: appdev
+#. Source language: en
+#. Target language: th
+#. #########################################
+
+
+
+#. path: appdev
+#. code: th
+#. key: permission.action.description
+msgid "description"
+msgstr "[th]description"
+
+#. path: appdev
+#. code: th
+#. key: permission.new.action
+msgid "New Action"
+msgstr "[th]New Action"
+

@@ -8,7 +8,7 @@
 
 module.exports = {
 
-    'get /site/config/data.js'      : 'appdev-core/ADCoreController.configData',
+    'get /appdev/config/data.js'    : 'appdev-core/ADCoreController.configData',
     'get /site/labels/:context'     : 'appdev-core/ADCoreController.labelConfigFile',
     'get /site/labels/:context/*'   : 'appdev-core/ADCoreController.labelConfigFile',
     
@@ -20,6 +20,7 @@ module.exports = {
     'get /site/logout'              : 'appdev-core/ADCoreController.logout',
     'get /auth/google'              : 'appdev-core/ADCoreController.authGoogle',
     'get /auth/fail'                : 'appdev-core/ADCoreController.authFail',
+    'post /appdev-core/authTicket'  : 'appdev-core/SiteUserController.registerAuthTicket',
 
     
     //// User Operations
@@ -28,6 +29,9 @@ module.exports = {
     'post /site/user/changePassword': 'appdev-core/SiteUserController.changePW',
     'post /site/user/register'      : 'appdev-core/SiteUserController.register',
     
+    
+    'get /begin'                    : 'appdev-core/ADCoreController.begin',
+    'get /steal/steal.js'           : 'appdev-core/ADCoreController.steal',
     
     //// Permissions
 

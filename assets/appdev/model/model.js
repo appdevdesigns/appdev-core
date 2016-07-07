@@ -27,6 +27,15 @@ steal(
     'appdev/labels/lang.js',
     function () {
         System.import('can').then(function () {
+
+
+            var __modelsReadyBase = {}; // hash of the Base models that have been created
+                                        // format:  { "modelName": deferred }
+
+            var __modelsReady = {};     // hash of the models that have been created
+                                        // format:  { "modelName": deferred }
+
+
             /**
              * @class AD.Model
              * @parent AD_Client
@@ -98,11 +107,31 @@ steal(
                             // now let's create our base Model:
                             curr[modelName] = can.Model.extend(staticDef, instanceDef);
                             // can.extend(curr[modelName].prototype, can.event); 
+
+
+                            // // register this model as being loaded:
+                            // var dfdReady = AD.Model.Base.ready(name);
+                            // dfdReady.resolve();
+
                         },
+
 
                         get: function (name) {
 
                             return findObject(AD.models_base, name);
+                        },
+
+
+                        ready: function(name) {
+
+                            // create a deferred for this model if it doesn't 
+                            // already exist
+                            if (!__modelsReadyBase[name]) { 
+                                __modelsReadyBase[name] = AD.sal.Deferred();
+                            }
+
+                            // return the deferred
+                            return __modelsReadyBase[name];
                         }
                     },
 
@@ -253,6 +282,10 @@ steal(
 
                             modelUpdate(name, data);
                         });
+
+
+                        var dfdReady = AD.Model.ready(name);
+                        dfdReady.resolve();
                     },
 
 
@@ -270,6 +303,30 @@ steal(
                     get: function (name) {
 
                         return findObject(AD.models, name);
+                    },
+
+
+
+                    /**
+                     * @function ready
+                     * Return a deferred that indicates when the provided Model
+                     * has been created. 
+                     * 
+                     * @param {string} name      The name of the Model.  The
+                     *        name can be namespaced like so: 'application.tool.Resource'.
+                     *
+                     * @return {Deferred}  
+                     */
+                    ready: function(name) {
+
+                        // create a deferred for this model if it doesn't 
+                        // already exist
+                        if (!__modelsReady[name]) { 
+                            __modelsReady[name] = AD.sal.Deferred();
+                        }
+
+                        // return the deferred
+                        return __modelsReady[name];
                     }
                 };
             }
@@ -462,62 +519,74 @@ steal(
                             // make sure any multilingual data ends up in a translations[]
                             attr = multilingualTransform(attr, this);
 
-                            //// TODO: attr = multilingualCopy(attr, this);  // for copying additional language entries
+                            // copy the current multilingual entry into the other languages
+                            // NOTE: this is asynchronous
+                            multilingualCopy(attr, this)
+                            .fail(function(err) {
+                                AD.error.log('Error trying to extend multilingual languages to additional languages', {error:err, attr:attr });
+                                if (cbErr) cbErr(err);
+                                dfd.reject(err);
+                            })
+                            .then(function(){
 
-                            AD.comm.service[verb]({ url: uri, params: attr })
-                                .fail(function (err) {
-                                    if (cbErr) cbErr(err);
-                                    dfd.reject(err);
-                                })
-                                .done(function (data) {
-                                    data = data.data || data;
+                            
 
-                                    // if this is a Multilingual Model, then perform an additional findOne() on 
-                                    // the returned data, so we have a complete model reference returned:
-                                    if (_this.multilingualFields) {
+                                AD.comm.service[verb]({ url: uri, params: attr })
+                                    .fail(function (err) {
+                                        if (cbErr) cbErr(err);
+                                        dfd.reject(err);
+                                    })
+                                    .done(function (data) {
+                                        data = data.data || data;
 
-                                        if (data[_this.fieldId]) {
-                                            var opts = {};
-                                            opts[_this.fieldId] = data[_this.fieldId];
+                                        // if this is a Multilingual Model, then perform an additional findOne() on 
+                                        // the returned data, so we have a complete model reference returned:
+                                        if (_this.multilingualFields) {
 
-                                            // perform the .findOne() 
-                                            _this.findOne(opts)
-                                            .fail(function(err){
-                                                dfd.reject(err);
-                                            })
-                                            .then(function(fullData){
-                                                fullData = fullData.data || fullData;
-                                                if (cbSuccess) cbSuccess(fullData);
-                                                dfd.resolve(fullData);
-                                            })
+                                            if (data[_this.fieldId]) {
+                                                var opts = {};
+                                                opts[_this.fieldId] = data[_this.fieldId];
 
+                                                // perform the .findOne() 
+                                                _this.findOne(opts)
+                                                .fail(function(err){
+                                                    dfd.reject(err);
+                                                })
+                                                .then(function(fullData){
+                                                    fullData = fullData.data || fullData;
+                                                    if (cbSuccess) cbSuccess(fullData);
+                                                    dfd.resolve(fullData);
+                                                })
+
+
+                                            } else {
+
+                                                // no id field was returned!  
+                                                // This doesn't seem correct:  let's log this but not fail
+                                                var msg = 'Model.create() returned data that didn\'t have the Models fieldId ('+_this.fieldId+')';
+                                                var err = new Error(msg); // should get a stack trace
+
+                                                AD.error.log(msg, {
+                                                    error: err,
+                                                    fieldID:_this.fieldId,
+                                                    returnedData:data
+                                                });  
+
+                                                // continue on
+                                                if (cbSuccess) cbSuccess(data);
+                                                dfd.resolve(data);
+                                            }
 
                                         } else {
 
-                                            // no id field was returned!  
-                                            // This doesn't seem correct:  let's log this but not fail
-                                            var msg = 'Model.create() returned data that didn\'t have the Models fieldId ('+_this.fieldId+')';
-                                            var err = new Error(msg); // should get a stack trace
-
-                                            AD.error.log(msg, {
-                                                error: err,
-                                                fieldID:_this.fieldId,
-                                                returnedData:data
-                                            });  
-
-                                            // continue on
                                             if (cbSuccess) cbSuccess(data);
                                             dfd.resolve(data);
                                         }
 
-                                    } else {
+                                        
+                                    })
 
-                                        if (cbSuccess) cbSuccess(data);
-                                        dfd.resolve(data);
-                                    }
-
-                                    
-                                })
+                                });
 
                             return dfd;
                         }
@@ -752,6 +821,106 @@ steal(
 
             }
 
+
+            var multilingualCopy = function (attr, Model) {
+
+                // extend the current language entry to include the remaining 
+                // defined languages
+
+                var dfd = AD.sal.Deferred();
+
+
+                // if this is a multilingual Model:
+                var fields = Model.multilingualFields;
+                if (fields) {
+
+
+                    // get the current language entry
+                    var xlations = attr.translations;
+                    if ((xlations) && (xlations[0])) {
+
+                        // make sure we get the default language
+                        var currentLanguage = xlations[0];
+                        if (attr.language_code) {
+                            xlations.forEach(function(trans){
+                                if (trans.language_code == attr.language_code) {
+                                    currentLanguage = trans;
+                                }
+                            })
+                        }
+                        
+                        // get the list of languages
+                        // Note: possibly asynchronous
+                        AD.lang.list()
+                        .fail(function(err){
+                            dfd.reject(err);
+                        })
+                        .then(function(languageHash){
+                            // languageHash:  { "en" : "English", "ko": "Korean", "zh-hans":"Chinese" }
+
+                            var modelFields = Model.describe();
+                            var textTypes = ['string', 'text'];
+
+                            // foreach language 
+                            for(var langCode in languageHash) {
+                        
+                                var inThere = false;
+                                xlations.forEach(function(trans){
+                                    if (trans.language_code == langCode){
+                                        inThere = true;
+                                    }
+                                })
+
+                                // if not the current entry
+                                // if (langCode != currentLanguage.language_code) {
+                                    
+                                // if this language is not in the current translation list
+                                if (!inThere) {
+                                    var entry = {};
+                                    entry.language_code = langCode;
+
+                                    // copy current entry with language key
+                                    fields.forEach(function (field) {
+                                        if (currentLanguage[field]) {
+
+                                            // if this field is a text type:
+                                            if (textTypes.indexOf(modelFields[field]) != -1) {
+                                                entry[field] = '['+langCode+']'+currentLanguage[field];
+                                            } else {
+
+                                                // otherwise, just copy the value
+                                                entry[field] = currentLanguage[field];
+                                            }
+                                        }
+                                    })
+
+                                    attr.translations.push(entry);
+                                }
+                            }
+
+                            dfd.resolve(attr);
+
+                        });
+
+
+
+
+                    } else {
+
+                        // what to do here???
+                        // no translations given, so I guess just move along?
+                        dfd.resolve(attr);
+
+                    }
+
+
+                } else {
+                    dfd.resolve(attr);
+                }
+
+
+                return dfd;
+            }
 
 
             var multilingualCurrentLangOnly = function (attr, Model) {

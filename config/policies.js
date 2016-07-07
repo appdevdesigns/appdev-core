@@ -15,6 +15,8 @@ var path = require('path');
 var sessionStack = ADCore.policy.serviceStack();    // better to use this one with Sails Blueprints
 var passportStack = ADCore.policy.passportStack();
 
+var authKeyStack = ['authKey'].concat(sessionStack);
+
 function noLimit(req, res, next) {
     req.options.limit = 1000000;
     next();
@@ -34,15 +36,24 @@ module.exports = {
         authGoogle: passportStack,
         loginPost: passportStack,
         loginForm: passportStack,
-        authFail: true
+        authFail: true,
+        begin: sessionStack,
+        steal: true
     },
 
     'appdev-core/SiteUserController' : {
-        register: ['util']
+        register: ['util'],
+        create: authKeyStack,
+        registerAuthTicket: authKeyStack
     },
     
     'appdev-core/PermissionController' : {
-        find: noLimitStack
+        find: noLimitStack,
+        create: authKeyStack
+    },
+    
+    'appdev-core/PermissionRoleController' : {
+        find: authKeyStack
     },
 
     'appdev-core/SiteMultilingualLanguage':{

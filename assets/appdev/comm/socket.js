@@ -329,7 +329,7 @@ steal('appdev/ad.js',
 
                 // if we are currently in process of authenticating, then
                 // queue request
-                if (AD.ui.reauth.inProgress()) {
+                if (AD.ui.reauth.inProgress() || !AD.comm.isServerReady()) {
 
                     AD.comm.pending.add(context(options, cb, dfd));
                     return dfd;

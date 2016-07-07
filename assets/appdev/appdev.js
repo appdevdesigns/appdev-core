@@ -15,11 +15,12 @@ function loadCanJsFiles() {
     steal.import('can',
         'can/view/ejs/ejs',
         'can/view/ejs/system',
-        'can/construct/super/super').then(
+        'can/construct/super/super'
+        ).then(
             function () {
                 resolveConflictJquery();
             }
-            );
+        );
 }
 
 function resolveConflictJquery() {
@@ -40,15 +41,16 @@ function resolveConflictJquery() {
 
 function loadAppdevJsFiles() {
     steal.import(
+        'appdev/config/config',
+        'appdev/config/data',
+        
         'appdev/comm/hub',
         'appdev/error/log',
         'appdev/util/uuid',
         'appdev/util/async',
         'appdev/util/string',
-        'appdev/config/config',
         'appdev/util/uiScrollbarSize',
 
-        'appdev/config/data',
         'appdev/model/model',
         'appdev/labels/lang',
         'appdev/labels/label',
@@ -61,7 +63,9 @@ function loadAppdevJsFiles() {
         'appdev/UIController',
         'appdev/control/control',
 
-        'site/labels/appdev').then(
+        'site/labels/appdev'
+
+        ).then(
             function () {
 
                 AD.ui.loading.completed(18);

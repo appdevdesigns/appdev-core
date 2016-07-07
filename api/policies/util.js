@@ -71,6 +71,11 @@ module.exports = function(req, res, next) {
     req.AD.socketID = function() {
         return ADCore.socket.id(req);
     };
+
+    // User
+    req.AD.user = function() {
+        return ADCore.user.current(req);
+    }
     
     
     //// Auth

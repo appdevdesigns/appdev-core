@@ -67,6 +67,41 @@ module.exports = {
 
 
 
+        /** 
+         * @function Multilingual.languages.hash()
+         * 
+         * return a hash of { language_code: language_label } of all 
+         * languages in the sytem.
+         * 
+         * @return {deferred}
+         */
+        hash:function() {
+            var dfd = AD.sal.Deferred();
+
+            var hash = {};
+
+            Multilingual.languages.all()
+            .then(function(list){
+
+                if ((list) && (list.length>0)) {
+                    list.forEach(function(lang){
+                        hash[lang.language_code] = lang.language_label;
+                    })
+                    
+                }
+                dfd.resolve(hash); 
+
+            })
+            .fail(function(err){
+                ADCore.error.log('Error looking up Multilingual.languages.all():',{ error: err });
+                dfd.reject(err);
+            })
+
+            return dfd;
+        },
+
+
+
         /**
          * @function Multilingual.languages.default()
          *
@@ -191,7 +226,8 @@ module.exports = {
                     var languageCode = data.language_code || Multilingual.languages.default();
                     
                     var transactions = [];
-                    var ignoreFields = [ 'id', 'createdAt', 'updatedAt'];
+                    var ignoreFields =  modelMultilingualIgnoredFields(Model); 
+                    var nonTextFields = modelMultilingualNonTextFields(Model);
 
 
                     // for each language in our system:
@@ -208,6 +244,7 @@ module.exports = {
 
                                 // if this is the same language as the provided language data
                                 if ((lang.language_code == languageCode)
+                                    || (nonTextFields.indexOf(f) != -1)
                                     || (f == 'language_code')) {
                                     givenTransData[f] = data[f];
                                 } else {
@@ -215,6 +252,7 @@ module.exports = {
                                     // so this means we are using the language of another language
                                     // for the current language, so we add on a '[langCode]' tag.
                                     givenTransData[f] = '['+lang.language_code+']' + data[f];
+                                    
                                 }
                             }
                         });
@@ -302,7 +340,7 @@ module.exports = {
 
             
             // pluck all the primary keys from our given records
-            var listIDs = _.pluck(data, pk);
+            var listIDs = _.map(data, pk);
 
 
             // find out the remote fk for our reference:
@@ -335,6 +373,37 @@ module.exports = {
 
             return dfd;
 
+        },
+
+
+        /**
+         * @function Multilingual.model.summary(model)
+         *
+         * return a json representation of the model attributes (including the 
+         * translation data).
+         *
+         * 
+         *
+         * @param {obj}  model  the model you want to decode
+         * @return {json} 
+         */
+        summary:function(model) {
+            var data = {};
+
+            var Model = model;
+            if (Model._Klass) {
+                Model = Model._Klass();
+            }
+
+            data.pk = getModelPK(Model);
+            data.fields = modelAttributes({Model:Model});
+            data.modelKey = Model.attributes.translations.via;
+
+            data.transModelKey = getTransModelKey(Model);
+            data.transFields = modelMultilingualFields({Model:Model});
+
+
+            return data;
         },
 
 
@@ -708,6 +777,8 @@ var getModelPK = function(Model) {
 }
 
 
+
+
 /*
  * @function getTransFields
  *
@@ -746,9 +817,19 @@ var getTransFields = function(Model) {
 
 
 
-
 //// TODO: refactor to remove getTransFields() and 
 //// replace with modelMultilingualFields()
+/*
+ * @function modelMultilingualFields
+ *
+ * Find the all Translation fields for a given Model. 
+ *
+ * Note: we don't return the fields that we shouldn't manage: 
+ *      => id, createdAt, updatedAt, and the foriegnKey
+ *
+ * @param {obj} Model  A Multilingual Model Object (the Data Model)
+ * @return {array}  if the translation Model was found, null otherwise
+ */
 function modelMultilingualFields (options) {
     var fields = [];
 
@@ -762,9 +843,7 @@ function modelMultilingualFields (options) {
 
         var attributes = ModelTrans.attributes;
 
-        var ignoreFields = ['id', 'createdAt', 'updatedAt' ];
-        ignoreFields.push(Model.attributes.translations.via);
-
+        var ignoreFields = modelMultilingualIgnoredFields(Model);
         
         _.forOwn(attributes, function(value, key){
 
@@ -779,6 +858,100 @@ function modelMultilingualFields (options) {
 
 
 
+function modelMultilingualIgnoredFields(Model) {
+
+    var ignoreFields = ['id', 'createdAt', 'updatedAt' ];
+
+    // Error Check
+    // did we receive a model object?
+    if(!Model) {
+        AD.log.error(new Error('Model object not provided!'));
+        return ignoreFields;
+    }
+
+
+    // Error Check 1
+    // if they sent us an instance of a Multilingual Model, then just
+    // get the Data Model class from that.
+    if (Model._Klass) {
+        Model = Model._Klass();
+    }
+
+
+    // Error Check 2
+    // if Model doesn't have an attributes.translations definition 
+    // then this isn't a Multilingual Model =>  error
+    if (!Model.attributes.translations) {
+        AD.error.log(new Error('given model doesn\'t seem to be multilingual.', {model:Model}));
+        return ignoreFields;
+    } 
+
+    
+    ignoreFields.push(Model.attributes.translations.via);
+
+    return ignoreFields;
+}
+
+
+
+function modelMultilingualNonTextFields(Model) {
+    // return the fields on the Trans Model that are NOT text fields
+
+    
+    var fields = [];
+
+    // Error Check
+    // did we receive a model object?
+    if(!Model) {
+        AD.log.error(new Error('Model object not provided!'));
+        return fields;
+    }
+
+
+    // Error Check 1
+    // if they sent us an instance of a Multilingual Model, then just
+    // get the Data Model class from that.
+    if (Model._Klass) {
+        Model = Model._Klass();
+    }
+
+
+    // Error Check 2
+    // if Model doesn't have an attributes.translations definition 
+    // then this isn't a Multilingual Model =>  error
+    if (!Model.attributes.translations) {
+        AD.error.log(new Error('given model doesn\'t seem to be multilingual.', {model:Model}));
+        return fields;
+    } 
+
+    var ModelTrans = getTransModel(Model);
+    if (ModelTrans) {
+
+
+        var attributes = ModelTrans.attributes;
+
+        var ignoreFields = modelMultilingualIgnoredFields(Model);  
+
+        var textTypes = ['string', 'text', 'mediumtext', 'longtext'];
+        _.forOwn(attributes, function(value, key){
+
+            if (ignoreFields.indexOf(key) == -1) {
+
+                if (value.type) {
+
+                    if (textTypes.indexOf(value.type) == -1) {
+                        fields.push(key);
+                    }
+                }
+                
+            }
+        })
+    }
+
+    return fields;
+}
+
+
 /*
  * @function getTransModel
  *
@@ -787,8 +960,7 @@ function modelMultilingualFields (options) {
  * @param {obj} Model  A Multilingual Model Object
  * @return {obj}  if the translation Model was found, null otherwise
  */
-var getTransModel = function(Model) {
-
+ var getTransModelKey = function(Model) {
     // Error Check
     // did we receive a model object?
     if(!Model) {
@@ -817,17 +989,56 @@ var getTransModel = function(Model) {
     // now go about the business of getting the Translation Model:
 
     // get the name of our TranslationModel
-    var nameTransModel = Model.attributes.translations.collection.toLowerCase();
+    return Model.attributes.translations.collection.toLowerCase();
+ }
 
-    // get that model from sails.models
-    if (!sails.models[nameTransModel]) {
 
-        AD.log.error(new Error('translation model ['+nameTransModel+'] not found.'));
-        return null;
+var getTransModel = function(Model) {
 
+    // // Error Check
+    // // did we receive a model object?
+    // if(!Model) {
+    //     AD.log.error(new Error('Model object not provided!'));
+    //     return null;
+    // }
+
+
+    // // Error Check 1
+    // // if they sent us an instance of a Multilingual Model, then just
+    // // get the Data Model class from that.
+    // if (Model._Klass) {
+    //     Model = Model._Klass();
+    // }
+
+
+    // // Error Check 2
+    // // if Model doesn't have an attributes.translations definition 
+    // // then this isn't a Multilingual Model =>  error
+    // if (!Model.attributes.translations) {
+    //     AD.log.error(new Error('given model doesn\'t seem to be multilingual.'));
+    //     return null;
+    // } 
+
+
+    // now go about the business of getting the Translation Model:
+
+    // get the name of our TranslationModel
+    var nameTransModel = getTransModelKey(Model);  // Model.attributes.translations.collection.toLowerCase();
+    if (nameTransModel) {
+
+        // get that model from sails.models
+        if (!sails.models[nameTransModel]) {
+
+            AD.log.error(new Error('translation model ['+nameTransModel+'] not found.'));
+            return null;
+
+        } else {
+
+            return sails.models[nameTransModel];
+        }
     } else {
 
-        return sails.models[nameTransModel];
+        return null; 
     }
 
 }

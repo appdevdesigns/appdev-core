@@ -45,7 +45,23 @@ steal('appdev/comm/hub.js',
          */
         AD.sal.http = function (options) {
             // return $.ajax(options);
-            return AD.ui.jQuery.ajax(options);
+            
+            // Clone the options to avoid modifying the original
+            var opts = {};
+            AD.ui.jQuery.extend(opts, options);
+            
+            if (AD.config && AD.config.getValue) {
+                var baseURL = AD.config.getValue('siteBaseURL');
+                if (baseURL && opts.url && opts.url[0] == '/') {
+                    opts.url = baseURL + opts.url;
+                }
+            }
+            
+            // Send cookies with CORS requests
+            opts.xhrFields = opts.xhrFields || {};
+            opts.xhrFields.withCredentials = true;
+            
+            return AD.ui.jQuery.ajax(opts);
         };
 
 

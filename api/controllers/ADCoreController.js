@@ -29,20 +29,52 @@ module.exports = {
     _config: {},
 
 
-
     /**
-     * configData
+     * GET /begin
+     *
+     * This route does nothing on its own, but is covered by the normal 
+     * authentication policies. Can be used to begin a user session.
+     */
+    begin: function(req, res) {
+        res.send('"OK"');
+    },
+    
+    
+    /**
+     * GET /steal/steal.js
+     *
+     * Deliver a modified version of steal.js that supports cookies over CORS
+     * requests.
+     */
+    steal: function(req, res) {
+        res.sendfile('assets/appdev/steal-cors/steal.js');
+    },
+    
+    
+    /**
+     * GET /appdev/config/data.js
+     *
      * returns the configuration data back to the requester as a javascript
      * code file.
      */
     configData: function(req, res) {
      // prepare proper content type headers
         res.setHeader('content-type', 'application/javascript');
-
+        
+        var settings = _.clone(sails.config.appdev);
+        
+        // Some settings should not be sent to the client side
+        var private = ['authKeys'];
+        for (var key in settings) {
+            if (private.indexOf(key) >= 0) {
+                delete settings[key];
+            }
+        }
+        
         // render this view with data
         return res.view({
-            settings:sails.config.appdev,
-            layout:false
+            settings: settings,
+            layout: false
         });
     },
 
@@ -111,7 +143,7 @@ module.exports = {
 
             // NOTE: sails.config.appdev.localLoginView is verified
             //       in appdev-core/config/bootstrap.js
-            res.view(sails.config.appdev.localLoginView, { 
+            res.view(sails.config.appdev.localAuth.localLoginView, { 
                 authErrMessage: authErrMessage,
                 canRegister: canRegister
             });
@@ -246,7 +278,7 @@ module.exports = {
             }
         }
         
-        res.view();
+        res.view(sails.config.appdev.localAuth.localLogoutView, {});
         
     },
     

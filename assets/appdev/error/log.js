@@ -30,9 +30,6 @@ steal('appdev/ad.js',
 
         AD.error.log = function (message, data) {
 
-            console.error(message, data);
-
-
             //// TODO: would be great to have some site config settings for 
             ////    - useWebix: {bool}    true: dump message to webix.message();
             ////    - webixTimeout: {int} expire value in ms

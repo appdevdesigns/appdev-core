@@ -1,3 +1,6 @@
+// Under normal circumstances, this file should never get loaded. Instead,
+// the server will run appdev-core/ADCoreController.js configData().
+
 steal(
     'appdev/config/config.js',
     function () {
