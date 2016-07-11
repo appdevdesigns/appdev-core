@@ -30,6 +30,7 @@ module.exports = {
     "meta": {
         "can": {
             "deps": [
+                "appdev/config/data",
                 'can/util/can',
                 'can/util/attr/attr',
                 'can/event/event',
@@ -119,6 +120,12 @@ module.exports = {
             "deps": [
                 'js/dependencies/sails.io',
                 'appdev/config/data',
+            ]
+        },
+        "appdev/config/config": {
+            "deps": [
+                "js/dependencies/sails.io",
+                "appdev/ad"
             ]
         },
         'appdev/config/data': {
