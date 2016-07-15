@@ -55,6 +55,10 @@ module.exports = {
     'appdev-core/PermissionRoleController' : {
         find: authKeyStack
     },
+    
+    'appdev-core/PermissionScopeController' : {
+        find: authKeyStack
+    },
 
     'appdev-core/SiteMultilingualLanguage':{
         find:sessionStack,
