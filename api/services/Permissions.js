@@ -69,7 +69,8 @@ module.exports = {
 
                 var perm = list.shift();
 
-                if (user.hasPermission( perm )) {
+                // '*'  : means anyone can access.  Some routes are open to anyone.
+                if ((perm == '*') || (user.hasPermission( perm ))) {
                     return hasAll( list );
                 } else {
                     return false;
@@ -111,7 +112,7 @@ module.exports = {
         }
 
         
-        // if we got here, we did not find any permissions for this route. 
+        // if we got here, we did not find any permissions requried for this route. 
         // so continue.
         // AD.log('<yellow>    -> no permissions registered for this reqPath</yellow>');
         next();
