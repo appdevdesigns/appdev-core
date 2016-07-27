@@ -257,6 +257,7 @@ module.exports = {
 
     /**
      * /site/logout
+     * Ends the session for the current user.
      *
      * This route should be exempt from the 'sessionAuth' policy
      */
@@ -280,6 +281,27 @@ module.exports = {
         
         res.view(sails.config.appdev.localAuth.localLogoutView, {});
         
+    },
+    
+    
+    
+    /**
+     * POST /appdev-core/logoutGUID
+     * { "guid": "my_guid_string" }
+     * 
+     * Ends all sessions of a given user
+     */
+    logoutGUID: function (req, res) {
+        var json = JSON.stringify({ user: req.param('guid') });
+        var pattern = '%"passport":'+ json +'%';
+        
+        SiteUser.query(" \
+            DELETE FROM `sessions` \
+            WHERE `data` LIKE ? \
+        ", [pattern], function(err) {
+            if (err) res.AD.error(err);
+            else res.AD.success({});
+        });
     },
     
     
