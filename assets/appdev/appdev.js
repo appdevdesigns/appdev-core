@@ -41,6 +41,7 @@ function resolveConflictJquery() {
 
 function loadAppdevJsFiles() {
     steal.import(
+        'appdev/sal/web-jquery',
         'appdev/config/config',
         'appdev/config/data',
         
