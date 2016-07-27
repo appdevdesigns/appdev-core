@@ -25,6 +25,7 @@ steal(
     'appdev/comm/hub.js',
     'appdev/comm/socket.js',
     'appdev/labels/lang.js',
+    'appdev/sal/web-jquery.js',
     function () {
         System.import('can').then(function () {
 

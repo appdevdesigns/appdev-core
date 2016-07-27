@@ -18,7 +18,9 @@
 *
 */
 
-steal('appdev/comm/hub.js',
+steal(
+    'jquery',
+    'appdev/comm/hub.js',
     function () {
 
         /**
@@ -34,7 +36,12 @@ steal('appdev/comm/hub.js',
          * return a deferred or a promise.
          */
         AD.sal.Deferred = function () {
-            return AD.ui.jQuery.Deferred();
+            if (AD.ui.jQuery) {
+                return AD.ui.jQuery.Deferred();
+            } else {
+                return $.Deferred();
+            }
+
         };
 
 
