@@ -8,7 +8,7 @@
 
 var crypto = require('crypto');
 var AD = require('ad-utils');
-
+var _  = require('lodash');
 
 module.exports = {
 
@@ -297,7 +297,7 @@ module.exports = {
     
     afterCreate: function(newlyInsertedRecord, next) {
 
-        var safeData = newlyInsertedRecord;
+        var safeData = _.clone(newlyInsertedRecord);
         delete safeData.password;
         delete safeData.salt;
         ADCore.queue.publish('siteuser.created', { user: safeData });
@@ -333,7 +333,7 @@ module.exports = {
 
     afterUpdate: function(updatedRecord, next) {
 
-        var safeData = updatedRecord;
+        var safeData = _.clone(updatedRecord);
         delete safeData.password;
         delete safeData.salt;
         ADCore.queue.publish('siteuser.updated', { user: safeData });
@@ -363,9 +363,13 @@ module.exports = {
 
     afterDestroy: function(destroyedRecords, next) {
 
-        var safeData = destroyedRecords;
-        // delete safeData.password;
-        // delete safeData.salt;
+        var safeData = [];
+        destroyedRecords.forEach(function(rec){
+            var r = _.clone(rec);
+            delete r.password;
+            delete r.salt;
+            safeData.push(r);
+        });
         ADCore.queue.publish('siteuser.destroyed', { user: safeData });
         next();
     }

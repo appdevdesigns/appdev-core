@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "action_key": "adcore.admin",
+    "createdAt": "2015-05-19 15:37:39",
+    "updatedAt": "2015-05-20 15:06:44"
+  },   
+  {
+    "id": 2,
+    "action_key": "adcore.developer",
+    "createdAt": "2015-05-19 15:37:39",
+    "updatedAt": "2015-05-20 15:06:44"
+  },  
+  {
+    "id": 3,
+    "action_key": "opsportal.view",
+    "createdAt": "2015-05-19 15:37:39",
+    "updatedAt": "2015-05-20 15:06:44"
+  },
+  {
+    "id": 4,
+    "action_key": "opsportal.rbac.view",
+    "createdAt": "2015-05-19 15:37:39",
+    "updatedAt": "2015-05-20 15:06:44"
+  }
+]

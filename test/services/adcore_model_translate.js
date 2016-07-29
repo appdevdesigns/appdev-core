@@ -3,7 +3,6 @@ var AD = require('ad-utils');
 var async = require('async');
 
 
-var sailsObj;
 var role;
 var user;
 
@@ -18,26 +17,10 @@ describe('ADCore.model.translate tests', function(){
 
     before(function(done){
 
-        this.timeout(60000);
+        oldLangDefault = sails.config.appdev['lang.default'];
+        sails.config.appdev['lang.default'] = 'en';
        
         async.series([
-
-            // load Sails
-            function(next) {
-
-                AD.test.sails.load()
-                .fail(function(err){
-                    AD.log.error('error loading sails: ', err);
-                    next(err);
-                })
-                .then(function(obj) {
-                    sailsObj = obj;
-                    oldLangDefault = sailsObj.config.appdev['lang.default'];
-                    sailsObj.config.appdev['lang.default'] = 'en';
-                    next();
-                });
-
-            },
 
             // create a permission role object
             function(next) {
@@ -48,16 +31,15 @@ describe('ADCore.model.translate tests', function(){
 
                     role.translations.add({language_code:'en', role_label:LABEL_EN});
                     role.translations.add({language_code:'ko', role_label:LABEL_KO});
-                    role.save()
-                    .catch(function(err){
+                    role.save(function(err, obj){
                         next(err);
                     })
-                    .then(function(something){
-                        next();
-                    })
+                    return null;
+
                 })
                 .catch(function(err){
                     next(err);
+                    return null;
                 });
             },
 
@@ -77,9 +59,11 @@ describe('ADCore.model.translate tests', function(){
                         .then(function(newUser){
                             user = newUser;
                             next();
+                            return null;
                         })
                         .catch(function(err){
                             next(err);
+                            return null;
                         })
                     }
                     
@@ -250,20 +234,3 @@ describe('ADCore.model.translate tests', function(){
 });
 
 
-/*
-
-describe('SiteUser integration with ADCore', function() {
-
-    
-    it('initializes a new user account', function(ok){
-        ok();
-    });
-    
-    
-    after(function(ok){
-        ok();
-    });
-
-});
-
-*/

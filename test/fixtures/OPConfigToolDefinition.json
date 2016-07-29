@@ -1,0 +1,15 @@
+[
+  {
+    "id":1,
+    "permissions": "adcore.admin,opsportal.view",
+    "key": "test-existing-tool",
+    "icon": "fa-cogs",
+    "isDefault": 0,
+    "label":"opp.areaAdministration",
+    "context":"opsportal",
+    "controller":"TestController",
+    "isController":0,
+    "options": { "url" : "path/to/url" },
+    "version": "0"
+  }
+]

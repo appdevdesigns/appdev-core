@@ -1,9 +1,10 @@
 REPORTER = dot
 
 test:
-	@NODE_ENV=test ./node_modules/.bin/mocha \
+	@NODE_ENV=test PORT=9999 ./node_modules/.bin/mocha \
     --reporter $(REPORTER) \
-    test/*.js
+    test/bootstrap.test.js \
+    test/**/*.js
 
     @NODE_ENV=test mocha-phantomjs \
     -R $(REPORTER) \

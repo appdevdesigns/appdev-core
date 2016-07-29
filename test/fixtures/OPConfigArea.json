@@ -1,0 +1,18 @@
+[
+  {
+    "tools": [],
+    "key": "site-default-admin",
+    "icon": "fa-cogs",
+    "isDefault": 0,
+    "label":"opp.areaAdministration",
+    "context":"opsportal"
+  },
+  {
+    "tools": [],
+    "key": "test-area",
+    "icon": "fa-cubes",
+    "isDefault": 0,
+    "label":"opp.areaTest",
+    "context":"opsportal"
+  }
+]

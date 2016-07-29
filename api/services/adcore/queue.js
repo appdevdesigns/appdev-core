@@ -211,10 +211,11 @@ var newSandbox = function( options ) {
     		
     		// remove subKey from our list
     		delete obj.allSubscriptions[subKey];
-    		
+// console.log('... ADCore.queue.unsubscribe() : subKey ['+subKey+'] removed!');	        
+
 	    } else {
 // @TODO How do we handle this error?
-	        
+// console.log('... ADCore.queue.unsubscribe() : subKey ['+subKey+'] not found!');	        
 	    }
 	}
 	
