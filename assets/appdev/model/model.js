@@ -1002,7 +1002,7 @@ steal(
                         var foundOne = false;
 
                         // find a current translation with our currentlanguage
-                        xlations.forEach(function (trans) {
+                        can.each(xlations, function (trans) {
                             if (trans.language_code == langCode) {
 
                                 foundOne = true;
