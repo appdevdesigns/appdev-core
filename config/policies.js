@@ -38,7 +38,8 @@ module.exports = {
         loginForm: passportStack,
         authFail: true,
         begin: sessionStack,
-        steal: true
+        steal: true,
+        logoutGUID: authKeyStack
     },
 
     'appdev-core/SiteUserController' : {
