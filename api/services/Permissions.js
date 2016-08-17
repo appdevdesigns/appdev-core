@@ -718,6 +718,26 @@ SiteUser.find()
         return dfd;
     },
 
+    getRolesByActionKey: function (action_key) {
+        var dfd = AD.sal.Deferred();
+        
+        PermissionAction.findOne({ action_key: action_key })
+            .populate('roles')
+            .exec(function(err, perm_action) {
+                if (err) {
+                    dfd.reject(err);
+                    return;
+                }
+
+                if (perm_action && perm_action.roles)
+                    dfd.resolve(perm_action.roles);
+                else
+                    dfd.resolve([]);
+        });
+
+        return dfd;
+    },
+
     getUserRoles: function (req, getAll) {
         var dfd = AD.sal.Deferred(),
             user = ADCore.user.current(req),
