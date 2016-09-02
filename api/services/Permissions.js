@@ -609,8 +609,196 @@ SiteUser.find()
         AD.log('<green>route:</green> '+ route+' registered');
         registeredRoutes[ route.toLowerCase() ] = perm;
 
-    }
+    },
 
+    createRole: function (name, description) {
+        var dfd = AD.sal.Deferred();
+
+        if (!name || name.length < 1) {
+            var err = new Error('Role name is not defined.');
+            dfd.reject(err);
+        }
+
+        Multilingual.model.create({
+            model: PermissionRole,
+            data: {
+                role_label: name,
+                role_description: description
+            }
+        })
+            .fail(function (err) { dfd.reject(err); })
+            .then(function (result) { dfd.resolve(result); });
+
+        return dfd;
+    },
+
+    deleteRole: function (id) {
+        var dfd = AD.sal.Deferred();
+
+        PermissionRole.destroy({ id: id })
+            .exec(function (err, record) {
+                if (err) {
+                    dfd.reject(err);
+                    return;
+                }
+
+                dfd.resolve(record);
+            });
+
+        return dfd;
+    },
+
+    clearPermissionRole: function (actionKey) {
+        var dfd = AD.sal.Deferred();
+
+        async.waterfall([
+            function (next) {
+                PermissionAction.findOne({ action_key: actionKey })
+                    .populate('roles')
+                    .exec(function (err, record) {
+                        if (err) {
+                            next(err);
+                            return;
+                        }
+
+                        next(null, record);
+                    });
+            },
+            function (perm_action, next) {
+                perm_action.roles.forEach(function (r) {
+                    perm_action.roles.remove(r.id);
+                });
+
+                perm_action.save(function (err) {
+                    dfd.resolve();
+                    next();
+                });
+            }
+        ]);
+
+        return dfd;
+    },
+
+    assignAction: function (roleId, actionKey) {
+        var dfd = AD.sal.Deferred();
+
+        async.waterfall([
+            function (next) {
+                PermissionRole.findOne({ id: roleId })
+                    .populate('actions')
+                    .exec(function (err, record) {
+                        if (err) {
+                            next(err);
+                            return;
+                        }
+
+                        next(null, record);
+                    });
+            },
+            function (perm, next) {
+                PermissionAction.findOne({ action_key: actionKey })
+                    .exec(function (err, record) {
+                        if (err) {
+                            next(err);
+                            return;
+                        }
+
+                        next(null, perm, record);
+                    });
+            },
+            function (perm, perm_action, next) {
+                perm.actions.add(perm_action.id);
+                perm.save(function (err) {
+                    dfd.resolve();
+                    next();
+                });
+            }
+        ]);
+
+        return dfd;
+    },
+
+    getRolesByActionKey: function (action_key) {
+        var dfd = AD.sal.Deferred();
+        
+        PermissionAction.findOne({ action_key: action_key })
+            .populate('roles')
+            .exec(function(err, perm_action) {
+                if (err) {
+                    dfd.reject(err);
+                    return;
+                }
+
+                if (perm_action && perm_action.roles)
+                    dfd.resolve(perm_action.roles);
+                else
+                    dfd.resolve([]);
+        });
+
+        return dfd;
+    },
+
+    getUserRoles: function (req, getAll) {
+        var dfd = AD.sal.Deferred(),
+            user = ADCore.user.current(req),
+            getPermissionInfo = function (roles) {
+                var roleResults = [],
+                    mapRoleTasks = [];
+
+                roles.forEach(function (r) {
+                    mapRoleTasks.push(function (cb) {
+                        r.translate(user.userModel.languageCode)
+                            .fail(function (error) {
+                                cb(); // Ignore bad role data
+                            })
+                            .then(function (trans) {
+                                roleResults.push({
+                                    id: r.id,
+                                    name: r.role_label || 'N/A'
+                                });
+
+                                cb();
+                            });
+                    })
+                });
+
+                async.parallel(mapRoleTasks, function (err) {
+                    if (err) {
+                        dfd.reject(err);
+                        return;
+                    }
+
+                    _.uniqBy(roleResults, 'id');
+
+                    dfd.resolve(roleResults);
+                });
+            };
+
+        if (getAll && (user.hasPermission('adcore.admin') || user.hasPermission('adcore.developer'))) {
+            PermissionRole.find({}).exec(function (err, result) {
+                if (err) {
+                    dfd.reject(err);
+                    return;
+                }
+
+                getPermissionInfo(result);
+            });
+        }
+        else {
+            Permission.find({ user: user.userModel.id })
+                .populate('role')
+                .exec(function (err, result) {
+                    if (err) {
+                        dfd.reject(err);
+                        return;
+                    }
+                    var roles = _.map(result, function (r) { return r.role; });
+                    getPermissionInfo(roles);
+                });
+        }
+
+        return dfd;
+    }
 
 };
 

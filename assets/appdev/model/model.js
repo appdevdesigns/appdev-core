@@ -90,7 +90,7 @@ steal(
                                     lang_code = lang_code || AD.lang.currentLanguage;
                                     var fields = this.model().multilingualFields;
                                     if (this.translations) {
-                                        this.translations.forEach(function (trans) {
+                                        can.each(this.translations, function (trans) {
                                             if (trans.language_code == lang_code) {
                                                 fields.forEach(function (f) {
                                                     // _this[f] = trans[f];
@@ -946,7 +946,7 @@ steal(
                         var foundOne = false;
 
                         // find a current translation with our currentlanguage
-                        xlations.forEach(function (trans) {
+                        can.each(xlations, function (trans) {
                             if (trans.language_code != langCode) {
                                 var indx = xlations.indexOf(trans);
                                 xlations.splice(indx, 1);
@@ -1002,7 +1002,7 @@ steal(
                         var foundOne = false;
 
                         // find a current translation with our currentlanguage
-                        xlations.forEach(function (trans) {
+                        can.each(xlations, function (trans) {
                             if (trans.language_code == langCode) {
 
                                 foundOne = true;

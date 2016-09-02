@@ -110,18 +110,27 @@ steal(
                     defaults: {
                     },
         
-                    // An array of references to all label objects currently in use.
-                    collection: [],
-        
+                    // A hash of references to all label objects currently in use.
+                    _hashLabels: {},  // key: LabelObj
+                    
+                    getLabel:function(key) {
+
+                        return this._hashLabels[key];
+                    },
+
+                    setLabel:function(label) {
+                        this._hashLabels[label.labelKey] = label;
+                    },
+
                     /**
                      * @function translateAll
                      * Translates all label controls currently in existence.
                      */
                     translateAll: function (langCode) {
                         // `this` is the Label class
-                        $.each(this.collection, function () {
+                        $.each(this._hashLabels, function (key, label) {
                             // `this` is now a Label instance
-                            this.translate(langCode);
+                            label.translate(langCode);
                         });
                     }
 
@@ -144,8 +153,8 @@ steal(
                                 // Init the HTML
                                 this.$span = this.constructor.transform($element);
                                 
-                                // Update static collection
-                                this.constructor.collection.push(this);
+                                // Update static hash
+                                this.constructor.setLabel(this);
                                 
                                 // Provide a reference to this Label object on the HTML element
                                 $element.data(this.constructor.constants.jQueryData, this);
@@ -156,11 +165,8 @@ steal(
 
                         destroy: function () {
 
-                            // Update static collection
-                            var i = this.constructor.collection.indexOf(this);
-                            if (i >= 0) {
-                                this.constructor.collection.splice(i, 1);
-                            }
+                            // Update static hash
+                            delete this.constructor._hashLabels[this.labelKey];
 
                             can.Control.prototype.destroy.call(this);
                         },

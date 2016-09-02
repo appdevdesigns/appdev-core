@@ -9,7 +9,7 @@ var testLabel = {
     label_label:'test label'
 }
 
-describe('Multilingual.label.create tests ', function(){
+describe('Multilingual.label.update tests ', function(){
 
     var allLabels = [];     // initial list of labels.
 
@@ -80,23 +80,16 @@ describe('Multilingual.label.create tests ', function(){
     });
 
 
-it('have not finished this yet', function(ok){
-    assert.ok(false, ' ---> keep going');
+it('have not done this yet', function(ok){
+    assert.ok(false, ' ---> do this');
     ok();
 })
 
 //// LEFT OFF HERE:
 
-    // calling without the required label data results in an error/rejected deferred
-
-    // calling with new label data results in a new label entry.
-
-    // calling with same label data returns without error
-
-
-    
-
-
+    // calling without the required label data (key, context, label) results in an error/rejected deferred
+    // calling with key/context that is unknown, exits without error, but null data returned
+    // calling with known key/context exits without error, and returns new {label} entry
 
 
     // after(function(ok){

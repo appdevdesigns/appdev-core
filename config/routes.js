@@ -21,6 +21,7 @@ module.exports = {
     'get /auth/google'              : 'appdev-core/ADCoreController.authGoogle',
     'get /auth/fail'                : 'appdev-core/ADCoreController.authFail',
     'post /appdev-core/authTicket'  : 'appdev-core/SiteUserController.registerAuthTicket',
+    'post /appdev-core/logoutGUID'  : 'appdev-core/ADCoreController.logoutGUID',
 
     
     //// User Operations
