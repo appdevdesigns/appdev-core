@@ -158,12 +158,20 @@
      * @param [string] label
      * @param [string] langCode (Optional)
      */
+    var _hashLabel = null;
     AD.lang.label.setLabel = function (key, label, langCode) {
         langCode = langCode || AD.lang.currentLanguage;
         if (!store[langCode]) {
             store[langCode] = {};
         }
         store[langCode][key] = label;
+
+        // update any current labels that are using key:
+        var toUpdate = AD.controllers.Label.getLabel(key);
+        if (toUpdate) {
+            toUpdate.translate();
+        }
+        
     };
 
 
@@ -279,7 +287,7 @@
 
         var contextAttr = '';
         if (context != '') {
-            contextAttr = AD.controllers.Label.constants.keyAttribute+'="'+context+'"';
+            contextAttr = AD.controllers.Label.constants.contextAttribute+'="'+context+'"';
         }
 
         if (label) {

@@ -24,6 +24,165 @@ module.exports = {
     },
 
 
+    label: {
+
+        /**
+         * Multilingual.label.create()
+         * 
+         * creates a new label definition in the multilingual label table.
+         *
+         * This routine will only create a new one if there is not already 
+         * an existing label_key + label_context + language_code entry 
+         * matching the provided definition.
+         *
+         * if there is already a match, then we resolve without returning 
+         * a new label definition.
+         *
+         * if a new label was created, the new definition will be returned.
+         * 
+         * @param {obj} labelDef    The label info to create
+         * @param {function} cb     (optional) node style callback
+         *                          cb(err, newLabel);
+         * @return {Deferred}
+         */
+        create: function(labelDef, cb) {
+            var dfd = AD.sal.Deferred();
+
+            if((_.isFunction(labelDef)) && (_.isUndefined(cb))) {
+                cb = labelDef;
+                labelDef = undefined;
+            }
+
+            if (_.isUndefined(labelDef)) {
+                var error = new Error('labelDef parameter is required');
+                error.code = "E_MISSINGPARAM";
+                if (cb) cb(error);
+                dfd.reject(error);
+                return dfd;
+            }
+
+
+            function onError(err) {
+                if (cb) cb(err);
+                dfd.reject(err);
+            }
+
+            // check to see if we already have this label
+            SiteMultilingualLabel.find({
+                label_key:labelDef.label_key,
+                label_context:labelDef.label_context,
+                language_code:labelDef.language_code
+            })
+            .exec(function(err, label){
+                if (err) {
+                    onError(err);
+                } else {
+
+                    if ((label) && (label.length > 0)) {
+                        if (cb) cb();
+                        dfd.resolve();
+                    } else {
+
+                        // create the label:
+                        SiteMultilingualLabel.create(labelDef)
+                        .exec(function(err, label){
+
+                            if (err) {
+                                onError(err);
+                            } else {
+                                if (cb) cb(null, label);
+                                dfd.resolve(label);
+                            }
+                        })
+                    }
+                }
+            })
+
+            return dfd;
+        },
+
+
+
+        /**
+         * Multilingual.label.update()
+         * 
+         * update a label definition in the multilingual label table.
+         *
+         * This routine will update the label for the provided label entry.
+         *
+         * if not found, then we return quietly.
+         *
+         * if an entry was updated, then we return the updated label.
+         *
+         * @param {obj} labelDef    The label info to create
+         *                   .key : {string} the label.key
+         *                   .context : {string} the label.context
+         *                   .language_code: {string} which language version
+         *                   .label : {string} the label to save.
+         *
+         * @param {function} cb     (optional) node style callback
+         *                          cb(err, updatedLabel);
+         * @return {Deferred}
+         */
+        update: function(labelDef, cb) {
+            var dfd = AD.sal.Deferred();
+
+            if((_.isFunction(labelDef)) && (_.isUndefined(cb))) {
+                cb = labelDef;
+                labelDef = undefined;
+            }
+
+            if (_.isUndefined(labelDef)) {
+                var error = new Error('labelDef parameter is required');
+                error.code = "E_MISSINGPARAM";
+                if (cb) cb(error);
+                dfd.reject(error);
+                return dfd;
+            }
+
+            var requiredFields = ['label_key', 'label_context', 'language_code', 'label_label'];
+            var missing = [];
+            requiredFields.forEach(function(field){
+                if (_.isUndefined(labelDef[field])) {
+                    missing.push(field);
+                }
+            })
+            if (missing.length > 0) {
+                var msg = 'labelDef parameter is missing field';
+                if (missing.length > 1) msg += 's';
+                msg += ': '+missing.join(',');
+                var error = new Error(msg);
+                if (cb) cb(error);
+                dfd.reject(error);
+                return dfd;
+            }
+
+            function onError(err) {
+                if (cb) cb(err);
+                dfd.reject(err);
+            }
+
+            // check to see if we already have this label
+            SiteMultilingualLabel.update({
+                label_key:labelDef.label_key,
+                label_context:labelDef.label_context,
+                language_code:labelDef.language_code
+            }, { label_label: labelDef.label_label})
+            .exec(function(err, label){
+                if (err) {
+                    onError(err);
+                } else {
+
+                    if (cb) cb(null, label);
+                    dfd.resolve(label);
+                }
+            })
+
+            return dfd;
+        }
+
+    },
+
     languages:{
 
 
@@ -304,7 +463,7 @@ module.exports = {
          * multilingual model.
          *
          * @param {obj}  opts.model The base Model used for Model.create()
-         * @param {obj}  opts.data  an array of Model records that were deleted
+         * @param {obj}  opts.records  an array of Model records that were deleted
          * @return {deferred}
          */
         removeTranslations:function(opts) {
