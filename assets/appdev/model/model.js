@@ -107,6 +107,14 @@ steal(
 
                             // now let's create our base Model:
                             curr[modelName] = can.Model.extend(staticDef, instanceDef);
+
+                            // we want to tack on a reference to our Model Object in our
+                            // returned List() objects.
+
+                            curr[modelName].List = curr[modelName].List.extend({
+                                _Klass:curr[modelName]
+                            });
+                            
                             // can.extend(curr[modelName].prototype, can.event); 
 
 
