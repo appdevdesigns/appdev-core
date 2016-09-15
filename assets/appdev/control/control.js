@@ -120,7 +120,9 @@ steal('appdev/UIController.js', function () {
                 // namespace container for it:
                 var curr = baseObj;
                 nameList.forEach(function (name) {
-
+if (!curr) {
+    console.error('Why is curr null?', baseObj, name);
+}
                     if (typeof curr[name] == 'undefined') {
                         curr = null;
                     }

@@ -130,6 +130,37 @@ module.exports = {
 
 
 
+    /*
+     * Permissions.action.destroyKeys()
+     *
+     * remove a set of keys based upon the provided action key references.
+     * 
+     * @parm {array} keys  an array of action keys to destroy.
+     * @param {fn} cb   (optional) callback for this function.  
+     *                  follows common nodeJS convention:  cb(err, data)
+     * @return {Deferred}
+     */
+    destroyKeys:function(keys, cb) {
+        var dfd = AD.sal.Deferred();
+
+        keys = keys || [];
+
+        PermissionAction.destroy({ action_key: keys })
+        .exec(function(err, data){
+            if (err) {
+                if (cb) cb(err);
+                dfd.reject(err);
+            } else {
+                if (cb) cb(null, data);
+                dfd.resolve(data);
+            }
+        });
+
+        return dfd;
+    },
+
+
+
     find:function(filter, cb) {
 
         var packet = {
