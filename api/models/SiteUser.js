@@ -169,7 +169,7 @@ module.exports = {
             dfd.reject(err);
         } else {
 
-            crypto.pbkdf2(password, salt, 100000, 512, function(err, key) {
+            crypto.pbkdf2(password, salt, 100000, 512, 'sha1', function(err, key) {
                 if (err) {
                     dfd.reject(err);
                 } else {
