@@ -27,7 +27,21 @@ module.exports = function(sails) {
                         user: sails.config.connections[conn].user,
                         password: sails.config.connections[conn].password,
                         database: sails.config.connections[conn].database,
-                        createDatabaseTable: true
+                        createDatabaseTable: true // something is conflicting with this?
+                    });
+                    
+                    // Initialize sessions table if needed
+                    sails.on('hook:orm:loaded', function() {
+                        SiteUser.query(" \
+                            CREATE TABLE IF NOT EXISTS `sessions` (\
+                              `session_id` varchar(255) COLLATE utf8_bin NOT NULL, \
+                              `expires` int(11) unsigned NOT NULL, \
+                              `data` text COLLATE utf8_bin, \
+                              PRIMARY KEY (`session_id`) \
+                            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin \
+                        ", function(err, results) {
+                            // done
+                        });
                     });
                     break;
                     
