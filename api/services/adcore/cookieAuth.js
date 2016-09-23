@@ -17,7 +17,21 @@ var cookieName = 'opsportal_ticket';
 
 var util = require('util');
 var path = require('path');
-var Strategy = require(path.join('..', '..', '..', 'node_modules', 'passport', 'node_modules', 'passport-strategy'));
+var fs = require('fs');
+
+// Depending on how NPM was used, the passport-strategy.js dependency will be
+// located in different places.
+var Strategy;
+var deepPath = path.join('..', '..', '..', 'node_modules', 'passport', 'node_modules', 'passport-strategy');
+try {
+    var fd = fs.openSync(path.join(__dirname, deepPath, 'package.json'), 'r');
+    // 'passport-strategy.js' exists in the deep path 
+    fs.closeSync(fd);
+    Strategy = require(deepPath);
+} catch (err) {
+    // Use the flat path
+    Strategy = require('passport-strategy');
+}
 
 
 function CookieStrategy(options, verify) {

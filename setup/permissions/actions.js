@@ -35,6 +35,10 @@ module.exports = {
         { 
             action_key:'adcore.developer', 
             action_description:'Designates a User as a developer.' 
+        },
+        { 
+            action_key:'site.permission.action.translate', 
+            action_description:'Allows a User to translate Permission Action descriptions.' 
         }
     ]
 

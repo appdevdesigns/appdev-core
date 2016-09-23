@@ -337,9 +337,11 @@ module.exports = {
 // AD.log('... listLanguages: ', listLanguages);
 
                         next();
+                        return null;
                     })
                     .fail(function(err){
                         next(err);
+                        return null;
                     });
 
                 },
