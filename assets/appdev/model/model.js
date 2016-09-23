@@ -146,19 +146,21 @@ console.log('... .findAllPopulagte():', fields);
                                                         // go through each list entry, and recreate
                                                         // it's field with these models
                                                         list.forEach(function(current){
-                                                            
-                                                            // if this is an Array or can.List
-                                                            if(typeof current[field].forEach != 'undefined') {
-                                                                var newField = [];
-                                                                current[field].forEach(function(f){
-                                                                    newField.push(hashModels[f.id]);
-                                                                })
 
-                                                                // Q: should we make a Can.List here?
-                                                                current[field] = newField;
+                                                            if(typeof current[field] != 'undefined'){
+                                                                // if this is an Array or can.List
+                                                                if (typeof current[field].forEach != 'undefined') {
+                                                                    var newField = [];
+                                                                    current[field].forEach(function(f){
+                                                                        newField.push(hashModels[f.id]);
+                                                                    })
 
-                                                            } else {
-                                                                current[field] = hashModels[current[field].id];
+                                                                    // Q: should we make a Can.List here?
+                                                                    current[field] = newField;
+
+                                                                } else {
+                                                                    current[field] = hashModels[current[field].id];
+                                                                }
                                                             }
                                                         })
 
