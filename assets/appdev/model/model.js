@@ -147,7 +147,7 @@ console.log('... .findAllPopulagte():', fields);
                                                         // it's field with these models
                                                         list.forEach(function(current){
 
-                                                            if(typeof current[field] != 'undefined'){
+                                                            if(typeof current[field] != 'undefined' && current[field] != null){
                                                                 // if this is an Array or can.List
                                                                 if (typeof current[field].forEach != 'undefined') {
                                                                     var newField = [];
