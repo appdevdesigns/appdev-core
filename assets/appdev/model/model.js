@@ -796,6 +796,8 @@ console.log('... .findAllPopulagte():', fields);
                     .done(function (list) {
 
                         var pendingActions = [];
+
+                        if (!list.forEach) list = [list]; // Convert to Array
                         list.forEach(function (entry) {
                             var uriDelete = uriAssociations + '/' + entry.id;
                             // console.log('... clearing Association['+field+'] url:'+uriDelete);
