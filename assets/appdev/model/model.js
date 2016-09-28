@@ -160,7 +160,7 @@ if ($.isArray(_this.associations)) {
                                                         // it's field with these models
                                                         list.forEach(function(current){
 
-                                                            if(typeof current[field] != 'undefined'){
+                                                            if(typeof current[field] != 'undefined' && current[field] != null){
                                                                 // if this is an Array or can.List
                                                                 if (typeof current[field].forEach != 'undefined') {
                                                                     var newField = new currModel.List(); //[];
@@ -811,6 +811,8 @@ if ($.isArray(_this.associations)) {
                     .done(function (list) {
 
                         var pendingActions = [];
+
+                        if (!list.forEach) list = [list]; // Convert to Array
                         list.forEach(function (entry) {
                             var uriDelete = uriAssociations + '/' + entry.id;
                             // console.log('... clearing Association['+field+'] url:'+uriDelete);

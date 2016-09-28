@@ -53,32 +53,37 @@ steal(
          */
         AD.comm.error = function (data, context) {
 
-            var errorID = data.id;
-            // Authentication failure (i.e. session timeout)
-            if (errorID == 5) {
-            
-                // store current request
-                AD.comm.pending.add(context);
-            
-                // Reauthenticate
-                AD.ui.reauth.start()
-                    .done(function () {
+            if (data) {
+                var errorID = data.id;
+                // Authentication failure (i.e. session timeout)
+                if (errorID == 5) {
+                
+                    // store current request
+                    AD.comm.pending.add(context);
+                
+                    // Reauthenticate
+                    AD.ui.reauth.start()
+                        .done(function () {
 
-                        AD.comm.pending.process(); // start processing the pending requests.
+                            AD.comm.pending.process(); // start processing the pending requests.
 
-                    });
+                        });
 
-            }
-            // Some other error
-            else {
+                    return;
 
-                AD.comm.hub.publish('ad.err.notification', data);
-                if (context.cb) {
-
-                    context.cb(data);  // cb(err, data);
                 }
-                context.dfd.reject(data);
             }
+
+
+            // Some other error
+
+            AD.comm.hub.publish('ad.err.notification', data);
+            if (context.cb) {
+
+                context.cb(data);  // cb(err, data);
+            }
+            context.dfd.reject(data);
+            
         }
 
 
