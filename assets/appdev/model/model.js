@@ -84,8 +84,11 @@ steal(
                                 .fail(dfd.reject)
                                 .then(function(list){
 
-console.log('... .findAllPopulagte():', fields);
-                                    // if this object even has associations
+console.log('... .findAllPopulate():', fields);
+if ($.isArray(_this.associations)) {
+    console.error('!!! Update Model Definition with current associations reference format!', _this);
+}
+                                    // if this object even has associations and we were given fields to populate
                                     if (_this.associations && (fields.length > 0)) { 
 
                                         var numDone = 0;    // how many fields are finished.
@@ -133,14 +136,24 @@ console.log('... .findAllPopulagte():', fields);
                                                 // replace entries with updated models
                                                 function _doLookup(field, listIDs, currModel, cb) {
 
-                                                    var cond = { 'or': listIDs.map(function(l){ return { id: l }}) }
+                                                    // NOTE: legacy models don't have primary ids as 'id'.  So be sure
+                                                    // to get the proper reference in fID.
+                                                    var fID = currModel.fieldId;
+
+                                                    // NOTE: Sails supports a { id: [1,2,...,N]} condition: id IN [1,2,...]
+                                                    // but jQuery querystring posts this as:  id=1 & id=2 &  condition id=1 AND id=2
+                                                    // in order to send it to sails properly, use the { where:{condition}} format.
+                                                    var cond = { 'where': {}};
+                                                    cond.where[fID] = listIDs;
+                                                    
                                                     currModel.findAll(cond)
                                                     .fail(cb)
                                                     .then(function(models){
 
                                                         var hashModels = {};
                                                         models.forEach(function(m){
-                                                            hashModels[m.id] = m;
+                                                            hashModels[m[fID]] = m;
+                                                            if (m.translate) m.translate();
                                                         })
 
                                                         // go through each list entry, and recreate
@@ -150,16 +163,18 @@ console.log('... .findAllPopulagte():', fields);
                                                             if(typeof current[field] != 'undefined'){
                                                                 // if this is an Array or can.List
                                                                 if (typeof current[field].forEach != 'undefined') {
-                                                                    var newField = [];
+                                                                    var newField = new currModel.List(); //[];
                                                                     current[field].forEach(function(f){
-                                                                        newField.push(hashModels[f.id]);
+                                                                        newField.push(hashModels[f[fID]]);
                                                                     })
 
                                                                     // Q: should we make a Can.List here?
-                                                                    current[field] = newField;
+                                                                    // current[field] = newField;
+                                                                    current.attr(field, newField);
 
                                                                 } else {
-                                                                    current[field] = hashModels[current[field].id];
+                                                                    // current[field] = hashModels[current[field][fID]];
+                                                                    current.attr(field, hashModels[current[field][fID]])
                                                                 }
                                                             }
                                                         })
