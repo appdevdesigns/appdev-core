@@ -65,6 +65,147 @@ steal(
                             staticDef.update = convertUpdate(staticDef.update);
                             staticDef.destroy = convertDestroy(staticDef.destroy);
 
+                            staticDef.findAllPopulate = function (cond, fields) {
+                                var dfd = AD.sal.Deferred();
+                                var _this = this;
+
+                                // todo: check the fields entry
+                                // make sure fields exists
+                                if ( typeof fields == 'undefined') {
+                                    fields = [];
+                                }
+                                // make sure fields is an array.
+                                if (!$.isArray(fields)) {
+                                    fields = [fields];
+                                }
+
+                                // find the base objects
+                                this.findAll(cond)
+                                .fail(dfd.reject)
+                                .then(function(list){
+
+console.log('... .findAllPopulate():', fields);
+if ($.isArray(_this.associations)) {
+    console.error('!!! Update Model Definition with current associations reference format!', _this);
+}
+                                    // if this object even has associations and we were given fields to populate
+                                    if (_this.associations && (fields.length > 0)) { 
+
+                                        var numDone = 0;    // how many fields are finished.
+
+                                        // final test to see if we are done with all our fields
+                                        // to process
+                                        function onDone(){
+                                            numDone ++;
+                                            if (numDone >= fields.length){
+                                                dfd.resolve(list);
+                                            }
+                                        }
+
+
+                                        // for each field to populate
+                                        fields.forEach(function(field){
+
+                                            // if this is one of our associations
+                                            if (_this.associations[field]) {
+
+                                                // find the related Model
+                                                var Model = AD.Model.get(_this.associations[field]);
+
+                                                // get ids for the current data list
+                                                var lookupIDs = [];
+                                                function _addItem(id){
+                                                    if (lookupIDs.indexOf(id) == -1){
+                                                        lookupIDs.push(id);
+                                                    }
+                                                }
+                                                list.forEach(function(item){
+                                                    if (item[field]) {
+
+                                                        // if an array then process each one
+                                                        if (typeof item[field].forEach != 'undefined') {
+                                                            item[field].forEach(function(entry){
+                                                                _addItem(entry.id);
+                                                            })
+                                                        } else {
+                                                            _addItem(item[field].id);
+                                                        }
+                                                    }
+                                                })
+
+                                                // replace entries with updated models
+                                                function _doLookup(field, listIDs, currModel, cb) {
+
+                                                    // NOTE: legacy models don't have primary ids as 'id'.  So be sure
+                                                    // to get the proper reference in fID.
+                                                    var fID = currModel.fieldId;
+
+                                                    // NOTE: Sails supports a { id: [1,2,...,N]} condition: id IN [1,2,...]
+                                                    // but jQuery querystring posts this as:  id=1 & id=2 &  condition id=1 AND id=2
+                                                    // in order to send it to sails properly, use the { where:{condition}} format.
+                                                    var cond = { 'where': {}};
+                                                    cond.where[fID] = listIDs;
+                                                    
+                                                    currModel.findAll(cond)
+                                                    .fail(cb)
+                                                    .then(function(models){
+
+                                                        var hashModels = {};
+                                                        models.forEach(function(m){
+                                                            hashModels[m[fID]] = m;
+                                                            if (m.translate) m.translate();
+                                                        })
+
+                                                        // go through each list entry, and recreate
+                                                        // it's field with these models
+                                                        list.forEach(function(current){
+
+                                                            if(typeof current[field] != 'undefined' && current[field] != null){
+                                                                // if this is an Array or can.List
+                                                                if (typeof current[field].forEach != 'undefined') {
+                                                                    var newField = new currModel.List(); //[];
+                                                                    current[field].forEach(function(f){
+                                                                        newField.push(hashModels[f[fID]]);
+                                                                    })
+
+                                                                    // Q: should we make a Can.List here?
+                                                                    // current[field] = newField;
+                                                                    current.attr(field, newField);
+
+                                                                } else {
+                                                                    // current[field] = hashModels[current[field][fID]];
+                                                                    current.attr(field, hashModels[current[field][fID]])
+                                                                }
+                                                            }
+                                                        })
+
+                                                        cb();
+                                                    })
+                                                }
+                                                _doLookup(field, lookupIDs, Model, function(err) {
+
+                                                    if (err) {
+                                                        dfd.reject(err);
+                                                    } else {
+                                                        onDone();
+                                                    }
+                                                })
+
+                                            } else {
+                                                // I don't have this association
+
+                                                onDone();
+                                            }
+                                        })
+                                        
+
+                                    } else {
+                                        dfd.resolve(list);
+                                    }
+                                    
+                                })
+                                return dfd;
+                            }
 
                             // prepare default instance definitions:
                             var defaultInstance = {
@@ -370,6 +511,35 @@ steal(
                         return function (cond, cbSuccess, cbErr) {
                             var dfd = AD.sal.Deferred();
 
+//                             var _fieldsToPopulate = [];
+//                             var dfdPopulate = AD.sal.Deferred();
+//                             function _populate(data){
+                                
+
+//                                 if (_fieldsToPopulate.length) {
+
+// // I should populate stuff here.
+// console.log('TODO: do the population!');
+// dfdPopulate.resolve(data);
+
+//                                 }else {
+//                                     dfdPopulate.resolve(data);
+//                                 }
+//                                 return data;
+//                             }
+//                             function _populateError (err) {
+//                                 dfdPopulate.reject(err);
+//                             }
+
+//                             dfd.populate = function(fields) {
+//                                 _fieldsToPopulate = fields;
+//                                 console.log('... in .populate!', fields);
+//                                 return dfdPopulate;
+//                             }
+
+//                             dfd.then(_populate);
+//                             dfd.fail(_populateError);
+
                             console.log('... convertFindAll:fn(): this.useSockets:', this.useSockets);
                             var comm = 'service';
                             if (this.useSockets) {
@@ -641,6 +811,8 @@ steal(
                     .done(function (list) {
 
                         var pendingActions = [];
+
+                        if (!list.forEach) list = [list]; // Convert to Array
                         list.forEach(function (entry) {
                             var uriDelete = uriAssociations + '/' + entry.id;
                             // console.log('... clearing Association['+field+'] url:'+uriDelete);
@@ -718,7 +890,8 @@ steal(
                                     var pendingActions = [];
                                     if (_this.associations) {
 
-                                        _this.associations.forEach(function (a) {
+                                        // _this.associations.forEach(function (a) {
+                                        for (var a in _this.associations) {
 
                                             if ((attr[a]) && (attr[a].length == 0)) {
 
@@ -733,8 +906,8 @@ steal(
                                                 }
 
                                             }
-
-                                        })
+                                        }
+                                        // })
 
                                     }
                                     $.when.apply($, pendingActions)
