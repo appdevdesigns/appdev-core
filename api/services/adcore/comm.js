@@ -33,9 +33,14 @@ module.exports = {
             data:err
         };
 
-        // add in optional properties: id, message
-        if (err.id) packet.id = err.id;
-        if (err.message) packet.message = err.message;
+        // add in optional properties: id, message, code, mlKey
+        var properties = ['id', 'message', 'code', 'mlKey'];
+        properties.forEach(function(prop){
+            if (err[prop]) {
+                packet[prop] = err[prop];
+            }
+        })
+
 
         // default to HTTP status code: 400
         if ('undefined' == typeof code) code = 400; 

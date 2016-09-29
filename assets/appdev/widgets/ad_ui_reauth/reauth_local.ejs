@@ -1,21 +1,20 @@
 <div>
-
     <div id="appDev-formLogin" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" aria-labelledby="">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" translate=1>Re-login required</h4>
+                    <h4 class="modal-title" translate=1><span app-label-key="opp.reauth.required">Re-login required</span></h4>
                     <div class="busy-icon"></div>
                 </div>
 
                 <div class="modal-body">
                     <form role="form">
                       <div class="form-group">
-                        <label for="username" translate=1>Username</label>
+                        <label for="username" translate=1><span app-label-key="site.user.username">Username</span></label>
                         <input type="text" class="form-control" id="username">
                       </div>
                       <div class="form-group">
-                        <label for="password" translate=1>Password</label>
+                        <label for="password" translate=1> <span app-label-key="site.user.password">Password</span></label>
                         <input type="password" class="form-control" id="password">
                       </div>
                     </form>
@@ -26,7 +25,7 @@
                 </div>
                 
                 <div class="modal-footer">
-                      <button type="button" class="btn btn-default login" translate=1>Submit</button>
+                      <button type="button" class="btn btn-default login" translate=1> <span app-label-key="opp.reauth.submit">Submit</span></button>
                 </div>
                 
             </div>

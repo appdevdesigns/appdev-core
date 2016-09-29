@@ -37,20 +37,24 @@ steal(
 
 
                     show: function () {
+                        var _this = this;
+
                         // For CAS, we cannot re-use old iframes. So init a new
                         // dialog box each time.
                         this.element = $(this.html);
-            
-                        // Init labels
-                        this.element.find('[translate]').each(function () {
-                            AD.controllers.Label.keylessCreate(this);
-                        });
 
                         if (this.authType != 'CAS') {
                             this.busyIcon = new AD.widgets.ad_icon_busy(this.element.find('.busy-icon'));
                         }
-            
-                        // Bootstrap Modal
+
+                        this.element.find('button.login').click(function(a,b,c) {
+                            _this.authLocal();
+                        })
+                    
+                        // make sure the labels are translated
+                        AD.lang.label.translate(this.element);
+
+                        // turn into a Bootstrap Modal & display
                         this.element.modal({
                             backdrop: 'static',
                             keyboard: false,
@@ -61,6 +65,8 @@ steal(
 
 
                     hide: function () {
+                        var _this = this;
+
                         // Applicable only for CAS, but no effect on local auth.
                         var frameWindow = this.element.get(0).contentWindow;
                         if (frameWindow && !frameWindow.closed) {
@@ -70,36 +76,57 @@ steal(
                         }
 
                         this.element.modal('hide');
-                        this.element.remove();
+
+                        // give things time to hide before doing a remove:
+                        setTimeout(function(){ 
+                            _this.element.remove();
+                        }, 1000);
+                    },
+
+
+                    authLocal:function(){
+                        var _this = this;
+
+                        this.busyIcon.show();
+                        this.element.find('.alert').hide();
+
+                        AD.comm.service.post({
+                            url: '/site/login',
+                            data: {
+                                username: _this.element.find('#username').val(),
+                                password: _this.element.find('#password').val()
+                            }
+                        })
+                        .fail(function (err) {
+                            err = err || {};
+                            var message = err.message || 'Error';
+
+                            // check for a known error and it's translation:
+                            if (err.mlKey) {
+                                var mlTrans = AD.lang.label.getLabel(err.mlKey);
+                                if (mlTrans) {
+                                    message = mlTrans;
+                                }
+                            }
+                            _this.element.find('.alert')
+                                .text(message)
+                                .show();
+                        })
+                        .done(function () {
+                            _this.hide();
+                            AD.ui.reauth.end();
+                        })
+                        .always(function () {
+                            _this.busyIcon.hide();
+                        });
                     },
         
         
                     // For local auth
                     "button.login click": function () {
-                        var self = this;
-                        self.busyIcon.show();
-                        self.find('.alert').hide();
+                        
+                        this.authLocal();
 
-                        AD.comm.service.post({
-                            url: '/site/login',
-                            data: {
-                                username: self.element.find('#username'),
-                                password: self.element.find('#password')
-                            }
-                        })
-                            .fail(function (err) {
-                                err = err || {};
-                                var message = err.message || 'Error';
-                                self.find('.alert')
-                                    .text(message)
-                                    .show();
-                            })
-                            .done(function () {
-                                AD.ui.reauth.end();
-                            })
-                            .always(function () {
-                                self.busyIcon.hide();
-                            });
                     },
 
 

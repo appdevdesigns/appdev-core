@@ -243,9 +243,13 @@ steal(
                 // queue request
                 if (AD.ui.reauth.inProgress() || !AD.comm.isServerReady()) {
 
-                    AD.comm.pending.add(context(options, cb, dfd));
-                    // pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
-                    return dfd;
+                    // make sure this isn't our local auth submission:
+                    if (!((options.method == 'POST')&&(options.url=='/site/login'))) {
+
+                        AD.comm.pending.add(context(options, cb, dfd));
+                        // pendingRequests.push({ opts:options, cb:cb, dfd:dfd });
+                        return dfd;
+                    }
                 }
             
                 // responds to a { status = false;  .... } responses.

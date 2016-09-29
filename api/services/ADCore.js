@@ -45,6 +45,7 @@ var passportSession = passport.session();
 // import local files
 var Comm  = require(path.join(__dirname, 'adcore', 'comm.js'));
 var Queue = require(path.join(__dirname, 'adcore', 'queue.js'));
+var ErrorDefinitions = require(path.join(__dirname, 'adcore', 'errors.js'));
 
 
 module.exports = {
@@ -199,7 +200,7 @@ module.exports = {
 
             } else {
                 var dfd = AD.sal.Defered();
-                dfd.reject( new Error('testUser is not allowed in production site.'));
+                dfd.reject( ADCore.error.fromKey('E_NOTESTUSERINPRODUCTION'));
                 return dfd;
             }
         },
@@ -238,6 +239,36 @@ module.exports = {
 
             // post it across the message bus:
             ADCore.queue.publish('site.error', { message: message, data:data });
+        },
+
+
+        /*
+         * AD.error.fromKey()
+         *
+         * return an error object that matches our defined key.
+         *
+         * if no key is found, we return false.
+         */
+        fromKey: function(key) {
+
+            if (ErrorDefinitions[key]) {
+
+                var def = ErrorDefinitions[key],
+                    message = 'Error';
+
+                if (def.message) message = def.message;
+
+                var err = new Error(message);
+                for (var k in def) {
+                    if (k != 'message') {
+                        err[k] = def[k];
+                    }
+                }
+
+                return err;
+            } else {
+                return false;
+            }
         }
     },
 
@@ -795,7 +826,7 @@ var User = function (opts, info) {
             if (result) {
                 
                 if (!result.isActive) {
-                    self.dfdReady.reject(new Error('Account is not active'));
+                    self.dfdReady.reject(ADCore.error.fromKey('E_ACCOUNTINACTIVE'));
                     return;
                 }
                 
@@ -829,7 +860,10 @@ var User = function (opts, info) {
             
             // User not found in local auth. Stop.
             else if ('local' == authType) {
-                var err = new Error('Username and/or password not found');
+                // var err = new Error('Username and/or password not found');
+                // err.code = "E_INVALIDAUTH";
+
+                var err = ADCore.error.fromKey('E_INVALIDAUTH') || new Error('Username and/or password not found');
                 self.dfdReady.reject(err);
             }
             

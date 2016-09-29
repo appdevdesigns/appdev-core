@@ -19,6 +19,7 @@ var path = require('path');
 var fs = require('fs');
 var url = require('url');
 var AD = require('ad-utils');
+var _ = require('lodash');
 
 module.exports = {
 
