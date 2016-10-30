@@ -36,6 +36,19 @@ module.exports = {
 		message: 'testUser is not allowed in production site.',
 		code: 'E_NOTESTUSERINPRODUCTION',
 		mlKey: 'opp.auth.E_NOTESTUSERINPRODUCTION'
+	},
+
+
+	'E_MISSINGPARAM': {
+		message: 'Missing Parameter.',
+		code: 'E_MISSINGPARAM',
+		mlKey:''
+	},
+
+	'E_INVALIDPARAMS' : {
+		message: 'Invalid parameter values.',
+		code:'E_INVALIDPARAMS',
+		mlKey:''
 	}
 };
 
