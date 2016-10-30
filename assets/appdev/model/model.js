@@ -1388,21 +1388,40 @@ if ($.isArray(_this.associations)) {
 
                         if ("updated" == data.verb) {
 
-                            var currValues = Model.store[data.id].attr();
+                            // We're being told one of our existing Models has 
+                            // been updated on the server.
+                            //
+                            // The provided data.data could just be a smaller 
+                            // subset of data from the server than what we 
+                            // might have already loaded (using .findAll())
 
-                            var isNew = false;
-                            for (var v in data.data) {
-                                if (currValues[v] != data.data[v]) { isNew = true };
-                            }
+                            var oldValue = Model.store[data.id];
+// console.log('... oldValue:', oldValue);
 
-                            // if we have new data then update the Model.store
-                            if (isNew) {
+                            //
+                            // So let's initiate a new .findOne() operation
+                            // to fully load the new model:
+                            var cond = {};
+                            cond[Model.fieldId] = data.id;
+                            Model.findOne(cond)
+                            .then(function(model){
+// console.log('... "updated" -> model:',model);
 
-                                Model.store[data.id].attr(data.data);
-                                can.event.dispatch.call(Model, 'updated', [Model.store[data.id]]);
-                                // Model.dispatch('updated', [Model.store[data.id]]);
+                                // if for some reason our Model.store value is 
+                                // a different ._cid, then manually update the
+                                // current value.
+                                if (model._cid != oldValue._cid) {
+                                    var attrs = model.attr();
+                                    for(var a in attrs) {
+                                        oldValue.attr(a, attrs[a]);
+                                    }
+                                }
 
-                            }
+                                // doesn't this automatically update the Model?
+                                // or should we do this:
+                                can.event.dispatch.call(Model, 'updated', [oldValue]);
+                                // can.trigger(Model, 'updated');
+                            })
 
                         } else if ("destroyed" == data.verb) {
 
@@ -1424,18 +1443,40 @@ if ($.isArray(_this.associations)) {
 
                             // this is about a Model we currently don't know about:
                             // Let's just add it:
-                            new Model(data.data);
 
-                            //// QUESTION: do we also tack in 'created' events?  How does Sails handle socket updates on 'created' 
-                            //// events? Is our normal use case conditioned by Roles + Scope, and a client UI might not have permission to
-                            //// receive all 'created' updates.  If sails just broadcasts that info across the channels, then we might not 
-                            //// want to implement this in our default case.
+                            // NOTE: possible Async issue when auto adding on 'created':
+                            // a) a local Client Model.create() will initiate a blueprint .create operation
+                            // b) sails sockets responds with a 'created' event, and it currently isn't in the Model.store
+                            //    so we create it here and a unique ._cid is created for the Model.
+                            // c) the blueprint response returns, and CanJS then proceeds to create a new Model instance with the 
+                            //    returned data, and a new ._cid is generated with the data (for same .id).
+                            // d) most likely the entry in the blueprint response is stored into a can.List
+                            //    remember it has a different .cid than the one in the .store
+                            // e) but it doesn't seem to update the .store version to have the new _cid (but does have other values updated)
+                            // f) future socket operations that update the .store verstion don't relate to the blueprint version stored in you can.Lists
+                            //    so no auto updated operations are caught by the list.
+                            // 
 
-                            if (Model.store[data.id]) {
-                                console.log('model added and stored!');
-                            } else {
-                                console.log('model added but NOT stored!');
-                            }
+                            // For now:  Don't auto add on a socket.'created'.  Push this off to the client UI designer via the 
+                            // 'model'.'created' subscription.
+
+console.warn('... remote server notified us of a new Model, but we are ignoring.', data);
+
+//                            new Model(data.data);
+
+//// Alternatively, we could do a Model.findOne({id:data.data.id}) and load it that way.
+
+
+                            // //// QUESTION: do we also tack in 'created' events?  How does Sails handle socket updates on 'created' 
+                            // //// events? Is our normal use case conditioned by Roles + Scope, and a client UI might not have permission to
+                            // //// receive all 'created' updates.  If sails just broadcasts that info across the channels, then we might not 
+                            // //// want to implement this in our default case.
+
+                            // if (Model.store[data.id]) {
+                            //     console.log('model added and stored!');
+                            // } else {
+                            //     console.log('model added but NOT stored!');
+                            // }
 
                         } else if ("updated" == data.verb) {
 
