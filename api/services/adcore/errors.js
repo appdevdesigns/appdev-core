@@ -49,6 +49,12 @@ module.exports = {
 		message: 'Invalid parameter values.',
 		code:'E_INVALIDPARAMS',
 		mlKey:''
+	},
+
+	'E_NOTFOUND' : {
+		message: 'Not Fopund.',
+		code:'E_NOTFOUND',
+		mlKey:''
 	}
 };
 
