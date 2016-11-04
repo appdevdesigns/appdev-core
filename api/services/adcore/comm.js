@@ -98,9 +98,13 @@ module.exports = {
             data:data
         };
 
-        // allow the ability to overwrite the .status value
-        if (data.status) {
-            packet.status = data.status;
+        // make sure data is provided.
+        if (data) {
+            
+            // allow the ability to overwrite the .status value
+            if (data.status) {
+                packet.status = data.status;
+            }
         }
 
         // default to HTTP status code: 200
