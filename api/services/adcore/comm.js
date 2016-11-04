@@ -33,13 +33,17 @@ module.exports = {
             data:err
         };
 
-        // add in optional properties: id, message, code, mlKey
-        var properties = ['id', 'message', 'code', 'mlKey'];
-        properties.forEach(function(prop){
-            if (err[prop]) {
-                packet[prop] = err[prop];
-            }
-        })
+
+        if (err) {
+            
+            // add in optional properties: id, message, code, mlKey
+            var properties = ['id', 'message', 'code', 'mlKey'];
+            properties.forEach(function(prop){
+                if (err[prop]) {
+                    packet[prop] = err[prop];
+                }
+            })
+        }
 
 
         // default to HTTP status code: 400
@@ -100,7 +104,7 @@ module.exports = {
 
         // make sure data is provided.
         if (data) {
-            
+
             // allow the ability to overwrite the .status value
             if (data.status) {
                 packet.status = data.status;
