@@ -40,7 +40,12 @@ module.exports = function(sails) {
                               PRIMARY KEY (`session_id`) \
                             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin \
                         ", function(err, results) {
+                            
                             // done
+                            if (err) {
+                                console.error('*** SiteUser.sessions : Cannot create the sessions table. You must fix this before things will work!');
+                                console.error('*** returned error:', err);
+                            }
                         });
                     });
                     break;
