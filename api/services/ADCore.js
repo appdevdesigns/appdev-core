@@ -874,6 +874,12 @@ User.prototype.GUID = function() {
 
 
 
+User.prototype.id = function() {
+    return this.userModel.id;
+};
+
+
+
 //// LEFT OFF:
 //// - figure out unit tests for testing the controller output.
 
