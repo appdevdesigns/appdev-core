@@ -110,6 +110,9 @@
 
 <script>
 $(function() {
+    // Focus username field by default
+    $('#user-name').focus();
+    
     // Toggle between Login / Signup
     $('a[form-show]').on('click', function(ev) {
         var form = $(this).attr('form-show');
