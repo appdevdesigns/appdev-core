@@ -21,6 +21,7 @@
 
 
 var AD = require('ad-utils');
+var cJSON = require('circular-json');
 var _ = require('lodash');
 
 
@@ -51,9 +52,13 @@ module.exports = {
 
 
         // Sails v0.11 no longer has res.header on socket connections
-        if(res.header) res.header('Content-type', 'application/json'); 
-
-        res.send(JSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
+        if (res.header) res.header('Content-type', 'application/json'); 
+        
+        var output = cJSON.stringify(packet)
+            .replace('"false"', 'false')
+            .replace('"true"', 'true');
+        
+        res.send(output, code);
     },
 
 
@@ -117,7 +122,7 @@ module.exports = {
         // Sails v0.11 no longer has res.header on socket connections
         if(res.header) res.header('Content-type', 'application/json');
         
-        res.send(JSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
+        res.send(cJSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
     }
 
 
