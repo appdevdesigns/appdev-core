@@ -24,6 +24,7 @@
   "dependencies": {
     "ad-utils": "appdevdesigns/ad-utils",
     "async": "^1.0.0",
+    "circular-json": "^0.3.1",
     "eventemitter2": "^0.4.14",
     "express-mysql-session": "^1.0.0",
     "fs": "0.0.2",
