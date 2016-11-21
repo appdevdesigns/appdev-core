@@ -20,6 +20,7 @@
 
 steal(
     'jquery',
+    'appdev/appdev.js',
     'appdev/comm/hub.js',
     function () {
 
