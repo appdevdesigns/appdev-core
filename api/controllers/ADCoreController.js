@@ -279,9 +279,18 @@ module.exports = {
                 req.logout();
             }
         }
-        
-        res.view(sails.config.appdev.localAuth.localLogoutView, {});
-        
+
+
+        // if an authLogoutRedirect is set --> redirect to there.
+        if (sails.config.appdev.authLogoutRedirect) {
+            res.redirect(sails.config.appdev.authLogoutRedirect);
+
+        } else {
+
+            // else show us the logout view:
+            res.view(sails.config.appdev.localAuth.localLogoutView, {});
+        }        
+
     },
     
     
