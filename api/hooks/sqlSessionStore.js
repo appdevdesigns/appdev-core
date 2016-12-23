@@ -12,7 +12,7 @@ module.exports = function(sails) {
     return {
         configure: function() {
             // Abort if the session store was already set up.
-            if (sails.config.session.store || sails.config.session.adapter) {
+            if (sails.config.session.store || (sails.config.session.adapter != 'memory')) {
                 return;
             }
             
