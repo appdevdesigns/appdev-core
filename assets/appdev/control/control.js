@@ -74,7 +74,7 @@ steal('appdev/UIController.js', function () {
 
                         var Obj = findObject(AD.controllers, name);
 
-                        new Obj(el, options);
+                        return new Obj(el, options);
                     },
 
 

@@ -13,8 +13,9 @@ if (typeof AD.util.uuid == 'undefined') {
 
 
         var uuid = 0;
-        AD.util.uuid = function() {
-           return ++uuid;
+        AD.util.uuid = function(key) {
+        	++uuid;
+        	return key ? key+uuid: uuid;
         }
 
     })();

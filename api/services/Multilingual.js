@@ -269,9 +269,11 @@ module.exports = {
          * @return {string}
          */
         default:function() {
-
-            return sails.config.appdev[Multilingual.CONST.DEFAULTLANGUAGE] || 'en' ;
-
+            var lang = null;
+            if (sails.config.appdev) {
+                lang = sails.config.appdev[Multilingual.CONST.DEFAULTLANGUAGE];
+            }
+            return lang || 'en' ;
         }
     },
 

@@ -1022,7 +1022,7 @@ if ($.isArray(_this.associations)) {
                     if ((xlations) && (xlations[0])) {
 
                         // make sure we get the default language
-                        var currentLanguage = xlations[0];
+                        var currentLanguage = xlations[0]; // default to 1st entry 
                         if (attr.language_code) {
                             xlations.forEach(function(trans){
                                 if (trans.language_code == attr.language_code) {
@@ -1128,6 +1128,8 @@ if ($.isArray(_this.associations)) {
 
                         // find a current translation with our currentlanguage
                         can.each(xlations, function (trans) {
+
+                            // if this is not our desired language, then Remove the entry
                             if (trans.language_code != langCode) {
                                 var indx = xlations.indexOf(trans);
                                 xlations.splice(indx, 1);
