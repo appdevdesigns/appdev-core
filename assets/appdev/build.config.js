@@ -60,7 +60,8 @@ module.exports = {
                 'can/compute/get_value_and_bind',
                 'can/compute/proto_compute',
                 'can/compute/compute',
-                'can/map/define/define'
+                'can/map/define/define',
+                'can/map/sort/sort'
             ]
         },
         // "js/jquery.min": {
