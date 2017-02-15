@@ -1169,7 +1169,7 @@ if ($.isArray(_this.associations)) {
                         trans.language_code = langCode;
 
                         fields.forEach(function (field) {
-                            if (attr[field]) {
+                            if (attr[field] != null) {
                                 trans[field] = attr[field];
                             }
                         })
@@ -1192,7 +1192,7 @@ if ($.isArray(_this.associations)) {
                                 fields.forEach(function (field) {
 
                                     // if our content has a field value:
-                                    if (attr[field]) {
+                                    if (attr[field] != null) {
 
                                         // if we have an .attr() method use it
                                         if (trans.attr) {
