@@ -52,9 +52,15 @@ module.exports = {
 	},
 
 	'E_NOTFOUND' : {
-		message: 'Not Fopund.',
+		message: 'Not Found.',
 		code:'E_NOTFOUND',
 		mlKey:''
+	},
+
+	'E_NOTPERMITTED' : {
+		message: 'Not Permitted.',
+		code:'E_NOTPERMITTED',
+		mlKey:'opp.perm.notPermitted'
 	}
 };
 

@@ -61,7 +61,7 @@ module.exports = {
         var user = ADCore.user.current(req);
 
 
-        // prepare a callback routine to determine if the user all all the 
+        // prepare a callback routine to determine if the user has all the 
         // listed permissions. 
         var hasAll = function( list) {
 
@@ -105,8 +105,9 @@ module.exports = {
 
                 // if we got here, then we did not pass any permission checks
                 AD.log('<red>.... reqPath['+reqPath+']  -> user[</red><yellow>'+user.GUID()+'</yellow><red>] did not have any of the required permissions '+ permissions.join(', ') + '</red>');
-                // res.forbidden();
-                res.AD.error({ message:'no permission' }, 403);
+                
+                
+                res.AD.error(ADCore.error.fromKey('E_NOTPERMITTED'), 403);
                 return;
             }
         }
@@ -153,6 +154,9 @@ module.exports = {
      *                                       to return if the user is not permitted.
      */
     limitRouteToUserActionScope:function(req, res, next, options) {
+// console.log('... limitRouteToUserActionScope():');
+// var err = new Error('where am I');
+// console.log(Error().stack);
 
         // make sure options isn't undefined:
         options = options || {};
@@ -215,7 +219,7 @@ module.exports = {
 
                         numDone++;
                         if (numDone >= allActionKeys.length) {
-// console.log('... conditions:', conditions);
+console.log('... route limit conditions:', conditions);
                             done();
                         }
 
@@ -328,6 +332,7 @@ console.log('... options:', req.options);
 
     limitRouteToScope:function(req, res, next, options) {
 
+// console.log('... limitRouteToScope()');
 
         // make sure options isn't undefined:
         options = options || {};
@@ -513,7 +518,7 @@ console.log('... options:', req.options);
      */
     scopeUsersForAction: function(req, actionKey) {
         var dfd = AD.sal.Deferred();
-
+// console.log('... scopeUsersForAction()');
         // get user and make sure it is ready() before using it.
         var user = ADCore.user.current(req);
         user.ready()
@@ -527,7 +532,7 @@ console.log('... options:', req.options);
 
 // TODO: actually lookup the Scope data and resolve it to a list of SiteUser accounts.
 
-// for now: return all our site users, and any entreis that look like our users in our tutorial
+// for now: return all our site users, and any entries that look like our users in our tutorial
 var tempResults = [{ id:'1', guid:'user.1' }, { id:'1', guid:'user.2' }];
 tempResults.push({id:'1', guid:'nate'});  // local test case for FCFActivities.
 SiteUser.find()
@@ -542,8 +547,10 @@ SiteUser.find()
 
 
             } else {
-                var err = new Error('No Permission');
-                err.code = 'ENO_PERMISSION';
+
+                var err = ADCore.error.fromKey('E_NOTPERMITTED') || new Error('No Permission');
+                    // var err = new Error('No Permission');
+                    // err.code = 'ENO_PERMISSION';
                 err.actionKey = actionKey;
                 dfd.reject(err);
             }
@@ -587,6 +594,8 @@ SiteUser.find()
      * Permissions:
      * ------------
      * permissions are defined as an array of action keys.
+//// TODO:
+// array of object definitions:  { action:[], object:{object}}
      * 
      * if you want to designate that the '/adcore' route must have the 'adcore.admin'
      * permission, then you can pass in:
@@ -607,6 +616,12 @@ SiteUser.find()
     registerDefinition: function( route, perm ) {
 
         AD.log('<green>route:</green> '+ route+' registered');
+
+//// TODO:
+// if perm is not in proper format: { action:[], object:{} }
+// then reformat & dump console error to alert Developer to update definition.
+//
+
         registeredRoutes[ route.toLowerCase() ] = perm;
 
     },
