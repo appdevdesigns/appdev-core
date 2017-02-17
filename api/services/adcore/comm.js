@@ -122,7 +122,8 @@ module.exports = {
         // Sails v0.11 no longer has res.header on socket connections
         if(res.header) res.header('Content-type', 'application/json');
         
-        res.send(cJSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
+        // res.send(cJSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
+        res.send(JSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
     }
 
 
