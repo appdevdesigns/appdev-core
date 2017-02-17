@@ -33,7 +33,11 @@ module.exports = {
 	'get /appdev-core/sitemultilinguallanguage' : [ '*' ],
 		// anyone should be able to do a get /appdev-core/sitemultilinguallanguage
 		
-    '/appdev-core' : ['adcore.admin', 'adcore.developer']
+    '/appdev-core' : ['adcore.admin', 'adcore.developer'],
     	// only administrators or developers can access our /appdev-core resources 
-    	// 		SiteUsers, Permissions, ... 
+    	// 		SiteUsers, Permissions, Scopes, ... 
+
+    '/site/permission/scopeobject' : ['adcore.admin', 'adcore.developer' ] 
+    	// only administrators can access our scopeobject definitions.
+    	
 };

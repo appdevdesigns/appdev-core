@@ -86,11 +86,13 @@ module.exports = {
             }
         },
 
-
         permission:{
             collection:'Permission',
             via:'user'
         },
+        
+        
+        //// Instance model methods
 
 
         toJSON:function() {
@@ -100,8 +102,6 @@ module.exports = {
             return obj;
         },
         
-        
-        //// Instance model methods
         
         /**
          * To be called whenever a user login is attempted. Updates the

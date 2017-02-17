@@ -222,6 +222,7 @@ module.exports = {
 
     error: {
 
+        // ADCore.error.log(message, data)
         log: function( message, data ) {
 
             AD.log.error(message, data);

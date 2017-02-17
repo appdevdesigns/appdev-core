@@ -35,8 +35,10 @@ module.exports = {
     'get /steal/steal.js'           : 'appdev-core/ADCoreController.steal',
     
     //// Permissions
+    'get /site/permission/scopeobject/:id/definition' : 'appdev-core/PermissionScopeObjectController.getScopeDefinition',
+        // allows the UI to request the model fields and details for a requested ScopeObject
 
-    'get /site/permission/role'	: 'appdev-core/PermissionsController.getRoles',
+// 'get /site/permission/role'	: 'appdev-core/PermissionsController.getRoles',
 
 
     //// only active in development environment:

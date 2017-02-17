@@ -14,7 +14,7 @@ var sails,
 before(function(done) {
 
   // Increase the Mocha timeout so that Sails has enough time to lift.
-  this.timeout(80000);
+  this.timeout(120000);
 
 
   // sails should lift from directory above:
