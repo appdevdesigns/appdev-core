@@ -13,26 +13,6 @@ describe('Multilingual.label.create tests ', function(){
 
     var allLabels = [];     // initial list of labels.
 
-
-    function onDone(o) {
-        if (o.err) {
-            o.ok(o.err);
-        } else {
-            o.numDone++;
-            if (o.numDone == 2) {
-                o.ok();
-            }
-        }
-    }
-
-    function isDeferred(dfd) {
-
-        assert.isDefined(dfd, ' should be defined ');
-        assert.property(dfd, 'fail', ' should look like a deferred. .fail() ');
-        assert.property(dfd, 'then', ' should look like a deferred. .then() ');
-
-    }
-
     before(function(done){
     
         SiteMultilingualLabel.find()
@@ -55,35 +35,35 @@ describe('Multilingual.label.create tests ', function(){
     it('calling without a labelDef results in an error/rejected deferred', function(ok){
 
         // wait for both checks to complete.
-        var oD = { numDone:0, ok:ok };
+        var oD = AD.test.util.newOnDone(ok);
 
 
         var dfd = Multilingual.label.create(function(err, newLabel){
             assert.isNotNull(err, ' should have returned an error.');
             assert.equal(err.code, 'E_MISSINGPARAM', ' error should have code: E_MISSINGPARAM ');
             assert.isUndefined(newLabel, ' should not have returned a new area.'); 
-            onDone(oD);
+            AD.test.util.onDone(oD);
         })
         .fail(function(err){
 
             assert.isNotNull(err, ' should have returned an error.');
             assert.equal(err.code, 'E_MISSINGPARAM', ' error should have code: E_MISSINGPARAM ');
-            onDone(oD);
+            AD.test.util.onDone(oD);
         })
         .then(function(newLabel){
             assert.ok(false, 'should not have gotten here.');
-            onDone(oD);
+            AD.test.util.onDone(oD);
         })
 
-        isDeferred(dfd);
+        AD.test.util.isDeferred(dfd, assert);
 
     });
 
 
-it('have not finished this yet', function(ok){
-    assert.ok(false, ' ---> keep going');
-    ok();
-})
+// it('have not finished this yet', function(ok){
+//     assert.ok(false, ' ---> keep going');
+//     ok();
+// })
 
 //// LEFT OFF HERE:
 
