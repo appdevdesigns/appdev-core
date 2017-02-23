@@ -17,6 +17,9 @@ migrate:'alter',
     // {string} the multilingual label of this scope.
     label : { type: 'string' },
 
+    // {string} the multilingual description of this scope.
+    description : { type: 'string' },
+
     language_code : { type: 'string' }
   }
 };

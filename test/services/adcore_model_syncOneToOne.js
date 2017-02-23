@@ -151,7 +151,7 @@ describe('ADCore.model.syncOneToOne tests', function(){
 // strategy: stuff a mock model into sails.models[]
 // define model to connect to an existing model.field
 // call afterCreate and check if remote model.field is updated with this value
-
+ok();
 
     });
 
