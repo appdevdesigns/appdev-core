@@ -1453,9 +1453,11 @@ if ($.isArray(_this.associations)) {
                             var updateData = Model.store[data.id];
                             var oldValue = updateData.attr(data.attribute);
 
-                            updateData.attr(data.attribute, oldValue.filter(function (val) { return (val.id || val) != data.removedId }));
+                            if (oldValue && oldValue.filter) {
+                                updateData.attr(data.attribute, oldValue.filter(function (val) { return (val.id || val) != data.removedId }));
 
-                            can.event.dispatch.call(Model, 'updated', [updateData]);
+                                can.event.dispatch.call(Model, 'updated', [updateData]);
+                            }
                         } else {
 
                             can.event.dispatch.call(Model, data.verb, [data]);
