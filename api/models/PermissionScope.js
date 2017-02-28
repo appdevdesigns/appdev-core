@@ -28,7 +28,7 @@ migrate:'alter',
     filterUI : { type: 'json' },
 
     // // {bool}  is this shared with others? true: shared, false => private
-    // isGlobal : { type: 'boolean' },
+    isGlobal : { type: 'boolean' },
 
     // this will pull in the translations using .populate('translations')
     translations:{

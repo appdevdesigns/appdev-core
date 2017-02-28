@@ -17,7 +17,7 @@ module.exports = function (cb) {
     sails.config.appdev = sails.config.appdev || {};
     sails.config.appdev.localAuth = sails.config.appdev.localAuth || {};
 
-    function checkLoginView (config, param, defaultView, next) {
+    function checkView (config, param, defaultView, next) {
 
         var cwd = process.cwd();
 
@@ -79,7 +79,7 @@ module.exports = function (cb) {
         function(next){
             var defaultView = 'appdev-core/adcore/loginform.ejs';
 
-            checkLoginView (sails.config.appdev.localAuth, 'localLoginView', defaultView, next);
+            checkView(sails.config.appdev.localAuth, 'localLoginView', defaultView, next);
         
         },
 
@@ -90,7 +90,7 @@ module.exports = function (cb) {
         function(next){
             var defaultView = 'appdev-core/adcore/logout.ejs';
 
-            checkLoginView (sails.config.appdev.localAuth, 'localLogoutView', defaultView, next);
+            checkView(sails.config.appdev.localAuth, 'localLogoutView', defaultView, next);
 
         }
 

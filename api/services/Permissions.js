@@ -15,6 +15,7 @@ var registeredRoutes = {
 
 var path = require('path');
 var Action = require(path.join(__dirname, 'permissions', 'action.js'));
+var Route = require(path.join(__dirname, 'permissions', 'route.js'));
 
 module.exports = {
 
@@ -26,6 +27,16 @@ module.exports = {
      * applications.
      */
     action:Action,
+
+
+
+    /**
+     * Permissions.route
+     *
+     * a set of utilities for exposing the Route related permission 
+     * capabilities to external applications.
+     */
+    route:Route,
 
 
     /**
@@ -45,79 +56,79 @@ module.exports = {
      * @param {obj} res  The node/express res object
      * @param {fn}  next The node/express callback for this middleware step
      */
-    hasRoutePermission: function(req, res, next) {
+//     hasRoutePermission: function(req, res, next) {
 
-//// TODO: <2013/12/12> Johnny : uncomment the unit tests for this action
-////       when implemented.
-
-
-        // create a reqPath to test against
-        //  or can do:  var reqPath = req.route.method+' '+req.route.path;
-        var reqPath = req.method + ' ' + req.url;
-        reqPath = reqPath.toLowerCase();    // lowercase it all
-        // AD.log('<green>.... reqPath['+reqPath+']</green>');
+// //// TODO: <2013/12/12> Johnny : uncomment the unit tests for this action
+// ////       when implemented.
 
 
-        var user = ADCore.user.current(req);
+//         // create a reqPath to test against
+//         //  or can do:  var reqPath = req.route.method+' '+req.route.path;
+//         var reqPath = req.method + ' ' + req.url;
+//         reqPath = reqPath.toLowerCase();    // lowercase it all
+//         // AD.log('<green>.... reqPath['+reqPath+']</green>');
 
 
-        // prepare a callback routine to determine if the user has all the 
-        // listed permissions. 
-        var hasAll = function( list) {
-
-            if (list.length > 0) {
-
-                var perm = list.shift();
-
-                // '*'  : means anyone can access.  Some routes are open to anyone.
-                if ((perm == '*') || (user.hasPermission( perm ))) {
-                    return hasAll( list );
-                } else {
-                    return false;
-                }
-
-            } else {
-                return true;
-            }
-        }
+//         var user = ADCore.user.current(req);
 
 
-        // look for a matching route in our registeredRoutes
-        for (var p in registeredRoutes) {
-            if ( reqPath.indexOf(p) != -1) {
+//         // prepare a callback routine to determine if the user has all the 
+//         // listed permissions. 
+//         var hasAll = function( list) {
 
-                var permissions = registeredRoutes[p];
-                for (var i = permissions.length - 1; i >= 0; i--) {
+//             if (list.length > 0) {
+
+//                 var perm = list.shift();
+
+//                 // '*'  : means anyone can access.  Some routes are open to anyone.
+//                 if ((perm == '*') || (user.hasPermission( perm ))) {
+//                     return hasAll( list );
+//                 } else {
+//                     return false;
+//                 }
+
+//             } else {
+//                 return true;
+//             }
+//         }
+
+
+//         // look for a matching route in our registeredRoutes
+//         for (var p in registeredRoutes) {
+//             if ( reqPath.indexOf(p) != -1) {
+
+//                 var permissions = registeredRoutes[p];
+//                 for (var i = permissions.length - 1; i >= 0; i--) {
                     
-                    var perm = permissions[i]
+//                     var perm = permissions[i]
                 
-                    // make sure entry is an [] 
-                    if (! _.isArray(perm)) perm = [perm];
+//                     // make sure entry is an [] 
+//                     if (! _.isArray(perm)) perm = [perm];
 
-                    // if user has all these permissions then continue!
-                    if (hasAll(perm)) {
-                        AD.log('<green>.... reqPath['+reqPath+']  -> user['+user.GUID()+'] had permission: </green><yellow><bold>'+ perm.join(', ') + '</bold></yellow>');
-                        next();
-                        return;
-                    }
-                };
+//                     // if user has all these permissions then continue!
+//                     if (hasAll(perm)) {
+//                         AD.log('<green>.... reqPath['+reqPath+']  -> user['+user.GUID()+'] had permission: </green><yellow><bold>'+ perm.join(', ') + '</bold></yellow>');
+//                         next();
+//                         return;
+//                     }
+//                 };
 
 
-                // if we got here, then we did not pass any permission checks
-                AD.log('<red>.... reqPath['+reqPath+']  -> user[</red><yellow>'+user.GUID()+'</yellow><red>] did not have any of the required permissions '+ permissions.join(', ') + '</red>');
+//                 // if we got here, then we did not pass any permission checks
+//                 AD.log('<red>.... reqPath['+reqPath+']  -> user[</red><yellow>'+user.GUID()+'</yellow><red>] did not have any of the required permissions '+ permissions.join(', ') + '</red>');
                 
                 
-                res.AD.error(ADCore.error.fromKey('E_NOTPERMITTED'), 403);
-                return;
-            }
-        }
+//                 res.AD.error(ADCore.error.fromKey('E_NOTPERMITTED'), 403);
+//                 return;
+//             }
+//         }
 
         
-        // if we got here, we did not find any permissions requried for this route. 
-        // so continue.
-        // AD.log('<yellow>    -> no permissions registered for this reqPath</yellow>');
-        next();
-    },
+//         // if we got here, we did not find any permissions requried for this route. 
+//         // so continue.
+//         // AD.log('<yellow>    -> no permissions registered for this reqPath</yellow>');
+//         next();
+//     },
 
 
 
@@ -139,24 +150,32 @@ module.exports = {
      * @param {obj} options The options for this specific route definitions.
      *          options.field     {string}   the field in the resource that connects to the 
      *                                       scoped User info.
+     *                                       eg: transaction.userID
+     *
      *          options.userField {string}   the field in the User info that this 
      *                                       resource ties to. 
      *                                       (usually 'guid', but you might instead 
      *                                       link to 'id', or 'username')
+     *                                       eg. SiteUser.guid
+     *
      *          options.catchAll {string}    The user value that indicates 'any one can see'
      *                                       (some entries might not care about scope and 
      *                                        instead of a guid, they put this value, so
      *                                        as long as you had the action permission, you
      *                                        can work with this entry)
+     *                                        eg: '*'  for anyone can see
+     * 
      *          options.resourcePKField {string} the name of the resource's pk field
      *                                       (usually 'id', but if not, specify it here.)
+     *                                       eg: transaction.id
+     *
      *          options.error     {obj}      An object representing the error information 
      *                                       to return if the user is not permitted.
      */
     limitRouteToUserActionScope:function(req, res, next, options) {
-// console.log('... limitRouteToUserActionScope():');
-// var err = new Error('where am I');
-// console.log(Error().stack);
+console.log('... limitRouteToUserActionScope():');
+var err = new Error('where am I');
+console.log(Error().stack);
 
         // make sure options isn't undefined:
         options = options || {};
@@ -561,70 +580,7 @@ SiteUser.find()
     },
 
 
-
-    /**
-     * @function Permissions.registerDefinition()
-     *
-     * Use this to register a route string with a set of required permissions.
-     *
-     * Expected to be performed upon boostrap to register any route permissions
-     * for an application.
-     *
-     *
-     *
-     * Route:
-     * ------------
-     * routes can be defined as a string that will be matched against an incoming 
-     * method + url.
-     *
-     * if you want to make sure that a 'get' operation on the '/adcore/siteuser'
-     * is checked for a permission, then define the route as:
-     *      'get /adcore/siteuser'
-     *
-     * if you want to make sure that all operations on the /adcore/siteuser is 
-     * checked, then :
-     *      '/adcore/siteuser'
-     *
-     * if you want to make sure all requests to any /adcore/* resource is checked
-     * then:
-     *      '/adcore'
-     *
-     *
-     *
-     * Permissions:
-     * ------------
-     * permissions are defined as an array of action keys.
-//// TODO:
-// array of object definitions:  { action:[], object:{object}}
-     * 
-     * if you want to designate that the '/adcore' route must have the 'adcore.admin'
-     * permission, then you can pass in:
-     *      [ 'adcore.admin' ]
-     *
-     * if '/adcore' can have 'adcore.admin'  OR  'adcore.developer' then:
-     *      [ 'adcore.admin', 'adcore.developer' ]
-     *
-     * if '/adcore' can have 'adcore.admin'  OR  ('adcore.developer' AND 'adcore.nice.guy')
-     *      [ 'adcore.admin', [ 'adcore.developer', 'adcore.nice.guy'] ]
-     *
-     *
-     *
-     * @param {string} route  the string describing a route to watch
-     * @param {array}  perm   An array of actionsKeys required to access this 
-     *                        route.
-     */
-    registerDefinition: function( route, perm ) {
-
-        AD.log('<green>route:</green> '+ route+' registered');
-
-//// TODO:
-// if perm is not in proper format: { action:[], object:{} }
-// then reformat & dump console error to alert Developer to update definition.
-//
-
-        registeredRoutes[ route.toLowerCase() ] = perm;
-
-    },
+    
 
     createRole: function (name, description) {
         var dfd = AD.sal.Deferred();

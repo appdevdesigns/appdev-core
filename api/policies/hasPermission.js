@@ -12,7 +12,7 @@
 module.exports = function(req, res, next) {
 
 
-    Permissions.hasRoutePermission(req, res, next);
+    Permissions.route.hasPermission(req, res, next);
 
 };
 

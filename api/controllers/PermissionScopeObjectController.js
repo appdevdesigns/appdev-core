@@ -174,7 +174,7 @@ module.exports = {
             },
 
 
-            // if siteuser, then remove key fields
+            // if siteuser object, then remove protected fields
             function(next) {
                 if ('siteuser' == scopeObject.keyModel) {
                     

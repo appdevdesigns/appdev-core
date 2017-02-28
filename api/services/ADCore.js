@@ -754,6 +754,32 @@ User.prototype.hasPermission = function(key) {
 
 
 
+User.prototype.scopesForActionObject = function(actionKey, objectKey) {
+console.log('... .scopesForActionObject()');
+console.log('.... actionKey:'+actionKey); 
+console.log('.... data.permissions:', this.data.permissions);
+    var scopes = [];
+    if ((this.data.permissions)
+        && (this.data.permissions[actionKey])) {
+       
+
+console.log('....     .scopes:', this.data.permissions[actionKey]);
+
+        this.data.permissions[actionKey].forEach(function(s){
+console.log('.... object.keyModel:', s.object.keyModel);
+console.log('.... objectKey:', objectKey);
+
+            if (s.object.keyModel == objectKey) {
+                scopes.push(s);
+            }
+        })
+    }
+
+    return scopes;
+};
+
+
+
 User.prototype._computePermissions = function() {
     var _this = this;
 
@@ -762,6 +788,7 @@ User.prototype._computePermissions = function() {
     var listPermissions = null;
     var hashRoles = null;
     var hashPerm = null;
+    var listScopeObjectIDs = [];
 
 
 if (_this.userModel == null) {
@@ -823,7 +850,7 @@ if (_this.userModel == null) {
 
 
         // step 3) now merge the permissions and roles into a 
-        //         { actionKey : [scopeid] }
+        //         { actionKey : [{scope}] }
         function(next) {
 
             hashPerm = {};
@@ -842,7 +869,8 @@ if (_this.userModel == null) {
 
                         // now add the current scopes to this action key:
                         perm.scope.forEach(function(scope){
-                            hashPerm[action.action_key].push(scope.id);
+                            hashPerm[action.action_key].push(scope);
+                            listScopeObjectIDs.push(scope.object);
                         })
                     })
                 } else {
@@ -852,6 +880,41 @@ if (_this.userModel == null) {
 
             next();
 
+        },
+
+
+        // step 4) merge in the missing scope object definitions
+        // currently our hashPerm scopes have scope.object = #id, but we want scope.object = {ScopeObject}
+        function(next) {
+            PermissionScopeObject.find({id:listScopeObjectIDs})
+            .then(function(listObjects){
+                var hash = {};
+                listObjects.forEach(function(o){
+                    hash[o.id] = o;
+                })
+
+                for (var aKey in hashPerm) {
+                    hashPerm[aKey].forEach(function(s){
+// console.log('s.object:', s.object);
+
+                        if (!s.object.id) {
+// console.log('hash[s.object]:', hash[s.object]);
+                            s.object = hash[s.object];
+
+                        }
+                    })
+                }
+
+// console.log('... final hashPerm:');
+// console.log(hashPerm);
+
+                next();
+                return false;
+            })
+            .catch(function(err){
+                next(err);
+                return false;
+            })
         }
 
     ], function(err,results){
