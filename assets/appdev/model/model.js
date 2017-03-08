@@ -1397,7 +1397,7 @@ if ($.isArray(_this.associations)) {
                             // subset of data from the server than what we 
                             // might have already loaded (using .findAll())
 
-                            var oldValue = Model.store[data.id];
+                            var updateData = Model.store[data.id];
 // console.log('... oldValue:', oldValue);
 
                             //
@@ -1412,16 +1412,23 @@ if ($.isArray(_this.associations)) {
                                 // if for some reason our Model.store value is 
                                 // a different ._cid, then manually update the
                                 // current value.
-                                if (model._cid != oldValue._cid) {
+                                if (model._cid != updateData._cid) {
                                     var attrs = model.attr();
                                     for(var a in attrs) {
-                                        oldValue.attr(a, attrs[a]);
+                                        updateData.attr(a, attrs[a]);
                                     }
+                                }
+                                else {
+                                    Object.keys(data.data).forEach(function(key) {
+                                        if (data.data[key] != updateData.attr(key)) {
+                                            updateData.attr(key, data.data[key]);
+                                        }
+                                    });
                                 }
 
                                 // doesn't this automatically update the Model?
                                 // or should we do this:
-                                can.event.dispatch.call(Model, 'updated', [oldValue]);
+                                can.event.dispatch.call(Model, 'updated', [updateData]);
                                 // can.trigger(Model, 'updated');
                             })
 
@@ -1432,6 +1439,25 @@ if ($.isArray(_this.associations)) {
                             can.event.dispatch.call(Model, 'destroyed', [Model.store[data.id]]);
                             // Model.dispatch('destroyed', [Model.store[data.id]]);
 
+                        } 
+                        // 
+                        // *  @codestart
+                        // {
+                        //     attribute: "name1"
+                        //     id: 1,
+                        //     removedId: "5",
+                        //     verb: "removedFrom"
+                        // }
+                        // *  @codeend
+                        else if ("removedFrom" == data.verb) {
+                            var updateData = Model.store[data.id];
+                            var oldValue = updateData.attr(data.attribute);
+
+                            if (oldValue && oldValue.filter) {
+                                updateData.attr(data.attribute, oldValue.filter(function (val) { return (val.id || val) != data.removedId }));
+
+                                can.event.dispatch.call(Model, 'updated', [updateData]);
+                            }
                         } else {
 
                             can.event.dispatch.call(Model, data.verb, [data]);
