@@ -96,7 +96,13 @@ module.exports = {
 
 
         toJSON:function() {
-            var obj = this.toObject();
+
+            var obj = null;
+            if (this.toObject) {
+                obj = this.toObject();
+            } else {
+                obj = _.clone(this);
+            }
             delete obj.password;
             delete obj.salt;
             return obj;

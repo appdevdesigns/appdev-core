@@ -182,26 +182,28 @@ module.exports = {
             error:{ code: 403, message:'Not Permitted.' }
         }, options);
 
-console.log();
-console.log('... Permission.route.limitToActionScope()');
-console.log('*** options:', options);
+// console.log();
+// console.log('... Permission.route.limitToActionScope()');
+// console.log('*** options:', options);
 
-// TODO: verify actionKey
+// TODO: verify actionKey is proper 
 
         var scopeList = null;  // list of [{scope}, {scope},... ]
+        var scopeFilter = null;  // final { or:[] } of our scopeList
         async.series([
 
             // get list of [ {scope}, {scope}, ... ] from user + actionKey + object.key
             function(ok) {
-console.log('... get list of [scope, scope] from user');
+// console.log('... get list of [scope, scope] from user');
                 var User = req.AD.user();
                 User.ready()
                 .fail(function(err){
                     ok(err);
                 })
                 .then(function(){
+// console.log('... calling User.scopesForActionObject():');
                     scopeList = User.scopesForActionObject(options.actionKey, options.object.key);
-console.log('... scopeList:', scopeList);
+// console.log('... scopeList:', scopeList);
                     ok();
                 })
             },
@@ -211,48 +213,365 @@ console.log('... scopeList:', scopeList);
             // compile scope.filterUI defs into sails compatible scope.filter definition
                     // Filter.queryBuilderToSailsFilter( object.attr, scope.filterUI )
             function(ok) {
-
+// console.log('... compile scope.filterUI into sails compatible scope filter:');
                 if(scopeList) {
 
-                    var error = null;
+                    var numDone = 0;
+                    function onDone (err) {
+
+                        if (err) {
+                            ok(err);
+                        } else {
+
+                            numDone ++;
+                            if (numDone >= scopeList.length) {
+// console.log('... scopeList 2:', scopeList);
+// scopeList.forEach(function(s){
+//     console.log(s.filter);
+// })
+                                ok();
+                            }
+                        }
+                    }
+
+
                     var hasError = false;
                     scopeList.forEach(function(s){
 
                         if (!hasError) {
                             var Model = sails.models[s.object.keyModel]
                             if (Model) {
-
+// console.log('... calling Filter.queryBuilderToSailsFilter():');
                                 // update current scope.filter to sails compatible filter:
-                                s.filter = Filter.queryBuilderToSailsFilter(Model.attributes, s.filterUI);
+                                Filter.queryBuilderToSailsFilter(Model.attributes, s.filterUI, function(err, filter){
+                                    if (err) {
+                                        onDone(err);
+                                    } else {
+                                        s.filter = filter;
+                                        onDone();
+                                    }
+                                });
                             
                             } else {
 
                                 hasError = true;
-                                error = new Error('Unknown Model ['+s.object.keyModel+']');
-                                return false;
+                                var error = new Error('Unknown Model ['+s.object.keyModel+']');
+                                onDone(error);
                             }
                         }
                         
                     })
+
+
                     
-console.log('... scopeList 2:', scopeList);
-                    ok(error);
 
                 } else {
+
 // TODO: Question: is this an error if there are no scopes to compile?
                     ok();
                 }
 
-            }
+            },
 
             // combine into scopeFilter: { 'or':[scope.filter, scope.filter ]}
+            function(ok) {
+// console.log('... combining into scopeFilter');
 
-            // if (object != resource) 
-                // find all objects using scopeFilter
-                // reduce scopeFilter to: { resource.field: [ results[object.field] ]}
+                var rules = [];
+                scopeList.forEach(function(s){
+                    rules.push(s.filter);
+                })
+                scopeFilter = { or: rules };
+// console.log('... scopeFilter:', scopeFilter);
+
+                ok();
+            },
+
+            // if separate resource and scope object, then reduce to [ obj.field ]
+            function(ok) {
+// console.log('... if separate resource and scope object:');
+                // if (object != resource) 
+                if ( (options.resource) 
+                    && (options.resource.field) 
+                    && (options.object.field)) {
+
+                    // find all objects using scopeFilter
+                    var Model = sails.models[options.object.key];
+                    if (Model) {
 
 
-            // add scopeFilter to condition.
+                        Model.find(scopeFilter)
+                        .exec(function(err, models) {
+
+                            if (err) {
+                                ADCore.error.log("unable to lookup Model using filter", {error: err, model:Model.attributes, filter: scopeFilter});
+                                ok(err);
+                            } else {
+
+                                // reduce scopeFilter to: { resource.field: [ results[object.field] ]}
+                                scopeFilter = {};
+                                scopeFilter[options.resource.field] = _.map(models, options.object.field );
+// console.log('.... scopeFilter reduced:', scopeFilter);
+                                ok();
+                            }
+                            
+                        })
+                        
+                    } else {
+
+                        // couldn't find Model, Why!?
+                        var error = new Error('unknown model: ['+ options.object.key+']');
+                        ok(error);
+                    }
+                    
+
+                } else {
+
+                    // nothing to do if the object == resource
+                    ok();
+                }
+            },
+
+
+
+            // at this point, we should have a scopeFilter that is a condition
+            // for the current resource.
+            //
+            // Now either modify the current request (find()) or evaluate it to
+            // make sure they are able to perform the operation.
+            function(ok) {
+
+
+                // first: translate the current scopeFilter into a list of resource
+                //        entries that CAN be accessed.
+                var validIDs = [];
+                var resourceModelKey = req.options.model || req.options.controller;
+                if (!resourceModelKey) {
+                    var error = new Error(util.format('No "model" specified in route options.'));
+                    ok(error);
+                    return;
+                }
+
+                var ResourceModel = req._sails.models[resourceModelKey];
+                if ( !ResourceModel ) {
+                    var error = new Error(util.format('Invalid route option, "model".\nI don\'t know about any models named: `%s`',resourceModelKey));
+                    ok(error);
+                    return;
+                }
+
+                var pkField = 'id';
+// TODO: get primaryKey field from ResourceModel.attributes
+// console.log('... ResourceModel.attributes:', ResourceModel.attributes);
+// console.log('... scopeList again:', scopeFilter);
+
+                ResourceModel.find(scopeFilter)
+                .catch(function(err){
+                    ok(err);
+                })
+                .done(function(list){
+
+// console.log('... listResources:', list);
+
+                    validIDs = _.map(list, pkField);
+
+// console.log('... validIDs:', validIDs);
+
+                    // if request had given the primaryKey/ID: (findOne, update, destroy )
+                    // look for a primaryKey value:
+                    var id = req.param('id') || req.param(pkField);
+                    if ((req.options.action == 'findOne')
+                        || (id)) {
+
+                        var pID  = _.parseInt(id);
+
+                        // if it looks like we should be comparing numbers:
+                        if (!_.isNaN(pID)) {
+
+                            // make sure we treat it as a number
+                            id = pID;
+                        }
+
+// console.log('... id:', id);
+
+                        // if it is in the list of validIDs
+                        if (validIDs.indexOf(id) != -1) {
+
+// console.log('... validID found!');
+                            // ok, this one is permitted, so continue:
+                            ok();
+
+                        } else {
+// console.log('... no validID found.');
+
+                            // can't ask for this one!
+                            var ourError = new Error( options.error.message );
+                            res.AD.error(ourError, options.error.code);
+                            // res.forbidden();
+                        }
+
+
+                    } else { // else  (findAll() ) 
+
+
+                        // add primaryKey : validIDs to current condition
+
+// console.log('... updating condition.');
+
+                        if (validIDs.length > 0) {
+
+                            /// Option 1: if waterline-sequel accepts AND fix:
+                            // add to the query a condition for userID to be in our validIDs:
+                            req.options.where = req.options.where || {};
+
+                            var cond = {};
+                            cond[pkField] = validIDs;
+
+                            if (!req.options.where.and) {
+                                req.options.where.and = [];
+                            }
+                            req.options.where.and.push(cond);
+
+
+                            //// Option B: manually compile an 'and' solution!
+                            //// *could get pretty complicated!*
+                            // var allParams = req.params.all();
+
+                            // // add to the query a condition for userID to be in our validIDs:
+                            // req.options.where = req.options.where || {};
+                            // // req.options.where[pkField] =  validIDs; // bad!  id:XXX switches us to findOne()
+                            // _.assign(req.options.where, scopeFilter);
+
+                            // req.query[pkField] = validIDs;
+// console.log('... options:', req.query);
+
+
+                            ok();
+
+                        } else {
+
+                            // in this case, we are requesting a find, but have no 
+                            // valid entries we can return.  So just return an []:
+
+                            res.ok([]);
+
+                        }
+
+
+                        /// otherwise: figure out how to manually merge scopeFilter 
+                        /// into where clause:
+
+
+
+                        
+                    }
+                })
+
+
+
+
+
+/*
+///// 
+                var validIDs = _.map(validUsers, options.userField);
+
+                // was the request already specifying the specified .field?
+                var allParams = req.params.all();
+    // console.log('... allParams:', allParams);
+    // console.log('... options.where:', req.options.where);
+    // console.log('... validIDs:', validIDs);
+
+    //// TODO: check if we need to account for a possible incoming where:{ userID:xx }  clause
+
+                if( allParams[options.field]) {
+
+                    var parsedField  = _.parseInt(allParams[options.field]);
+
+                    // if it looks like we should be comparing numbers:
+                    if (!_.isNaN(parsedField)) {
+
+                        // make sure we treat it as a number
+                        allParams[options.field] = parsedField;
+                    }
+
+                    // if they asked for one that is already allowed
+                    if (validIDs.indexOf(allParams[options.field]) != -1) {
+    // console.log('... looks good!');
+                        // let things go on:
+                        ok();
+                    } else {
+    // console.log('... didnt match up!');
+                        // can't ask for that one!
+                        var ourError = new Error( options.error.message );
+                        ADCore.comm.error(res, ourError, options.error.code);
+                        // res.forbidden();
+                    }
+
+                } else {
+
+                    // some routes operate on a given primaryKey: findOne, update, destroy 
+                    // other routes operate on a condition: find
+
+                    // look for a primaryKey value:
+                    var pk = req.param('id');
+
+                    // if a route with a primaryKey value
+                    if ((req.options.action == 'findOne')
+                        || (pk)) {
+    // console.log('... findOne()');
+                        // These blueprints only looks at the specified :id value.
+                        // so we need to preempt and do a find, and check if result
+                        // has an validID value
+
+                        var model = req.options.model || req.options.controller;
+                        if (!model) throw new Error(util.format('No "model" specified in route options.'));
+
+                        var Model = req._sails.models[model];
+                        if ( !Model ) throw new Error(util.format('Invalid route option, "model".\nI don\'t know about any models named: `%s`',model));
+
+                        Model.findOne(pk)
+                        .then(function(model){
+    // console.log('... model:', model);
+    // console.log('... validIDs:', validIDs);
+    // console.log('... comparing model.'+options.field+':'+ model[options.field]);
+
+                            if (validIDs.indexOf(model[options.field]) != -1) {
+
+    // console.log('... validID found!');
+                                // ok, this one is permitted, so continue:
+                                ok();
+
+                            } else {
+    // console.log('... no validID found.');
+
+                                // can't ask for this one!
+                                var ourError = new Error( options.error.message );
+                                ADCore.comm.error(res, ourError, options.error.code);
+                                // res.forbidden();
+                            }
+                            return null;
+                        })
+                        .catch(function(err){
+
+                            ok(err);
+                        })
+
+                    } else {
+
+    // console.log('... updating condition.');
+                        // add to the query a condition for userID to be in our validIDs:
+                        req.options.where = req.options.where || {};
+                        req.options.where[options.field] =  validIDs;
+    // console.log('... options:', req.options);
+                        ok();
+
+                    }
+
+                }
+*/
+
+            }
+
+            
 
 
         ], function(err, results){
@@ -261,6 +580,21 @@ console.log('... scopeList 2:', scopeList);
             if (err) {
                 next(err);
             } else {
+
+
+                // // add scopeFilter to req.where condition.
+                // req.options.where = req.options.where || {};
+                // if (scopeFilter.or) {
+                //     req.options.where['or'] =  scopeFilter.or;
+                // } else {
+
+                //     _.assign(req.options.where, scopeFilter);
+                //     // req.options.where['or'] = [ scopeFilter ];
+                // }
+                
+// sails.___req = req;       
+// console.log('... req.where:', req.options.where);
+
                 next();
             }
         })
