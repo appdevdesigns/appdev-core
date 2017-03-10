@@ -19,7 +19,14 @@ var Route = require(path.join(__dirname, 'permissions', 'route.js'));
 
 module.exports = {
 
-
+    // This function is still being called from ad-util/lib/module.js
+    // So provide a dummy to prevent sails crashing.
+    registerDefinition: function() {
+        console.log('Permissions.registerDefinition() was called');
+        console.log(new Error());
+    },
+    
+    
     /**
      * Permissions.action
      *
