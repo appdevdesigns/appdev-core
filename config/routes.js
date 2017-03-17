@@ -9,6 +9,7 @@
 module.exports = {
 
     'get /appdev/config/data.js'    : 'appdev-core/ADCoreController.configData',
+    'get /appdev/config/data.json'  : 'appdev-core/ADCoreController.configDataJSON',
     'get /site/labels/:context'     : 'appdev-core/ADCoreController.labelConfigFile',
     'get /site/labels/:context/*'   : 'appdev-core/ADCoreController.labelConfigFile',
     

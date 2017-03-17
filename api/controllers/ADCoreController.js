@@ -80,6 +80,27 @@ module.exports = {
     },
 
 
+    /**
+     * GET /appdev/config/data.json
+     *
+     * returns the configuration data back to the requester as json
+     */
+    configDataJSON: function(req, res) {
+        res.setHeader('content-type', 'application/javascript');
+        
+        var settings = _.clone(sails.config.appdev);
+        
+        // Some settings should not be sent to the client side
+        var private = ['authKeys'];
+        for (var key in settings) {
+            if (private.indexOf(key) >= 0) {
+                delete settings[key];
+            }
+        }
+        
+        res.AD.success(settings);
+    },
+
 
     /**
      * Action blueprints:

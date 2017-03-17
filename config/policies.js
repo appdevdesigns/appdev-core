@@ -31,6 +31,7 @@ module.exports = {
         
     'appdev-core/ADCoreController': {
         configData: sessionStack,
+        configDataJSON: sessionStack,
         labelConfigFile: sessionStack,
         logout: passportStack,
         authGoogle: passportStack,
