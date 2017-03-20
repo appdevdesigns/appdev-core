@@ -1453,7 +1453,7 @@ if ($.isArray(_this.associations)) {
                             var oldValue = updateData.attr(data.attribute);
 
                             if (oldValue && oldValue.push) {
-                                oldValue.push(data.addedId);
+				oldValue.push({ id: data.addedId });
 
                                 can.event.dispatch.call(Model, 'updated', [updateData]);
                             }
