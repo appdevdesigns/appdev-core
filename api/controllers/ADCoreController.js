@@ -72,6 +72,12 @@ module.exports = {
             }
         }
         
+        if (settings.authType.toLowerCase() == 'cas') {
+            if (sails.config.cas) {
+                settings.casURL = sails.config.cas.baseURL;
+            }
+        }
+        
         // render this view with data
         return res.view({
             settings: settings,
@@ -89,6 +95,12 @@ module.exports = {
         res.setHeader('content-type', 'application/javascript');
         
         var settings = _.clone(sails.config.appdev);
+        
+        if (settings.authType.toLowerCase() == 'cas') {
+            if (sails.config.cas) {
+                settings.casURL = sails.config.cas.baseURL;
+            }
+        }
         
         // Some settings should not be sent to the client side
         var private = ['authKeys'];

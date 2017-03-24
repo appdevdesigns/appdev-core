@@ -30,8 +30,8 @@ module.exports = {
 	'*': sessionStack,
         
     'appdev-core/ADCoreController': {
-        configData: sessionStack,
-        configDataJSON: sessionStack,
+        configData: passportStack,
+        configDataJSON: passportStack,
         labelConfigFile: sessionStack,
         logout: passportStack,
         authGoogle: passportStack,
