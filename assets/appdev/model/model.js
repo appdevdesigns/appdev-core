@@ -1440,7 +1440,29 @@ if ($.isArray(_this.associations)) {
                             // Model.dispatch('destroyed', [Model.store[data.id]]);
 
                         } 
-                        // 
+                        // *  @codestart
+                        // {
+                        //     addedId: 28
+                        //     attribute: "name1",
+                        //     id: "1",
+                        //     verb: "addedTo"
+                        // }
+                        // *  @codeend
+                        else if ("addedTo" == data.verb) {
+                            var updateData = Model.store[data.id];
+                            var oldValue = updateData.attr(data.attribute);
+
+                            if (oldValue && oldValue.push) {
+				oldValue.push({ id: data.addedId });
+
+                                can.event.dispatch.call(Model, 'updated', [updateData]);
+                            }
+                            else {
+                                oldValue.attr(data.attribute, { id: data.addedId });
+
+                                can.event.dispatch.call(Model, 'updated', [updateData]);
+                            }
+                        }
                         // *  @codestart
                         // {
                         //     attribute: "name1"
@@ -1533,3 +1555,4 @@ console.warn('... remote server notified us of a new Model, but we are ignoring.
 
         });
     });
+
