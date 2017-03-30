@@ -16,6 +16,7 @@ if (typeof ADCore == 'object') {
 var path  = require('path');
 var AD = require('ad-utils');
 var _ = require('lodash');
+var cJSON = require('circular-json');
 
 var passport = require('passport');
 var CasStrategy = require('passport-cas2').Strategy;
@@ -224,20 +225,40 @@ module.exports = {
 
         // ADCore.error.log(message, data)
         log: function( message, data ) {
-
-            AD.log.error(message, data);
+// refactor:
+// ADCore.error.log(message, errorObj, additionalData)
+//   check message for encoded application reference:  "Application:Service:function(): function() did not complete" 
+//   -->  appReference: "Application:Service:function()"
+//   -->  message: "function() did not complete"
+//   auto parse errorObj into additionalData:
+/*
+//   --> additionalData.error = errorObj
+//   --> additionalData.message = errorObj.message || 'no message provided'
+//   --> additionalData.code = errorObj.code       || 'no code provided'
+//   --> additionalData.stack   = errorObj.stack   || [ 'no stack trace' ] 
+*/
+            sails.log.error(message, data);
+            // AD.log.error(message, data);
 
             // print out any provided error's stack trace:
             for (var d in data) {
                 if (data[d] instanceof Error) {
                     if (data[d].stack) {
-                        console.log(data[d].stack.split('\n'));
+                        sails.log.error(data[d].stack.split('\n'));
                     }
                 }
             }
 
-
             // store in a DB log table
+            var jsonData = cJSON.stringify(data);
+
+            SiteError.create({ message:message, data:jsonData, reviewed:false })
+            .exec(function(err, entry){
+
+                if (err) {
+                    sails.log.error('ADCore.error.log():  Error saving to SiteError', err);
+                }
+            })
 
             // post it across the message bus:
             ADCore.queue.publish('site.error', { message: message, data:data });
