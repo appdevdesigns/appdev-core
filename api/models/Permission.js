@@ -5,6 +5,7 @@
 * @docs        :: http://sailsjs.org/#!documentation/models
 */
 var _ = require('lodash');
+var AD = require('ad-utils');
 
 module.exports = {
 
@@ -136,6 +137,47 @@ module.exports = {
         .catch(function(err){
             cb(err);
         })
+    },
+    
+    
+    /**
+     * Get the permission actions that are allowed by a given user.
+     *
+     * @param {integer} userID
+     * @return {Deferred}
+     *      Resolves with an array of action_key values
+     */
+    getUserActions: function(userID) {
+        var dfd = AD.sal.Deferred();
+        
+        // There is no way to do nested populate() with Waterline.
+        // But SQL works fine, and with better efficiency.
+        
+        Permission.query(`
+            SELECT
+                a.action_key
+            FROM
+                site_permission AS p
+                
+                JOIN permissionaction_roles__permissionrole_actions AS r_a
+                    ON r_a.permissionrole_actions = p.role
+                
+                JOIN site_perm_actions AS a
+                    ON r_a.permissionaction_roles = a.id
+            WHERE
+                p.user = ?
+        `, [userID], (err, list) => {
+            if (err) dfd.reject(err);
+            else {
+                var result = [];
+                list.forEach((row) => {
+                    result.push(row['action_key']);
+                });
+                dfd.resolve(result);
+            }
+        });
+        
+        return dfd;
     }
 };
 

@@ -120,14 +120,21 @@ module.exports = {
     selfInfo: function(req, res) {
        var info = {};
        var languages = [];
+       var actions = [];
+       var userID = null;
        
-       async.parallel([
+       async.series([
            // User info
            function(next) {
                SiteUser.find({
                     guid: req.user.GUID()
                })
                .then(function(list) {
+                   if (!list || !list[0]) {
+                       throw new Error('User info could not be found');
+                   }
+                   
+                   userID = list[0].id;
                    info = {
                         username: list[0].username,
                         languageCode: list[0].languageCode,
@@ -151,13 +158,23 @@ module.exports = {
                 .catch(function(err) {
                     next(err);
                 });
+            },
+            // Permissions
+            function(next) {
+                Permission.getUserActions(userID)
+                .fail(next)
+                .done(function(list) {
+                    actions = list;
+                    next();
+                });
             }
         ], function(err) {
             if (err) res.AD.error(err);
             else {
                 res.AD.success({
                     user: info,
-                    languages: languages
+                    languages: languages,
+                    actions: actions
                 });
             }
         });
