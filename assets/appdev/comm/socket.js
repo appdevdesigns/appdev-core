@@ -139,6 +139,39 @@ steal('appdev/ad.js',
             }
 
 
+
+            /*
+             * @function unsubscribe
+             *
+             *  Unsubscribe to messages from the socket.
+             *
+             *  @codestart
+             *      AD.comm.socket.unsubscribe(subscriptionID)
+             *  @codeend
+             *  @param {integer} subscriptionID  the unique id returned from AD.comm.socket.subscribe()
+             */
+            AD.comm.socket.unsubscribe = function (subscriptionID) {
+
+                if (subscriptionIDs[subscriptionID]) {
+                    var entry = subscriptionIDs[subscriptionID];
+
+                    // remove the cb from the verb queue associated with this subscription
+                    var msgQueue = entry.message[entry.verb];
+                    if (msgQueue) {
+                        var i = msgQueue.indexOf(entry.cb);
+                        if (i > -1) {
+                            msgQueue.splice(i,1);
+                        }
+                    }
+
+                }
+
+            }
+            
+io.socket.on('disconnect', function(data){
+    AD.comm.hub.publish('ad.comm.socket.diconnected', data);
+})
+
             // track our socket.subscriptions here:
             // format:
             // [message]: {
