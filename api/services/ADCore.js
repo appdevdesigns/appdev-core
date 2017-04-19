@@ -265,6 +265,36 @@ module.exports = {
         },
 
 
+        formatValidation:function(err) {
+
+            var returnErr = err;
+
+            if (err.failedTransactions) {
+
+                returnErr = { code:'E_VALIDATION', invalidAttributes:{}};
+                err.failedTransactions.forEach(function(t){
+                    
+                    var msg = t.err.invalidAttributes;
+                    for (var a in msg) {
+                        if (!returnErr.invalidAttributes[a]) {
+                            returnErr.invalidAttributes[a] = msg[a];
+                        } else {
+                            msg[a].forEach(function(m){
+                                returnErr.invalidAttributes[a].push(m);
+                            })
+                        }
+                    }
+                })
+
+                // if (err.stack) {
+                //     returnErr.stack = err.stack;
+                // }
+            }
+
+            return returnErr;
+        },
+
+
         /*
          * ADCore.error.fromKey()
          *

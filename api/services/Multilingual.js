@@ -433,22 +433,36 @@ module.exports = {
                     });
 
 
-                    instanceDataModel.save()
-                    .then(function(d){
+                    instanceDataModel.save(function(err, d){
+                        if (err) {
+ 
+                            // reformat a validation error
+                            err = ADCore.error.formatValidation(err);
+                            AD.log.error('error saving translation data:', err);
+                            next(err);
+                            return null;
+                        }
                         next();
                         return null;
                     })
-                    .catch(function(err){
-                        AD.log.error('error saving translation data:', err);
-                        next(err);
-                        return null;
-                    })
+                    // .then(function(d){
+                    //     next();
+                    //     return null;
+                    // })
+                    // .catch(function(err){
+                    //     AD.log.error('error saving translation data:', err);
+                    //     next(err);
+                    //     return null;
+                    // })
 
                 }
 
             ], function(err, results) {
 
                 if (err) {
+                    instanceDataModel.destroy(function(){
+                        dfd.reject(err);
+                    })
                     dfd.reject(err);
                 } else {
                     dfd.resolve(instanceDataModel);
