@@ -60,6 +60,10 @@ steal('appdev/UIController.js', function () {
 
                         // mark this controller as ready
                         AD.Control.ready(name).resolve();
+                        
+                        // Return the new controller in addition to adding it
+                        // to the AD namespace.
+                        return curr[controlName];
                     },
 
 

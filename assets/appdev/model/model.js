@@ -262,7 +262,8 @@ if ($.isArray(_this.associations)) {
                             // // register this model as being loaded:
                             // var dfdReady = AD.Model.Base.ready(name);
                             // dfdReady.resolve();
-
+                            
+                            return curr[modelName];
                         },
 
 
@@ -436,6 +437,10 @@ if ($.isArray(_this.associations)) {
 
                         var dfdReady = AD.Model.ready(name);
                         dfdReady.resolve();
+                        
+                        // Return the model in addition to adding it to the
+                        // AD namespace.
+                        return curr[modelName];
                     },
 
 
