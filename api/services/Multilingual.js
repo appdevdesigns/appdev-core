@@ -459,12 +459,16 @@ module.exports = {
 
             ], function(err, results) {
 
-                if (err) {
+                if (err && !instanceDataModel) {
+                    dfd.reject(err);
+                }
+                else if (err) {
                     instanceDataModel.destroy(function(){
                         dfd.reject(err);
                     })
                     dfd.reject(err);
-                } else {
+                } 
+                else {
                     dfd.resolve(instanceDataModel);
                 }
             })
