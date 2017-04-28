@@ -414,7 +414,7 @@ module.exports = {
 
                                     // so this means we are using the language of another language
                                     // for the current language, so we add on a '[langCode]' tag.
-                                    givenTransData[f] = '['+lang.language_code+']' + data[f];
+                                    givenTransData[f] = '['+lang.language_code+']' + (data[f] || '');
                                     
                                 }
                             }
