@@ -78,6 +78,9 @@ module.exports = {
             }
         }
         
+        // Include info about the current user
+        settings.user = req.user && req.user.data;
+        
         // render this view with data
         return res.view({
             settings: settings,
@@ -101,6 +104,8 @@ module.exports = {
                 settings.casURL = sails.config.cas.baseURL;
             }
         }
+        
+        settings.user = req.user && req.user.data;
         
         // Some settings should not be sent to the client side
         var private = ['authKeys'];

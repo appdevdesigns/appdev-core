@@ -660,8 +660,10 @@ var User = function (opts, info) {
                 }
                 
                 self.userModel = result;
+                self.data.username = self.userModel.username;
                 self.data.guid = self.userModel.guid;
                 self.data.languageCode = self.userModel.languageCode;
+                self.data.email = self.userModel.email;
                 self.data.isLoaded = true;
                 self.data.permissions = null;
 
