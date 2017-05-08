@@ -1,4 +1,4 @@
-(function() {
+steal('appdev/sal/web-jquery.js', function() {
 
     /**
      * @class AD.config
@@ -22,6 +22,7 @@
      */
     AD.config.setValue = function (key, value) {
         storage[key] = value;
+        readyNow();
     };
     
     /**
@@ -43,5 +44,35 @@
         
         return value;
     };
+    
+    /**
+     * @private
+     */
+    var readyDFD = AD.sal.Deferred();
+    var readyTimeout = null;
+    
+    /**
+     * @private
+     */
+    var readyNow = function() {
+        // If many readyNow() calls are made together, only respond to the
+        // most recent one.
+        if (readyTimeout) clearTimeout(readyTimeout);
+        readyTimeout = setTimeout(function() {
+            readyDFD.resolve();
+        }, 50);
+    }
+    
+    /**
+     * Returns a Deferred that resolves when config values have been set the
+     * first time.
+     *
+     * @param {function} [callback]
+     * @return {Deferred}
+     */
+    AD.config.whenReady = function(callback) {
+        callback && readyDFD.done(callback);
+        return readyDFD;
+    };
 
-})();
+});
