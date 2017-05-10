@@ -35,6 +35,28 @@ steal('appdev/ad.js',
             ////    - webixTimeout: {int} expire value in ms
             ////    - consoleLog: {bool}  true: dump message and data to console.error
             console.error(message, data);
+            
+            // Log error to Countly, if available
+            if (typeof Countly == 'object') {
+                var err;
+                if (data instanceof Error) {
+                    // Combine `message` into existing error object
+                    err = data;
+                    if (data.message) {
+                        err.message = message + '\n' + data.message;
+                    } else {
+                        err.message = message;
+                    }
+                    if (data.stack) {
+                        err.stack = message + '\n' + data.stack;
+                    }
+                }
+                else {
+                    // Create new error object
+                    err = new Error(message);
+                }
+                Countly.log_error(err, { 'via': 'AD.error.log' });
+            }
 
             // if the webix library is included, then post the message there.
             if (webix) {
