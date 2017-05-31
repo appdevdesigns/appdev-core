@@ -22,8 +22,8 @@ module.exports = {
     // This function is still being called from ad-util/lib/module.js
     // So provide a dummy to prevent sails crashing.
     registerDefinition: function() {
-        console.log('Permissions.registerDefinition() was called');
-        console.log(new Error());
+        sails.log.error('Permissions.registerDefinition() was called');
+        sails.log.error(new Error());
     },
     
     

@@ -92,7 +92,8 @@ module.exports = {
 
                     // if user has all these permissions then continue!
                     if (hasAll(perm)) {
-                        AD.log('<green>.... reqPath['+reqPath+']  -> user['+user.GUID()+'] had permission: </green><yellow><bold>'+ perm.join(', ') + '</bold></yellow>');
+                        sails.log.info('Permission.route.hasPermission():reqPath['+reqPath+']  -> user['+user.GUID()+'] had permission: ' + perm.join(', ') );
+                        // AD.log('<green>.... reqPath['+reqPath+']  -> user['+user.GUID()+'] had permission: </green><yellow><bold>'+ perm.join(', ') + '</bold></yellow>');
                         next();
                         return;
                     }
@@ -100,7 +101,8 @@ module.exports = {
 
 
                 // if we got here, then we did not pass any permission checks
-                AD.log('<red>.... reqPath['+reqPath+']  -> user[</red><yellow>'+user.GUID()+'</yellow><red>] did not have any of the required permissions '+ permissions.join(', ') + '</red>');
+                sails.log.info('Permission.route.hasPermission():reqPath['+reqPath+']  -> user['+user.GUID()+'] did not have any of the required permissions '+ permissions.join(', ') );
+                // AD.log('<red>.... reqPath['+reqPath+']  -> user[</red><yellow>'+user.GUID()+'</yellow><red>] did not have any of the required permissions '+ permissions.join(', ') + '</red>');
                 
                 
                 res.AD.error(ADCore.error.fromKey('E_NOTPERMITTED'), 403);
@@ -699,7 +701,7 @@ module.exports = {
      */
     registerDefinition: function( route, perm ) {
 
-        AD.log('<green>route::::</green> '+ route+' registered');
+        sails.log.info('route:['+ route+'] registered');
 
 //// TODO:
 // if perm is not in proper format: { action:[], object:{} }
@@ -707,7 +709,7 @@ module.exports = {
 //
         // old perm definition:  [ 'actionKey', ... ]
         if (_.isArray(perm)) {
-            AD.log('<yellow>Outdated route permission definition:</yellow> route:['+route+']');
+            sails.log.warn('!!! Outdated route permission definition: route:['+route+']');
             perm = {
                 action:perm
             }
