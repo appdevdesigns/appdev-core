@@ -410,7 +410,7 @@ module.exports = {
                 } else {
 
 console.log('path not found:'+assetPath);
-                     res.error();
+                     res.serverError();
 
                 }
 
