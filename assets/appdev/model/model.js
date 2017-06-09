@@ -21,12 +21,13 @@
 */
 
 steal(
+    'appdev/model/buffer.js',
     'appdev/ad.js',
     'appdev/comm/hub.js',
     'appdev/comm/socket.js',
     'appdev/labels/lang.js',
     'appdev/sal/web-jquery.js',
-    function () {
+    function (Buffer) {
         System.import('can').then(function () {
 
 
@@ -550,8 +551,15 @@ if ($.isArray(_this.associations)) {
                             if (this.useSockets) {
                                 comm = 'socket';
                             }
-
-
+                            
+                            // Special optimization for some types of findAll() requests
+                            this.buffer = this.buffer || {};
+                            this.buffer[verb] = this.buffer[verb] || new Buffer(verb, uri, comm);
+                            if (this.buffer[verb].isCompatible(cond)) {
+                                this.buffer[verb].add(cond, dfd, cbSuccess, cbErr);
+                                return dfd;
+                            }
+                            
                             AD.comm[comm][verb]({ url: uri, params: cond })
                                 .fail(function (err) {
                                     if (cbErr) cbErr(err);
@@ -573,11 +581,10 @@ if ($.isArray(_this.associations)) {
 
                                     if (cbSuccess) cbSuccess(rData);
                                     dfd.resolve(rData);
-                                })
-
+                                });
+                            
                             return dfd;
                         }
-
 
                     } else {
                         console.error('improper findAll verb:' + verb);
