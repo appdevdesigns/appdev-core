@@ -183,7 +183,7 @@ steal(function() {
                             if (dataByID[id]) {
                                 results.push(dataByID[id]);
                             } else {
-                                console.log('Warning: ID ' + id + ' was requested in findAll but not returned');
+                                //console.log('Warning: ID ' + id + ' was requested in findAll but not returned');
                             }
                         });
                         
