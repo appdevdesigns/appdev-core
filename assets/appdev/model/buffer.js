@@ -35,7 +35,7 @@ steal(function() {
      */
     var Buffer = function(verb, uri, comm) {
         // Number of ms to wait for more requests.
-        this.period = 50;
+        this.period = 250;
         
         // Maximum number of OR items in a condition. Sails can't handle more
         // than 20.
