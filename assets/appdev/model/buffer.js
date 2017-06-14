@@ -11,9 +11,11 @@
  *     ...
  * ]}
  *
- * Such requests will be aggregated to remove redundant IDs and reduce overhead.
- * This was motivated by some client side components making hundreds of these
- * requests at the same time.
+ * Multiple requests will be aggregated together to remove redundant IDs and 
+ * reduce overhead. This was motivated by some client side components making 
+ * hundreds of these requests at the same time.
+ *
+ * Each model should have its own separate buffer instance.
  *
  * Usage:
  *      var buffer = new Buffer('get', '/fooApp/barModel', 'service');
@@ -117,12 +119,15 @@ steal(function() {
             }
         });
         
-        // Sails blueprints can't process more than 20 items in a 
-        // single OR condition.
+        // Sails blueprints can't process more than 20 items in an OR condition
         if (this.allIDs.length > this.maxOR) {
             this.flush();
-            this.allIDs = thisIDs;
+            this.allIDs = thisIDs.concat();
         }
+        
+        // Cancel the previously unflushed queued timeout so we can add on
+        // this new request.
+        this.timeout && clearTimeout(this.timeout);
         
         // Construct a new condition with all the buffered IDs
         var newCond = { or: [] };
@@ -137,17 +142,14 @@ steal(function() {
             cbErr: cbErr
         });
         
-        // Cancel any previously unflushed queued timeout so we can add on
-        // this new request.
-        this.timeout && clearTimeout(this.timeout);
-        
         // Clone & preserve variables for use in the function below.
         var allIDs = this.allIDs.concat();
         var queue = this.queue.concat();
         var iteration = this.iteration;
-        var self = this;
         
-        // Create a new timeout that makes the actual server request
+        // Create a new timeout that makes the actual server request.
+        // It will execute if no further requests are added within the wait
+        // period.
         this.timeout = setTimeout(function() {
             // Wait period is over. Begin actual request. No turning back.
             
@@ -188,8 +190,8 @@ steal(function() {
                         });
                         
                         var finalResult = { data: results };
-                        if (item.dfd) item.dfd.resolve(finalResult);
                         if (item.cbSuccess) item.cbSuccess(finalResult);
+                        if (item.dfd) item.dfd.resolve(finalResult);
                     });
                 });
                 
