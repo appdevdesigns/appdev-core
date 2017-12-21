@@ -190,7 +190,8 @@ module.exports = {
         else {
             // Users should not even be coming here if the site isn't using
             // local auth. 
-            res.redirect('/site/login-done');
+            // res.redirect('/site/login-done');
+            res.redirect('/');
         }
     },
     
@@ -237,7 +238,8 @@ module.exports = {
                                 if (!url || url == '/site/login') {
                                     // If the original page was the login form
                                     // we need to go somewhere else.
-                                    url = '/site/login-done';
+                                    // url = '/site/login-done';
+                                    url = '/';
                                 }
                                 res.redirect(url);
                             }
@@ -262,7 +264,8 @@ module.exports = {
         else {
             // Users should not even be coming here if the site isn't using
             // local auth. 
-            res.redirect('/site/login-done');
+            // res.redirect('/site/login-done');
+            res.redirect('/');
         }
     },
     
@@ -410,7 +413,7 @@ module.exports = {
                 } else {
 
 console.log('path not found:'+assetPath);
-                     res.serverError();
+                     res.error();
 
                 }
 
