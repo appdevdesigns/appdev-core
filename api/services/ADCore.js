@@ -413,9 +413,15 @@ module.exports = {
                 'validID'
             ];
 
-            for (var i = policies.length - 1; i >= 0; i--) {
-                stack.push(policies[i]);
-            };
+
+            // [FIX] Make sure provided policies get added in order.
+            // for (var i = policies.length - 1; i >= 0; i--) {
+            //     stack.push(policies[i]);
+            // };
+            policies.forEach((p)=>{
+                stack.push(p);
+            })
+
 
             return  stack;
         },
