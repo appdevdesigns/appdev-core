@@ -40,6 +40,9 @@ module.exports = {
         // allows the UI to request the model fields and details for a requested ScopeObject
 
 // 'get /site/permission/role'	: 'appdev-core/PermissionsController.getRoles',
+    'get /site/permission/page/roles'               : 'appdev-core/PermissionRoleController.getPageRoles',
+    'put /site/permission/page/roles/add'           : 'appdev-core/PermissionRoleController.addPageRoles',
+    'delete /site/permission/page/roles/delete'     : 'appdev-core/PermissionRoleController.deletePageRoles',
 
 
     //// only active in development environment:
