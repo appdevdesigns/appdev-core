@@ -696,6 +696,45 @@ SiteUser.find()
         return dfd;
     },
 
+    removeAction: function (roleId, actionKey) {
+        var dfd = AD.sal.Deferred();
+
+        async.waterfall([
+            function (next) {
+                PermissionRole.findOne({ id: roleId })
+                    .populate('actions')
+                    .exec(function (err, record) {
+                        if (err) {
+                            next(err);
+                            return;
+                        }
+
+                        next(null, record);
+                    });
+            },
+            function (perm, next) {
+                PermissionAction.findOne({ action_key: actionKey })
+                    .exec(function (err, record) {
+                        if (err) {
+                            next(err);
+                            return;
+                        }
+
+                        next(null, perm, record);
+                    });
+            },
+            function (perm, perm_action, next) {
+                perm.actions.remove(perm_action.id);
+                perm.save(function (err) {
+                    dfd.resolve();
+                    next();
+                });
+            }
+        ]);
+
+        return dfd;
+    },
+
     getRolesByActionKey: function (action_key) {
         var dfd = AD.sal.Deferred();
         
