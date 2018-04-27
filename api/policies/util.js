@@ -122,8 +122,8 @@ module.exports = function(req, res, next) {
     res.AD.reauth = function() {
         return ADCore.comm.reauth(res);
     };
-    res.AD.success = function(data, code) {
-        return ADCore.comm.success(res, data, code);
+    res.AD.success = function(data, code, skipHeaders) {
+        return ADCore.comm.success(res, data, code, skipHeaders);
     };
     
     

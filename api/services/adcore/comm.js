@@ -100,8 +100,12 @@ module.exports = {
 
 
 
-    success:function(res, data, code) {
+    success:function(res, data, code, skipHeaders) {
 
+        if (typeof skipHeaders == 'undefined') {
+            skipHeaders = false;
+        }
+        
         var packet = {
             status:'success',
             data:data
@@ -117,13 +121,19 @@ module.exports = {
         }
 
         // default to HTTP status code: 200
-        if ('undefined' == typeof code) code = 200; //AD.Const.HTTP.OK;  // 200: assume all is ok
+        if (('undefined' == typeof code) || code == null) code = 200; //AD.Const.HTTP.OK;  // 200: assume all is ok
 
-        // Sails v0.11 no longer has res.header on socket connections
-        if(res.header) res.header('Content-type', 'application/json');
         
-        // res.send(cJSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
-        res.send(JSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
+        if(!skipHeaders) {
+            // Sails v0.11 no longer has res.header on socket connections
+            if(res.header) res.header('Content-type', 'application/json');
+            // res.send(cJSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
+            res.send(JSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
+        } else {
+            res.write(JSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'));
+            res.end();
+        }
+        
     }
 
 
