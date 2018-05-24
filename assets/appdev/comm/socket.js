@@ -378,9 +378,7 @@ io.socket.on('disconnect', function(data){
                         console.log('jwres:');
                         console.log(jwres);
 
-                        if (typeof data == 'string') {
-                            data = JSON.parse(data);
-                        }
+
 
 
                         // if this is an  error
@@ -395,6 +393,10 @@ io.socket.on('disconnect', function(data){
 
                         } else {
                     
+                            if (typeof data == 'string') {
+                                data = JSON.parse(data);
+                            }
+
                             // Got a JSON response but was the service response an error?
                             if (data.status && (data.status == 'error')) {
 

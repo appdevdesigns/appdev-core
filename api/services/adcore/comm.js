@@ -27,6 +27,14 @@ var _ = require('lodash');
 
 module.exports = {
 
+    /**
+     * AD.Comm.error()
+     * package a common format Error packet to send back to our 
+     * OpsPortal platform:
+     * @param {obj} res  express/sails response object
+     * @param {obj} err  the {Error} object that was generated
+     * @param {int} code The HTTP response code that should be used.
+     */
     error:function(res, err, code) {
 
         var packet = {
@@ -49,6 +57,11 @@ module.exports = {
 
         // default to HTTP status code: 400
         if ('undefined' == typeof code) code = 400; 
+
+        // if a string was sent as a code, then check to see if
+        // a "ENOTFOUND" type of code was accidently sent back:
+        // if so, then send a generic 400 error code
+        if (('string' == typeof code) && (code.indexOf('E') != -1)) code = 400;
 
 
         // Sails v0.11 no longer has res.header on socket connections
