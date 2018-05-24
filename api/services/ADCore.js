@@ -814,19 +814,13 @@ User.prototype.hasPermission = function(key) {
 
 
 User.prototype.scopesForActionObject = function(actionKey, objectKey) {
-// console.log('... .scopesForActionObject()');
-// console.log('    ... actionKey:'+actionKey); 
-// console.log('.... data.permissions:', this.data.permissions);
     var scopes = [];
     if ((this.data.permissions)
         && (this.data.permissions[actionKey])) {
        
 
-// console.log('    ...     .scopes:', this.data.permissions[actionKey]);
 
         this.data.permissions[actionKey].forEach(function(s){
-// console.log('    ... object.keyModel:', s.object.keyModel);
-// console.log('    ... objectKey:', objectKey);
 
             if (s.object.keyModel == objectKey) {
                 scopes.push(s);
@@ -954,18 +948,13 @@ if (_this.userModel == null) {
 
                 for (var aKey in hashPerm) {
                     hashPerm[aKey].forEach(function(s){
-// console.log('s.object:', s.object);
 
                         if (!s.object.id) {
-// console.log('hash[s.object]:', hash[s.object]);
                             s.object = hash[s.object];
 
                         }
                     })
                 }
-
-// console.log('... final hashPerm:');
-// console.log(hashPerm);
 
                 next();
                 return false;

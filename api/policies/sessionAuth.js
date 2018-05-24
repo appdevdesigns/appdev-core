@@ -68,17 +68,15 @@ module.exports = function(req, res, next) {
                             // The custom callback needs to progress to the next step 
                             // in our process.  So return a response, or go next().
                             //
-
-
+                            
                             // Sending in err is reflective of a server error:
                             if (err) {
-// console.log('... sessionAuth.error.A:', err);
                                 ADCore.error.log('CAS Auth Failed! Something Server Related', {
                                     error: err,
                                     message: 'something server side is wrong with authentication attempt.',
-                                    toTry: 'tell Doug and hope he figures it out!'
                                 });
-                                next(err);
+                                res.serverError(err);
+                                //next(err);
                                 return;
                             }
 
@@ -89,12 +87,6 @@ module.exports = function(req, res, next) {
 
                                 // Case 1: handle untrusted cert error:
                                 if (info.code == 'CERT_UNTRUSTED') {
-// // console.log('... typeof info:', typeof info);j
-// console.log('... req.ip:', req.ip);
-// console.log('... req.ips:', req.ips);
-// console.log('... sessionAuth.error.info:', info);
-// var newErr = new Error('whats my stack?').stack;
-// console.log('... newErr:', newErr);
                                     ADCore.error.log('CAS Auth Failed! CERT_UNTRUSTED', {
                                         error: info,
                                         message: 'received an untrusted cert',
@@ -110,10 +102,9 @@ module.exports = function(req, res, next) {
                             // if user == false, then auth failed
                             // if info is set then send them to /auth/fail
                             if ((!user) || (info)) {
-
-// console.log('... sessionAuth.info was set:');
-// console.log('    ... info:', info);
-
+                                ADCore.error.log('CAS Auth failed', {
+                                    user: user, info: info
+                                });
                                 res.AD.redirect('/auth/fail');
                                 return;
                             }
