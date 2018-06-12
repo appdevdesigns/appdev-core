@@ -401,8 +401,10 @@ module.exports = {
 
             // This is our expected series of standard policies to run for 
             // our standard service calls.
-            var stack = [ 
+            var stack = [
+
                 'util',
+'relayAuth',    // #Hack!# : rethink through how to provide additional auth options for installed apps.
                 passportInitialize, // defined at the top
                 passportSession,    // defined at the top
                 'cookieAuth', 
