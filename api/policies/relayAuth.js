@@ -6,11 +6,13 @@
  * verify if the proper access token is provided..
  *
  */
+ var _ = require('lodash');
+
 module.exports = function(req, res, next) {
     
     var token = req.headers['authorization'];
     
-    if (!ABRelayUser || !token) {
+    if (_.isUndefined(sails.models['abrelayuser']) || !token) {
         next();
         return;
     }
