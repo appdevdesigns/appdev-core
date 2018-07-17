@@ -11,7 +11,7 @@
 module.exports = function(req, res, next) {
     
     var token = req.headers['authorization'];
-    
+
     if (_.isUndefined(sails.models['abrelayuser']) || !token) {
         next();
         return;
@@ -23,7 +23,7 @@ module.exports = function(req, res, next) {
 
         // if we didn't find one, continue:
         if (!relayUser) {
-            sails.log.debug('relayAuth: no user matching token:'+token);
+            sails.log.debug('relayAuth: token provided, but no user matching token:'+token);
             next();
             return;
         }
