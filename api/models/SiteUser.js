@@ -85,6 +85,11 @@ module.exports = {
                 return sails.config.appdev['lang.default'];
             }
         },
+        
+        ren_id: {
+            type: 'integer',
+            size: 11,
+        },
 
         permission:{
             collection:'Permission',
