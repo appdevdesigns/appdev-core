@@ -37,6 +37,10 @@ module.exports = {
             action_description:'Designates a User as a developer.' 
         },
         { 
+            action_key:'site.auth.switcheroo', 
+            action_description:'Allows the user to switch between user accounts.' 
+        },
+        { 
             action_key:'site.permission.action.translate', 
             action_description:'Allows a User to translate Permission Action descriptions.' 
         }

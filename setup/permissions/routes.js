@@ -37,7 +37,10 @@ module.exports = {
     	// only administrators or developers can access our /appdev-core resources 
     	// 		SiteUsers, Permissions, Scopes, ... 
 
-    '/site/permission/scopeobject' : ['adcore.admin', 'adcore.developer' ] 
+    '/site/permission/scopeobject' : ['adcore.admin', 'adcore.developer' ], 
     	// only administrators can access our scopeobject definitions.
+
+    'post /site/switcheroo' : [ 'site.auth.switcheroo' ],
+    	// only people given 'site.auth.switcheroo' can access our switcheroo route
     	
 };

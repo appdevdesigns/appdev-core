@@ -308,6 +308,120 @@ module.exports = {
                 res.AD.success({});
             }
         });
+    },
+
+
+    switcherooStatus: function(req, res) {
+        var actualUser = ADCore.user.actual(req);
+        SiteSwitcheroo.find({username: actualUser.username() })
+            .then((list)=>{
+                if (list.length == 0) {
+                    res.AD.success({});
+                } else {
+                    res.AD.success({ 
+                        from: list[0].username,
+                        to:   list[0].toUsername
+                    });
+                }
+            })
+
+    },
+
+
+    switcheroo: function(req, res) {
+
+        var account = req.param('account');
+        var currentUser = ADCore.user.actual(req);
+        var toUser = null;
+
+        async.series([
+
+            // validate the account
+            function(next) {
+
+                // if it exists continue
+                if (account) {
+                    next();
+                    return
+                }
+
+                // no account provided, so return an error
+                var error = new Error('missing account info');
+                next(error);
+            },
+
+            // find the requested SiteUser
+            function(next) {
+                SiteUser.find({ username:account })
+                .then((list)=>{ 
+
+                    if (list.length == 0) {
+                        var error = new Error('account ['+account+'] not found');
+                        next(error);
+                        return;
+                    }
+
+                    toUser = list[0];
+                    next();
+                })
+            },
+
+            // update Switcheroo entry for current user
+            function(next) {
+
+                // check to see if currentUser already has an entry:
+                SiteSwitcheroo.find({username: currentUser.username() })
+                    .then((list)=>{
+
+                        if (list.length == 0) {
+
+                            var newEntry = {
+                                username:currentUser.username(),
+                                toUsername:toUser.username,
+                                toGuid:toUser.guid
+                            };
+
+                            // let's create the entry
+                            SiteSwitcheroo.create(newEntry)
+                            .then(()=>{
+                                next();
+                            })
+
+                        } else {
+
+                            var curr = list[0];
+
+                            var newValues = {
+                                toUsername:toUser.username,
+                                toGuid:toUser.guid
+                            };
+
+                            // update the current entry
+                            SiteSwitcheroo.update({id:curr.id}, newValues)
+                            .then(()=>{
+                                next();
+                            })
+                        }
+                    })
+            }
+
+        ], function(err) {
+            if (err) {
+                res.AD.error(err);
+            } else {
+                res.AD.success({});
+            }
+        })        
+
+    },
+
+
+    switcherooRemove: function(req, res) {
+        var actualUser = ADCore.user.actual(req);
+        SiteSwitcheroo.destroy({username: actualUser.username() })
+            .then((list)=>{
+                res.AD.success({});
+            })
     }
     
 };

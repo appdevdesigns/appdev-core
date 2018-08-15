@@ -189,6 +189,34 @@ module.exports = {
         },
 
 
+        switcheroo: function(req, guid) {
+
+            // verify the current user has permission to switcheroo:
+            var currentUser = ADCore.user.current(req);
+
+            if (currentUser.hasPermission('site.auth.switcheroo')) {
+
+                // create a new user
+                var user = new User({ guid: guid }, { guid: guid });
+
+                // mark who the actual user is:
+                user.actualUser = currentUser;
+                req.user = user;
+
+                return user.ready();
+
+            } else {
+
+                sails.log('::: switcheroo: currentUser does NOT have permission to switch accounts.');
+                var dfd = AD.sal.Deferred();
+                return dfd.resolve();
+            }
+
+
+
+        },
+
+
         testUser: function(req, guid) {
 
             // don't allow this in a production site!
@@ -201,7 +229,7 @@ module.exports = {
                 return user.ready();
 
             } else {
-                var dfd = AD.sal.Defered();
+                var dfd = AD.sal.Deferred();
                 dfd.reject( ADCore.error.fromKey('E_NOTESTUSERINPRODUCTION'));
                 return dfd;
             }
@@ -409,6 +437,7 @@ module.exports = {
                 passportSession,    // defined at the top
                 'cookieAuth', 
                 'sessionAuth', 
+                'switcherooAuth',
                 'initSession',
                 'noTimestamp', 
                 'hasPermission',
@@ -984,6 +1013,12 @@ if (_this.userModel == null) {
 
 User.prototype.GUID = function() {
     return this.data.guid;
+};
+
+
+
+User.prototype.username = function() {
+    return this.data.username;
 };
 
 

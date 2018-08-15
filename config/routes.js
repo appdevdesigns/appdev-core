@@ -41,6 +41,10 @@ module.exports = {
 
 // 'get /site/permission/role'	: 'appdev-core/PermissionsController.getRoles',
 
+    'get /site/switcheroo'  : 'appdev-core/SiteUserController.switcherooStatus',
+    'post /site/switcheroo' : 'appdev-core/SiteUserController.switcheroo',
+    'delete /site/switcheroo' : 'appdev-core/SiteUserController.switcherooRemove',
+        // requests to set a switcheroo value
 
     //// only active in development environment:
     'get /node_modules/**' : 'appdev-core/ADCoreController.testingFiles'
