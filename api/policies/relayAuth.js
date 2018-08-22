@@ -37,8 +37,21 @@ module.exports = function(req, res, next) {
             next();
         })
         .done(function(user) {
-            sails.log('relayAuth: User [' + relayUser.siteuser_guid + '] loaded using auth key');
-            req.user = user;
+
+            if (user) {
+                sails.log('relayAuth: User [' + relayUser.siteuser_guid + '] loaded using auth key');
+                req.user = user;
+                
+            } else {
+
+                var data = {
+                    message: '!!! relayAuth: User ['+ relayUser.siteuser_guid + '] NOT LOADED using auth key ['+token+']',
+                    relayUser:relayUser,
+                    token:token
+                }
+                ADCore.error.log('AppBuilder:Policy[relayAuth]:'+data.message, data);
+            }
+            
             next();
         });
 
