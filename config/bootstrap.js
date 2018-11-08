@@ -11,6 +11,16 @@ var path = require('path');
 var AD = require('ad-utils');
 var fs = require('fs');
 
+
+
+global.handleErrors = function(err) {
+    ADCore.error.log('ADCore:bootstrap:hangleErrors(): caught uncaught Error:', err);
+}
+process.on('uncaughtException', handleErrors);
+process.on('unhandledRejection', handleErrors);
+// process.on('rejectionHandled', handleErrors);
+
+
 module.exports = function (cb) {
 
     // make sure there is an .appdev.localAuth defined:
