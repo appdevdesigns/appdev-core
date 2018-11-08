@@ -13,11 +13,12 @@ var fs = require('fs');
 
 
 
-global.handleErrors = function(err) {
-    ADCore.error.log('ADCore:bootstrap:hangleErrors(): caught uncaught Error:', err);
+global.handleErrors = function(err, type) {
+    type = type || 'unknown';
+    ADCore.error.log('ADCore:bootstrap:handleErrors(): '+type+' Error:', err);
 }
-process.on('uncaughtException', handleErrors);
-process.on('unhandledRejection', handleErrors);
+process.on('uncaughtException', (err)=>{ handleErrors(err, 'uncaughtException');} );
+process.on('unhandledRejection', (err)=>{ handleErrors(err, 'unhandledRejection');});
 // process.on('rejectionHandled', handleErrors);
 
 
