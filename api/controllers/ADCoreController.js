@@ -184,7 +184,8 @@ module.exports = {
             //       in appdev-core/config/bootstrap.js
             res.view(sails.config.appdev.localAuth.localLoginView, { 
                 authErrMessage: authErrMessage,
-                canRegister: canRegister
+                canRegister: canRegister,
+                title: sails.config.appdev.title
             });
         }
         else {
