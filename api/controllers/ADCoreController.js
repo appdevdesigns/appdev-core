@@ -122,21 +122,16 @@ module.exports = {
     /**
      * Action blueprints:
      *    `/adlanguage/labelConfigFile`
-     *    route: /site/label/:context (applicationkey)
+     *    route: /site/labels/:context (applicationkey)
      */
      labelConfigFile: function (req, res) {
-
          var context = req.param('context');
          // let's make sure context is not a filename:
          context = context.split('.')[0];
-
-//// TODO: pull user's default language from their session and save to template:
-         // var currLangCode = req.session.languageCode
-         //                    || req.session.preferences.defaultLanguage;
+         
          var currLangCode = ADCore.user.current(req).getLanguageCode(); // 'en';
 
          ADCore.labelsForContext(context, currLangCode, function(err, data) {
-
              if (err) {
 
                  // error handler
@@ -155,11 +150,30 @@ module.exports = {
                      layout:false
                  });
              }
-
          });
-
     },
     
+    
+    /**
+     * Send multilingual labels as JSON data.
+     * route: /site/labelsJSON/:context
+     */
+    labelJSON: function (req, res) {
+        var context = req.param('context');
+        var lang = req.param('lang') || null;
+        var currLangCode = ADCore.user.current(req).getLanguageCode();
+        var langCode = lang || currLangCode;
+        
+        ADCore.labelsForContext(context, langCode)
+        .done((data) => {
+            res.setHeader('language_code', langCode);
+            res.json(data);
+        })
+        .fail((err) => {
+            console.log(err);
+            res.error(err);
+        });
+    },
     
     
     /**
