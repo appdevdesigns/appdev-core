@@ -96,6 +96,12 @@ module.exports = {
             via:'user'
         },
         
+        sendEmailNotifications:{
+            type: 'integer',
+            size: 1,
+            defaultsTo: 1
+        },
+        
         
         //// Instance model methods
 

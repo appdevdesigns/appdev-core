@@ -138,7 +138,8 @@ module.exports = {
                    info = {
                         username: list[0].username,
                         languageCode: list[0].languageCode,
-                        email: list[0].email
+                        email: list[0].email,
+                        sendEmailNotifications: list[0].sendEmailNotifications
                    };
                    next();
                    return null;
@@ -185,6 +186,7 @@ module.exports = {
     selfSave: function(req, res) {
         var languageCode = req.param('language');
         var email = req.param('email');
+        var sendEmailNotifications = req.param('sendEmailNotifications');
         
         var data = {};
         if (languageCode) {
@@ -192,6 +194,9 @@ module.exports = {
         }
         if (email) {
             data.email = email;
+        }
+        if (sendEmailNotifications) {
+            data.sendEmailNotifications = sendEmailNotifications;
         }
         
         async.series([
