@@ -28,8 +28,8 @@
 		
 		<div class="row">
 				<ul class="op-list">
+                    <% if (canRegister) { %>
 					<li><a form-show="login" href="#login" translate=1>Login</a></li>
-				    <% if (canRegister) { %>
 					<li><a form-show="signup" href="#singup" translate=1>Sign up</a></li>
 					<% } %>
 				</ul>			
