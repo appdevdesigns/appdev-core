@@ -4,6 +4,7 @@ table.appDev-login-form, .appDev-login-form tbody, .appDev-login-form td {
 
 #appDev-formLogin .modal-dialog {
     width: 800px;
+    max-width: 800px;
 }
 
 #appDev-formLogin .busy-icon {
