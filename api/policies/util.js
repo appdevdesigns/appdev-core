@@ -22,7 +22,7 @@ module.exports = function(req, res, next) {
     // The URL to reach this site from outside of any proxies
     var reqURL = url.parse(req.url, true);
     req.externalURL = url.format({
-      protocol: req.headers['x-proxied-protocol'] || req.protocol || 'http',
+      protocol: req.headers['x-forwarded-proto'] || req.headers['x-proxied-protocol'] || req.protocol || 'http',
       host: req.headers['x-forwarded-host'] || req.headers.host || reqURL.host,
       pathname: req.headers['x-proxied-request-uri'] || reqURL.pathname,
       query: reqURL.query
@@ -31,7 +31,7 @@ module.exports = function(req, res, next) {
     // The URL minus the CAS ticket
     delete reqURL.query['ticket'];
     req.externalCleanURL = url.format({
-      protocol: req.headers['x-proxied-protocol'] || req.protocol || 'http',
+      protocol: req.headers['x-forwarded-proto'] || req.headers['x-proxied-protocol'] || req.protocol || 'http',
       host: req.headers['x-forwarded-host'] || req.headers.host || reqURL.host,
       pathname: req.headers['x-proxied-request-uri'] || reqURL.pathname,
       query: reqURL.query
@@ -39,7 +39,7 @@ module.exports = function(req, res, next) {
     
     // The external URL with no path or query
     req.externalBaseURL = url.format({
-      protocol: req.headers['x-proxied-protocol'] || req.protocol || 'http',
+      protocol: req.headers['x-forwarded-proto'] || req.headers['x-proxied-protocol'] || req.protocol || 'http',
       host: req.headers['x-forwarded-host'] || req.headers.host || reqURL.host,
       pathname: '',
       query: {}
