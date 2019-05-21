@@ -139,7 +139,8 @@ module.exports = {
                         username: list[0].username,
                         languageCode: list[0].languageCode,
                         email: list[0].email,
-                        sendEmailNotifications: list[0].sendEmailNotifications
+                        sendEmailNotifications: list[0].sendEmailNotifications,
+                        image_id: list[0].image_id
                    };
                    next();
                    return null;
@@ -267,7 +268,24 @@ module.exports = {
         }
     },
     
-    
+    // Update Image for current user
+    updateImage: function(req, res) {
+        var imageId = req.param('image_id');
+        SiteUser.update({
+            guid: req.user.GUID()
+        },{
+            image_id: imageId
+        })
+        .then(function() {
+            res.AD.success({});
+            return null;
+        })
+        .catch(function(err) {
+            res.AD.error(err);
+            return null;
+        });
+    },
+
     // POST /appdev-core/authTicket
     registerAuthTicket: function(req, res) {
         var guid = req.param('guid');

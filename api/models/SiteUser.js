@@ -101,7 +101,12 @@ module.exports = {
             size: 1,
             defaultsTo: 1
         },
-        
+
+        image_id: {
+            type: 'string',
+            maxLength: 36,
+            unique: true
+        },
         
         //// Instance model methods
 
