@@ -31,6 +31,7 @@ module.exports = {
     'get /site/user/data'           : 'appdev-core/SiteUserController.selfInfo',
     'post /site/user/changePassword': 'appdev-core/SiteUserController.changePW',
     'post /site/user/register'      : 'appdev-core/SiteUserController.register',
+    'post /site/user/updateImage'   : 'appdev-core/SiteUserController.updateImage',
     
     
     'get /begin'                    : 'appdev-core/ADCoreController.begin',
