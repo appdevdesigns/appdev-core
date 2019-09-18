@@ -685,11 +685,22 @@ SiteUser.find()
                     });
             },
             function (perm, perm_action, next) {
-                perm.actions.add(perm_action.id);
-                perm.save(function (err) {
-                    dfd.resolve();
-                    next();
-                });
+                if (perm_action) {
+                    perm.actions.add(perm_action.id);
+                    perm.save(function (err) {
+                        dfd.resolve();
+                        next();
+                    });
+                } else {
+                    console.log("!!! No PermissionAction found for actionKey:"+actionKey);
+                    var error = new Error("No PermissionAction Found for action key: "+actionKey);
+                    error.code = "E_NOACTIONKEY";
+                    error.actionKey = actionKey;
+
+                    dfd.reject(error)
+                    next(error);
+                }
+
             }
         ]);
 
@@ -724,11 +735,22 @@ SiteUser.find()
                     });
             },
             function (perm, perm_action, next) {
-                perm.actions.remove(perm_action.id);
-                perm.save(function (err) {
-                    dfd.resolve();
-                    next();
-                });
+                if (perm_action) {
+
+                    perm.actions.remove(perm_action.id);
+                    perm.save(function (err) {
+                        dfd.resolve();
+                        next();
+                    });
+                } else {
+                    console.log("!!! No PermissionAction found for actionKey:"+actionKey);
+                    var error = new Error("No Action Key Found for action key: "+actionKey);
+                    error.code = "E_NOACTIONKEY";
+                    error.actionKey = actionKey;
+
+                    dfd.reject(error)
+                    next(error);
+                }
             }
         ]);
 
