@@ -719,8 +719,15 @@ var User = function (opts, info) {
 
                 // Update username, language, lastLogin timestamp.
                 // Don't really care when it finishes.
-                self.userModel.username = info.username || opts.username || 
-                    self.userModel.username;
+                // #FIX: Johnny : 28 Nov 2019
+                // prevent updating username on a CAS login.  This was causing 
+                // an error where previous AB tables were being connected to 
+                // the site_user.username value (which originally was == guid)
+                // and once this update takes place, the username changes and
+                // we loose the connection to those tables. Dogs and Cats 
+                // start living together!  Mass Hysteria!
+                // self.userModel.username = info.username || opts.username || 
+                //     self.userModel.username;
                 self.userModel.languageCode = info.languageCode || 
                     opts.languageCode || self.userModel.languageCode;
                 self.userModel.loginUpdate(true);
