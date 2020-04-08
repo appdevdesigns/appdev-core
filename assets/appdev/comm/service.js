@@ -336,6 +336,20 @@ steal(
                             };
                         }
 
+                        // if data still not set, then try to compile an error from 
+                        // the status + statusText:
+                        if (!data) {
+                            if (status) {
+                                data = status;
+                            }
+                            if (statusText) {
+                                data = `${data?data:""}: ${statusText}`;
+                            }
+                            if (req.responseText) {
+                                data = `${data?data:""}: ${req.responseText}`;
+                            }
+                        }
+
                         // Serious error where we did not even get a JSON response
                         AD.comm.hub.publish('ad.err.notification', data);
                         if (cb) {
