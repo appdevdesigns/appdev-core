@@ -319,6 +319,11 @@ module.exports = {
     },
 
     beforeCreate: function(values, next) {
+        // provide a uuid if non provided:
+        if (!values.uuid) {
+            values.uuid = AD.util.uuid();
+        }
+
         // Set username = GUID if not provided
         if (!values.username && values.guid) {
             values.username = values.guid;
