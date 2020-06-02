@@ -140,7 +140,8 @@ module.exports = {
                         languageCode: list[0].languageCode,
                         email: list[0].email,
                         sendEmailNotifications: list[0].sendEmailNotifications,
-                        image_id: list[0].image_id
+                        image_id: list[0].image_id,
+                        id: list[0].uuid || list[0].id
                    };
                    next();
                    return null;
