@@ -343,10 +343,10 @@ steal(
                                 data = status;
                             }
                             if (statusText) {
-                                data = `${data?data:""}: ${statusText}`;
+                                data = (data ? data : "") + ": " + statusText;
                             }
                             if (req.responseText) {
-                                data = `${data?data:""}: ${req.responseText}`;
+                                data = (data ? data: "") + ": " + req.responseText;
                             }
                         }
 
