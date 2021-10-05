@@ -69,9 +69,13 @@ module.exports = {
          */
         init: function() {
 
+            // This conflicts with the node.js --use-openssl-ca option.
+            // We need that to workaround the new LetsEncrypt root cert.
+            /* 
             // attempting to install more secure ssl-root-ca
             var sslRootCAs = require('ssl-root-cas/latest');
             sslRootCAs.inject();
+            */
 
 
             // Local auth
