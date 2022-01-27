@@ -202,9 +202,9 @@ io.socket.on('disconnect', function(data){
             var processMessage = function (message, data) {
 
 
-                console.log('...AD.comm.socket: process message:')
-                console.log('... message:' + message);
-                console.log('... data:', data);
+                //console.log('...AD.comm.socket: process message:')
+                //console.log('... message:' + message);
+                //console.log('... data:', data);
 
                 // if we have any subscriptions for message:
                 if (subscriptions[message]) {
@@ -373,10 +373,10 @@ io.socket.on('disconnect', function(data){
                 if (typeof io != "undefined") {
                     io.socket[options.method](options.url, options.params, function (data, jwres) {
 
-                        console.log('AD.comm.socket.' + options.method + '() response:');
-                        console.log(data);
-                        console.log('jwres:');
-                        console.log(jwres);
+                        //console.log('AD.comm.socket.' + options.method + '() response:');
+                        //console.log(data);
+                        //console.log('jwres:');
+                        //console.log(jwres);
 
 
 
