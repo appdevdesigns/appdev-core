@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <title><%=typeof sails.config.appdev.title == 'undefined' ? 'AppBuilder' : sails.config.appdev.title%></title>
 
-  <link href="../OpsPortal/opsportal.css" rel="stylesheet" />
-  <link href="../OpsPortal/portal-scratch.css" rel="stylesheet" />
+  <link href="../OpsPortal/opsportal.css?v=<%=typeof sails.config.appdev.version == 'undefined' ? '0.0.1' : sails.config.appdev.version%>" rel="stylesheet" />
+  <link href="../OpsPortal/portal-scratch.css?v=<%=typeof sails.config.appdev.version == 'undefined' ? '0.0.1' : sails.config.appdev.version%>" rel="stylesheet" />
 
   <style>
     body {
@@ -163,15 +163,9 @@
 
 
 <!-- div><%- sails.config.environment %>  </div -->
-<script type='text/javascript' src='/steal/steal<%- sails.config.environment == 'development'? '': '.production' %>.js?OpsPortal' config='/stealconfig.js'></script> 
+<script type='text/javascript' src='/steal/steal<%- sails.config.environment == 'development'? '': '.production' %>.js?OpsPortal&v=<%=typeof sails.config.appdev.version == 'undefined' ? '0.0.1' : sails.config.appdev.version%>' config='/stealconfig.js'></script>
 
 
 </body>
 
 </html>
-
-
-
-
-
-
