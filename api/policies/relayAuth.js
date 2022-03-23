@@ -1,24 +1,51 @@
 /**
  * relayAuth
  * 
+ * Used by app_builder.
+ * When it receives a request through the secure relay, it turns around and
+ * re-submits that request to itself on behalf of the relay user.
+ * @see app_builder/api/services/ABRelay.js :: _formatServerRequest()
+ * 
  * @module      :: Policy
  * @description :: Check to see if the AppBuilder ABRelayUser is provided, and
  * verify if the proper access token is provided..
  *
  */
- var _ = require('lodash');
-
+ 
 module.exports = function(req, res, next) {
     
-    var token = req.headers['authorization'];
+    var auth = req.headers['authorization'];
 
-    if (_.isUndefined(sails.models['abrelayuser']) || !token) {
+    // Skip if ABRelayUser is not implemented on this OpsPortal server.
+    if (!sails.models['abrelayuser']) {
+        next();
+        return;
+    }
+
+    // Skip if the authorization header is the wrong format
+    if (!auth || auth.slice(0, 8) != "relay@@@") {
+        next();
+        return;
+    }
+
+    if (!sails.config.appbuilder) {
+        next();
+        return;
+    }
+
+    // Expected format is "relay@@@<mcc access token>@@@<ABRelayUser UUID>"
+    var authParts = auth.split("@@@");
+    var mccToken = authParts[1];
+    var userUUID = authParts[2];
+
+    if (mccToken != sails.config.appbuilder.mcc.accessToken) {
+        sails.log.debug("relayAuth: incorrect MCC access token");
         next();
         return;
     }
         
 
-    ABRelayUser.findOne({publicAuthToken: token})
+    ABRelayUser.findOne({user: userUUID})
     .then((relayUser)=>{
 
         // if we didn't find one, continue:
