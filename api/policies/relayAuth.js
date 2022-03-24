@@ -18,19 +18,16 @@ module.exports = function(req, res, next) {
 
     // Skip if ABRelayUser is not implemented on this OpsPortal server.
     if (!sails.models['abrelayuser']) {
-        next();
-        return;
+        return next();
     }
 
     // Skip if the authorization header is the wrong format
     if (!auth || auth.slice(0, 8) != "relay@@@") {
-        next();
-        return;
+        return next();
     }
 
     if (!sails.config.appbuilder) {
-        next();
-        return;
+        return next();
     }
 
     // Expected format is "relay@@@<mcc access token>@@@<ABRelayUser UUID>"
@@ -39,9 +36,10 @@ module.exports = function(req, res, next) {
     var userUUID = authParts[2];
 
     if (mccToken != sails.config.appbuilder.mcc.accessToken) {
-        sails.log.debug("relayAuth: incorrect MCC access token");
-        next();
-        return;
+        ADCore.error.log("relayAuth: incorrect MCC access token", {
+            "mcc access token": mccToken
+        });
+        return next();
     }
         
 
@@ -50,9 +48,10 @@ module.exports = function(req, res, next) {
 
         // if we didn't find one, continue:
         if (!relayUser) {
-            sails.log.debug('relayAuth: token provided, but no user matching token:'+token);
-            next();
-            return;
+            ADCore.error.log("relayAuth: no matching relay user UUID", {
+                "relayuserUUID": userUUID
+            });
+            return next();
         }
 
         ADCore.auth.loadUserByGUID(relayUser.siteuser_guid)
@@ -66,15 +65,15 @@ module.exports = function(req, res, next) {
         .done(function(user) {
 
             if (user) {
-                sails.log('relayAuth: User [' + relayUser.siteuser_guid + '] loaded using auth key');
+                sails.log('relayAuth: User [' + relayUser.siteuser_guid + '] loaded using uuid');
                 req.user = user;
                 
             } else {
 
                 var data = {
-                    message: '!!! relayAuth: User ['+ relayUser.siteuser_guid + '] NOT LOADED using auth key ['+token+']',
+                    message: '!!! relayAuth: User ['+ relayUser.siteuser_guid + '] NOT LOADED using uuid ['+userUUID+']',
                     relayUser:relayUser,
-                    token:token
+                    token:userUUID
                 }
                 ADCore.error.log('AppBuilder:Policy[relayAuth]:'+data.message, data);
             }
