@@ -68,34 +68,33 @@ module.exports = {
      */
     getLabels: function(context, languageCode) {
         languageCode = languageCode || sails.config.appdev["lang.default"];
-        
+
         return new Promise((resolve, reject) => {
-            .then(() => {
-                SiteMultilingualLabel.query(
-                    `
-                        SELECT
-                            label_key AS key,
-                            label_label AS label
-                        FROM
-                            site_multilingual_label
-                        WHERE
-                            label_context = ?
-                            AND language_code = ?
-                    `,
-                    [context, languageCode],
-                    (err, list) => {
-                        if (err) reject(err);
-                        else {
-                            var result = {};
-                            list = list || [];
-                            list.forEach((row) => {
-                                result[row.key] = row.label;
-                            });
-                            resolve(result);
-                        }
+            SiteMultilingualLabel.query(
+                `
+                    SELECT
+                        label_key AS key,
+                        label_label AS label
+                    FROM
+                        site_multilingual_label
+                    WHERE
+                        label_context = ?
+                        AND language_code = ?
+                `,
+                [context, languageCode],
+                (err, list) => {
+                    if (err) reject(err);
+                    else {
+                        var result = {};
+                        list = list || [];
+                        list.forEach((row) => {
+                            result[row.key] = row.label;
+                        });
+                        resolve(result);
                     }
-                );
-            });
+                }
+            );
+        });
     }
 
 };
