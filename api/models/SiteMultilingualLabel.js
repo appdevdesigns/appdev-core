@@ -73,8 +73,8 @@ module.exports = {
             SiteMultilingualLabel.query(
                 `
                     SELECT
-                        label_key AS key,
-                        label_label AS label
+                        label_key AS 'key',
+                        label_label AS 'label'
                     FROM
                         site_multilingual_label
                     WHERE
